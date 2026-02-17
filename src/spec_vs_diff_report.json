@@ -1,34 +1,39 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T21:22:20.498Z",
-  "summary": "REQ-65 appears implemented in AccessDeniedScreen with explicit \"Web control\" unsupported messaging and guidance to request Security/ICP Controller access while preserving Principal ID copy. REQ-64 cannot be confirmed from the provided diff excerpts; the Roles & Access panel changes shown do not include the required \"Web control\" copy, and the file summary does not mention it. Additionally, AccessDeniedScreen includes embedded ICP panels not requested by the BuildRequest.",
+  "generatedAt": "2026-02-17T21:58:45.867Z",
+  "summary": "REQ-76 and REQ-77 appear implemented via a new Web Control command registry and role-based selection in IcpOpsDashboard. REQ-78 is only partially implemented: audit recording is attempted for the web-controller-status command but not for other Web Control commands (help/clear). Additionally, the diff summary indicates extra World Wide Web Controller role-management hooks/features not requested in this BuildRequest.",
   "missing_requirements": [
     {
-      "id": "REQ-64",
-      "requirement": "Update Roles & Access panel copy to explicitly clarify that \"Web control\" / \"World Wide Web Controller\" is not supported, state only App Controller/Security/ICP Controller exist, and instruct users to share Principal ID with App Controller to request Security or ICP Controller.",
-      "reason": "The diff excerpt for RolesAccessPanel.tsx does not show any of the required \"Web control\" / \"World Wide Web Controller\" guidance text, and the frontend file summary for RolesAccessPanel is truncated without mentioning the new copy. Because the relevant section may be outside the truncated portion, implementation cannot be verified from the provided evidence.",
+      "id": "REQ-78",
+      "requirement": "Ensure every Web Control terminal command attempts best-effort audit recording using existing guard/audit helper patterns, without letting audit-recording failures cause the command itself to fail.",
+      "reason": "Only the 'web-controller-status' command attempts audit recording (tryRecordAuditEntry + appendAuditWarning). The other commands in the Web Control registry ('help' and 'clear') do not attempt audit recording per the added registry file.",
       "evidence": [
-        "frontend/src/components/RolesAccessPanel.tsx (truncated)",
-        "frontend-file-summaries.txt (RolesAccessPanel not described as containing Web control guidance)"
+        "frontend/src/terminal/worldWideWebControllerCommands.ts"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Embedded ICP Connection Status and ICP Controls panels added to the Access Denied screen.",
-      "reason": "BuildRequest only asks for copy/UX guidance updates on Roles & Access and Access Denied screens regarding the unsupported \"Web control\" role; adding ICP panels is outside the requested scope.",
+      "description": "Added React Query hooks for listing/granting/revoking World Wide Web Controller roles (role management mutations).",
+      "reason": "The BuildRequest only asked for a Web Control terminal experience and a safe command registry; it did not request adding role management query/mutation hooks.",
       "evidence": [
-        "frontend/src/components/AccessDeniedScreen.tsx (imports IcpConnectionPanel/IcpControlsPanel)",
-        "frontend-file-summaries.txt (AccessDeniedScreen described as embedding ICP panels)"
+        "frontend-file-summaries.txt (frontend/src/hooks/useQueries.ts summary mentions: useListWorldWideWebControllers, useGrantWorldWideWebControllerRole, useRevokeWorldWideWebControllerRole)"
+      ]
+    },
+    {
+      "description": "AdminDashboard includes a 'World Wide Web Controller management panel' (App Controller only).",
+      "reason": "Not requested by REQ-76/77/78; the request is specifically about the ICP Ops console terminal experience for World Wide Web Controller users and explicitly warns against exposing Security Dashboard features to Web Control users.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/pages/AdminDashboard.tsx summary mentions: 'World Wide Web Controller management panel (App Controller only)')"
       ]
     }
   ],
-  "confidence": 0.68,
+  "confidence": 0.74,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/AccessDeniedScreen.tsx",
-    "frontend/src/components/RolesAccessPanel.tsx",
+    "frontend/src/pages/IcpOpsDashboard.tsx",
+    "frontend/src/terminal/worldWideWebControllerCommands.ts",
     "project_state.json"
   ]
 }

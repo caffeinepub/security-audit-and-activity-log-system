@@ -1,8 +1,4 @@
-import type { TerminalCommand } from './types';
 import { coreCommands } from './coreCommands';
+import type { TerminalCommand } from './types';
 
-/**
- * Full command registry for Security/App Controller users.
- * This is the default registry used by the Security Dashboard terminal.
- */
 export const commandRegistry: TerminalCommand[] = [...coreCommands];

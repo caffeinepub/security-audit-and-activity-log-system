@@ -43,7 +43,8 @@ export type T__1 = { 'unauthorizedAttempt' : null } |
   { 'general' : null } |
   { 'accountChange' : null } |
   { 'configUpload' : null } |
-  { 'dataImport' : null };
+  { 'dataImport' : null } |
+  { 'worldWideWebControllerPrivilegeChange' : null };
 export type T__2 = { 'warning' : null } |
   { 'info' : null } |
   { 'critical' : null };
@@ -84,6 +85,7 @@ export interface _SERVICE {
   >,
   'exportAuditLogToJson' : ActorMethod<[], Array<T>>,
   'flagUser' : ActorMethod<[Principal], undefined>,
+  'getAllWorldWideWebControllers' : ActorMethod<[], Array<Principal>>,
   'getAppController' : ActorMethod<[], [] | [Principal]>,
   'getAuditLogs' : ActorMethod<[T__4], Array<T>>,
   'getCallerAppControllerStatus' : ActorMethod<[], boolean>,
@@ -97,17 +99,21 @@ export interface _SERVICE {
     undefined
   >,
   'grantSecurityRole' : ActorMethod<[Principal], undefined>,
+  'grantWorldWideWebControllerRole' : ActorMethod<[Principal], undefined>,
   'hasIcpControllerRole' : ActorMethod<[], boolean>,
+  'hasWorldWideWebControllerRole' : ActorMethod<[], boolean>,
   'initialize' : ActorMethod<[InstanceContext], undefined>,
   'isAppController' : ActorMethod<[Principal], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isSecurityUser' : ActorMethod<[], boolean>,
   'isUserFlagged' : ActorMethod<[Principal], boolean>,
+  'isWorldWideWebController' : ActorMethod<[Principal], boolean>,
   'listIcpControllers' : ActorMethod<[boolean], Array<IcpController>>,
   'recordAuditEntry' : ActorMethod<[T], undefined>,
   'removeUser' : ActorMethod<[Principal], undefined>,
   'revokeIcpControllerRole' : ActorMethod<[Principal], undefined>,
   'revokeSecurityRole' : ActorMethod<[Principal], undefined>,
+  'revokeWorldWideWebControllerRole' : ActorMethod<[Principal], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'unflagUser' : ActorMethod<[Principal], undefined>,

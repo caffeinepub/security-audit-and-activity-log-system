@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 37,
+  "projectStateVersion": 43,
   "summary": "Project to add a \"Security\" role with higher privileges than Administrator for the caffeine website, controlled/authorized by the app controller (user), and expand the app to connect to the Internet Computer (canister API integration), add Internet Identity login, and support deployment to ICP mainnet; also add a working superuser UI control to support security audits.",
   "architectural_notes": [
     "Planned: dashboard will include an App Controller–only standalone in-browser code editor capable of editing both backend (Motoko) and frontend (React/TypeScript) code, with an action to apply changes and trigger deploy.",
@@ -15,7 +15,8 @@
     "App can get stuck on \"Loading\" after deploy / on first load.",
     "Root Terminal is not accepting commands or showing output even when ICP Connection shows \"Connected\" (terminal input/handler may be broken).",
     "ICP Controller page/panel is not visible/accessible in the app UI (user reports they don't see the ICP Controller page).",
-    "ICP Controller page/panel still not visible/accessible in the app UI (user reports they still can't see it after latest deploy)."
+    "ICP Controller page/panel still not visible/accessible in the app UI (user reports they still can't see it after latest deploy).",
+    "Privilege escalation risk related to granting the World Wide Web Controller (\"Web control\") role needs to be removed before role granting is safe."
   ],
   "isFixRequest": false,
   "existing_features": [
@@ -458,6 +459,78 @@
         "REQ-65"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-react-query-support-for-the-world-wide-web-controller-role-a-caller-status-query-hook-plus-app-controller-only-hooks-for-listing-granting-and-revoking-world-wide-web-controller-principals-including-correct-cache-invalidation-so-ui-updates-immediately-after-changes",
+      "title": "Add React Query support for the World Wide Web Controller role: a caller-status query hook plus App Controller–only hooks for listing, granting, and revoking World Wide Web Controller principals, including correct cache invalidation so UI updates immediately after changes.",
+      "reqIds": [
+        "REQ-68"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-frontend-access-gating-so-authenticated-users-with-the-world-wide-web-controller-role-can-access-an-icp-operations-experience-the-existing-icp-operations-console-without-requiring-app-controller-or-security-while-keeping-the-security-dashboard-restricted-to-app-controller-or-security-users",
+      "title": "Extend frontend access gating so authenticated users with the World Wide Web Controller role can access an ICP operations experience (the existing ICP Operations Console) without requiring App Controller or Security, while keeping the Security Dashboard restricted to App Controller or Security users.",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-security-dashboard-admindashboard-with-an-app-controller-only-management-panel-for-the-world-wide-web-controller-role-that-allows-entering-a-principal-granting-the-role-revoking-the-role-and-viewing-the-current-list-of-world-wide-web-controller-principals",
+      "title": "Extend the Security Dashboard (AdminDashboard) with an App Controller–only management panel for the World Wide Web Controller role that allows entering a principal, granting the role, revoking the role, and viewing the current list of World Wide Web Controller principals.",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-user-facing-copy-throughout-the-app-to-treat-world-wide-web-controller-web-control-as-a-supported-role-remove-the-current-not-supported-warnings-and-include-it-in-the-displayed-list-of-supported-roles-english-only",
+      "title": "Update user-facing copy throughout the app to treat \"World Wide Web Controller\" / \"Web control\" as a supported role (remove the current \"not supported\" warnings) and include it in the displayed list of supported roles (English only).",
+      "reqIds": [
+        "REQ-71"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-root-terminal-support-for-world-wide-web-controller-administration-in-the-full-security-app-controller-terminal-command-set-by-adding-real-backend-powered-commands-to-list-grant-revoke-and-check-status-for-the-world-wide-web-controller-role",
+      "title": "Add Root Terminal support for World Wide Web Controller administration in the full (Security/App Controller) terminal command set by adding real backend-powered commands to list, grant, revoke, and check status for the World Wide Web Controller role.",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-world-wide-web-controller-management-ui-to-reflect-the-new-behavior-remove-avoid-any-user-facing-messaging-that-claims-granting-the-world-wide-web-controller-role-to-the-app-controller-is-blocked-due-to-privilege-escalation-risk-and-ensure-any-errors-shown-when-granting-are-accurate-english-only",
+      "title": "Update the frontend World Wide Web Controller management UI to reflect the new behavior: remove/avoid any user-facing messaging that claims granting the World Wide Web Controller role to the App Controller is blocked due to privilege escalation risk, and ensure any errors shown when granting are accurate (English only).",
+      "reqIds": [
+        "REQ-75"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-icp-operations-console-frontend-src-pages-icpopsdashboard-tsx-to-provide-a-distinct-web-control-experience-when-the-authenticated-user-has-the-world-wide-web-controller-role-web-control-including-selecting-a-web-control-specific-terminal-command-registry-instead-of-always-using-the-icp-controller-command-registry",
+      "title": "Update the ICP Operations Console (frontend/src/pages/IcpOpsDashboard.tsx) to provide a distinct Web Control experience when the authenticated user has the World Wide Web Controller role (\"Web Control\"), including selecting a Web Control-specific terminal command registry instead of always using the ICP Controller command registry.",
+      "reqIds": [
+        "REQ-76"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-new-web-control-safe-terminal-command-registry-new-file-under-frontend-src-terminal-e-g-frontend-src-terminal-worldwidewebcontrollercommands-ts-and-wire-it-into-icpopsdashboard-for-world-wide-web-controller-users-the-command-set-must-be-safe-no-security-audit-role-admin-user-management-broadcast-config-commands-and-must-include-at-minimum-help-clear-and-a-role-self-check-command-that-reports-world-wide-web-controller-role-status-using-a-real-backend-canister-call",
+      "title": "Create a new Web Control-safe terminal command registry (new file under frontend/src/terminal/, e.g. frontend/src/terminal/worldWideWebControllerCommands.ts) and wire it into IcpOpsDashboard for World Wide Web Controller users. The command set must be safe (no security/audit/role-admin/user-management/broadcast-config commands) and must include at minimum: help, clear, and a role self-check command that reports World Wide Web Controller role status using a real backend canister call.",
+      "reqIds": [
+        "REQ-77"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-every-web-control-terminal-command-attempts-best-effort-audit-recording-using-the-existing-terminal-guard-audit-helper-patterns-and-that-audit-recording-failures-never-cause-the-command-itself-to-fail-mirror-the-reliability-behavior-expected-of-the-root-terminal",
+      "title": "Ensure every Web Control terminal command attempts best-effort audit recording using the existing terminal guard/audit helper patterns, and that audit-recording failures never cause the command itself to fail (mirror the reliability behavior expected of the Root Terminal).",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -653,6 +726,44 @@
       "id": "AR-33",
       "summary": "Handle user request to add \"Web control\" access/role (either implement a new role if in-scope or explicitly message that only App Controller, Security, and ICP Controller are supported).",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-34",
+      "summary": "Implement/support a new \"World Wide Web Controller\" role within the app and extend the dashboard to expose/manage those controls (role-based access + UI).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Implement a new privileged role named \"World Wide Web Controller\" (also referred to as \"Web control\") in the backend canister, including persisted role membership state and caller-status checks.",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Record audit log entries for every World Wide Web Controller role change (grant/revoke), using the existing audit log mechanism and including the initiator principal, the target principal, and whether the change was a grant or revoke.",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Update the backend World Wide Web Controller role-granting logic so the App Controller can grant the World Wide Web Controller role to any principal, including granting it to themselves, without triggering a “privilege escalation risk” trap.",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Ensure the World Wide Web Controller role does not grant access to Security/App Controller–only backend operations (audit logs, user management, external broadcasting config, Security role administration, ICP Controller administration), and that those operations continue to require App Controller or Security authorization even after a principal is granted the World Wide Web Controller role.",
+      "reqIds": [
+        "REQ-74"
+      ],
       "status": "pending"
     }
   ],

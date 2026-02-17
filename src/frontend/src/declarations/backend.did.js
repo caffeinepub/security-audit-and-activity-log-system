@@ -23,6 +23,7 @@ export const T__1 = IDL.Variant({
   'accountChange' : IDL.Null,
   'configUpload' : IDL.Null,
   'dataImport' : IDL.Null,
+  'worldWideWebControllerPrivilegeChange' : IDL.Null,
 });
 export const Time = IDL.Int;
 export const T__2 = IDL.Variant({
@@ -96,6 +97,11 @@ export const idlService = IDL.Service({
     ),
   'exportAuditLogToJson' : IDL.Func([], [IDL.Vec(T)], []),
   'flagUser' : IDL.Func([IDL.Principal], [], []),
+  'getAllWorldWideWebControllers' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Principal)],
+      ['query'],
+    ),
   'getAppController' : IDL.Func([], [IDL.Opt(IDL.Principal)], ['query']),
   'getAuditLogs' : IDL.Func([T__4], [IDL.Vec(T)], ['query']),
   'getCallerAppControllerStatus' : IDL.Func([], [IDL.Bool], ['query']),
@@ -114,12 +120,15 @@ export const idlService = IDL.Service({
       [],
     ),
   'grantSecurityRole' : IDL.Func([IDL.Principal], [], []),
+  'grantWorldWideWebControllerRole' : IDL.Func([IDL.Principal], [], []),
   'hasIcpControllerRole' : IDL.Func([], [IDL.Bool], ['query']),
+  'hasWorldWideWebControllerRole' : IDL.Func([], [IDL.Bool], ['query']),
   'initialize' : IDL.Func([InstanceContext], [], []),
   'isAppController' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isSecurityUser' : IDL.Func([], [IDL.Bool], ['query']),
   'isUserFlagged' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
+  'isWorldWideWebController' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
   'listIcpControllers' : IDL.Func(
       [IDL.Bool],
       [IDL.Vec(IcpController)],
@@ -129,6 +138,7 @@ export const idlService = IDL.Service({
   'removeUser' : IDL.Func([IDL.Principal], [], []),
   'revokeIcpControllerRole' : IDL.Func([IDL.Principal], [], []),
   'revokeSecurityRole' : IDL.Func([IDL.Principal], [], []),
+  'revokeWorldWideWebControllerRole' : IDL.Func([IDL.Principal], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'transform' : IDL.Func(
       [TransformationInput],
@@ -161,6 +171,7 @@ export const idlFactory = ({ IDL }) => {
     'accountChange' : IDL.Null,
     'configUpload' : IDL.Null,
     'dataImport' : IDL.Null,
+    'worldWideWebControllerPrivilegeChange' : IDL.Null,
   });
   const Time = IDL.Int;
   const T__2 = IDL.Variant({
@@ -231,6 +242,11 @@ export const idlFactory = ({ IDL }) => {
       ),
     'exportAuditLogToJson' : IDL.Func([], [IDL.Vec(T)], []),
     'flagUser' : IDL.Func([IDL.Principal], [], []),
+    'getAllWorldWideWebControllers' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Principal)],
+        ['query'],
+      ),
     'getAppController' : IDL.Func([], [IDL.Opt(IDL.Principal)], ['query']),
     'getAuditLogs' : IDL.Func([T__4], [IDL.Vec(T)], ['query']),
     'getCallerAppControllerStatus' : IDL.Func([], [IDL.Bool], ['query']),
@@ -249,12 +265,19 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'grantSecurityRole' : IDL.Func([IDL.Principal], [], []),
+    'grantWorldWideWebControllerRole' : IDL.Func([IDL.Principal], [], []),
     'hasIcpControllerRole' : IDL.Func([], [IDL.Bool], ['query']),
+    'hasWorldWideWebControllerRole' : IDL.Func([], [IDL.Bool], ['query']),
     'initialize' : IDL.Func([InstanceContext], [], []),
     'isAppController' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isSecurityUser' : IDL.Func([], [IDL.Bool], ['query']),
     'isUserFlagged' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
+    'isWorldWideWebController' : IDL.Func(
+        [IDL.Principal],
+        [IDL.Bool],
+        ['query'],
+      ),
     'listIcpControllers' : IDL.Func(
         [IDL.Bool],
         [IDL.Vec(IcpController)],
@@ -264,6 +287,7 @@ export const idlFactory = ({ IDL }) => {
     'removeUser' : IDL.Func([IDL.Principal], [], []),
     'revokeIcpControllerRole' : IDL.Func([IDL.Principal], [], []),
     'revokeSecurityRole' : IDL.Func([IDL.Principal], [], []),
+    'revokeWorldWideWebControllerRole' : IDL.Func([IDL.Principal], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'transform' : IDL.Func(
         [TransformationInput],

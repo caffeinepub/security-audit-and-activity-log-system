@@ -24,6 +24,7 @@ actor {
       #configUpload;
       #general;
       #superuserPrivilegeChange;
+      #worldWideWebControllerPrivilegeChange;
     };
   };
 
@@ -106,6 +107,13 @@ actor {
     revokedTimestamp : ?Time.Time;
   };
 
+  public type WorldWideWebController = {
+    roleAssigned : Bool;
+    assignedTimestamp : Time.Time;
+    principal : Principal;
+    grantedBy : ?Principal;
+  };
+
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
@@ -119,6 +127,7 @@ actor {
   var externalEndpointUrl : ?Text = null;
 
   var icpControllerState = Map.empty<Principal, IcpController>();
+  var worldWideWebControllerState = Map.empty<Principal, WorldWideWebController>();
   var auditLogEntries : List.List<AuditEntry.T> = List.empty<AuditEntry.T>();
 
   public query ({ caller }) func getAppController() : async ?Principal {
@@ -558,6 +567,84 @@ actor {
       timestamp = Time.now();
       user = initiator;
       actionType = #superuserPrivilegeChange;
+      details = details # " (Target " # target.toText() # ", granted: " # debug_show granted # ")";
+      ipAddress = null;
+      deviceInfo = null;
+      sessionData = null;
+      success = ?true;
+      severity = #info;
+    };
+    auditLogEntries.add(auditEntry);
+  };
+
+  // New role: World Wide Web Controller
+
+  public shared ({ caller }) func grantWorldWideWebControllerRole(target : Principal) : async () {
+    assertAppController(caller);
+    let newController : WorldWideWebController = {
+      principal = target;
+      roleAssigned = true;
+      assignedTimestamp = Time.now();
+      grantedBy = ?caller;
+    };
+    worldWideWebControllerState.add(target, newController);
+    recordWorldWideWebControllerAuditEvent("Granted World Wide Web Controller role", caller, target, true);
+  };
+
+  public shared ({ caller }) func revokeWorldWideWebControllerRole(target : Principal) : async () {
+    assertAppController(caller);
+
+    switch (worldWideWebControllerState.get(target)) {
+      case (null) {
+        Runtime.trap("World Wide Web Controller role does not exist");
+      };
+      case (?controller) {
+        if (controller.roleAssigned) {
+          let updatedController = {
+            controller with
+            roleAssigned = false;
+            grantedBy = ?caller;
+          };
+          worldWideWebControllerState.add(target, updatedController);
+          recordWorldWideWebControllerAuditEvent("Revoked World Wide Web Controller role", caller, target, false);
+        } else {
+          Runtime.trap("World Wide Web Controller role is already revoked for this user");
+        };
+      };
+    };
+  };
+
+  public query ({ caller }) func hasWorldWideWebControllerRole() : async Bool {
+    switch (worldWideWebControllerState.get(caller)) {
+      case (?controller) { controller.roleAssigned };
+      case (null) { false };
+    };
+  };
+
+  public query ({ caller }) func isWorldWideWebController(target : Principal) : async Bool {
+    switch (worldWideWebControllerState.get(target)) {
+      case (?controller) { controller.roleAssigned };
+      case (null) { false };
+    };
+  };
+
+  public query ({ caller }) func getAllWorldWideWebControllers() : async [Principal] {
+    assertAppController(caller);
+    worldWideWebControllerState.entries().map<(Principal, WorldWideWebController), Principal>(
+        func((principal, _)) : Principal { principal }
+      ).toArray();
+  };
+
+  func recordWorldWideWebControllerAuditEvent(
+    details : Text,
+    initiator : Principal,
+    target : Principal,
+    granted : Bool,
+  ) {
+    let auditEntry : AuditEntry.T = {
+      timestamp = Time.now();
+      user = initiator;
+      actionType = #worldWideWebControllerPrivilegeChange;
       details = details # " (Target " # target.toText() # ", granted: " # debug_show granted # ")";
       ipAddress = null;
       deviceInfo = null;

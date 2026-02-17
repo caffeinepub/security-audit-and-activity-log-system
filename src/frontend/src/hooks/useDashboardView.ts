@@ -1,73 +1,58 @@
 import { useState, useEffect } from 'react';
-import { getSessionParameter, storeSessionParameter, clearSessionParameter } from '../utils/urlParams';
 
 export type DashboardView = 'security' | 'icp-ops';
 
-const DASHBOARD_VIEW_KEY = 'dashboard-view';
+const SESSION_KEY = 'caffeine-dashboard-view';
 
-/**
- * Hook that manages the selected dashboard view with session-scoped persistence.
- * Validates the persisted selection against currently allowed views and provides
- * a safe fallback when roles/access change.
- */
 export function useDashboardView(
   hasSecurityAccess: boolean,
-  hasIcpControllerAccess: boolean,
+  hasIcpOpsAccess: boolean,
   isAuthenticated: boolean
 ) {
-  // Determine which views are allowed based on current roles
-  const allowedViews: DashboardView[] = [];
-  if (hasSecurityAccess) allowedViews.push('security');
-  if (hasIcpControllerAccess) allowedViews.push('icp-ops');
-
-  // Initialize from session storage or default to first allowed view
   const [selectedView, setSelectedView] = useState<DashboardView>(() => {
-    if (!isAuthenticated || allowedViews.length === 0) {
-      return 'security'; // Default fallback
-    }
-
-    const persisted = getSessionParameter(DASHBOARD_VIEW_KEY) as DashboardView | null;
+    if (!isAuthenticated) return 'security';
     
-    // Validate persisted view is still allowed
-    if (persisted && allowedViews.includes(persisted)) {
-      return persisted;
-    }
-
-    // Fall back to first allowed view
-    return allowedViews[0];
+    const stored = sessionStorage.getItem(SESSION_KEY) as DashboardView | null;
+    
+    if (stored === 'security' && hasSecurityAccess) return 'security';
+    if (stored === 'icp-ops' && hasIcpOpsAccess) return 'icp-ops';
+    
+    if (hasSecurityAccess) return 'security';
+    if (hasIcpOpsAccess) return 'icp-ops';
+    
+    return 'security';
   });
 
-  // Update session storage when view changes
-  useEffect(() => {
-    if (isAuthenticated && allowedViews.length > 0) {
-      storeSessionParameter(DASHBOARD_VIEW_KEY, selectedView);
-    }
-  }, [selectedView, isAuthenticated, allowedViews.length]);
+  const allowedViews: DashboardView[] = [];
+  if (hasSecurityAccess) allowedViews.push('security');
+  if (hasIcpOpsAccess) allowedViews.push('icp-ops');
 
-  // Clear session storage on logout
+  const canSwitchViews = allowedViews.length > 1;
+
   useEffect(() => {
     if (!isAuthenticated) {
-      clearSessionParameter(DASHBOARD_VIEW_KEY);
+      sessionStorage.removeItem(SESSION_KEY);
+      return;
     }
-  }, [isAuthenticated]);
 
-  // Validate and correct view when allowed views change
-  useEffect(() => {
-    if (allowedViews.length > 0 && !allowedViews.includes(selectedView)) {
-      setSelectedView(allowedViews[0]);
+    if (!allowedViews.includes(selectedView)) {
+      const fallback = allowedViews[0] || 'security';
+      setSelectedView(fallback);
+      sessionStorage.setItem(SESSION_KEY, fallback);
     }
-  }, [allowedViews, selectedView]);
+  }, [hasSecurityAccess, hasIcpOpsAccess, isAuthenticated, selectedView, allowedViews]);
 
-  const handleSelectView = (view: DashboardView) => {
+  const onSelectView = (view: DashboardView) => {
     if (allowedViews.includes(view)) {
       setSelectedView(view);
+      sessionStorage.setItem(SESSION_KEY, view);
     }
   };
 
   return {
     selectedView,
-    onSelectView: handleSelectView,
+    onSelectView,
     allowedViews,
-    canSwitchViews: allowedViews.length > 1,
+    canSwitchViews,
   };
 }

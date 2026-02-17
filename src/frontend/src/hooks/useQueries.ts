@@ -4,7 +4,7 @@ import { useInternetIdentity } from './useInternetIdentity';
 import type { UserProfile, T__4 as FilterCriteria, T as AuditEntry, InstanceContext, T__1 as ActionType, T__2 as EventSeverity, T__3 as BroadcastSettings, IcpController } from '../backend';
 import { toast } from 'sonner';
 import { Principal } from '@icp-sdk/core/principal';
-import { icpControllerStatusKey, icpControllersKey, securityStatusKey, appControllerStatusKey, appControllerPrincipalKey } from '../queryKeys';
+import { icpControllerStatusKey, icpControllersKey, securityStatusKey, appControllerStatusKey, appControllerPrincipalKey, worldWideWebControllerStatusKey, worldWideWebControllersKey } from '../queryKeys';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -104,6 +104,27 @@ export function useGetCallerIcpControllerStatus() {
     queryFn: async () => {
       if (!actor) return false;
       return actor.hasIcpControllerRole();
+    },
+    enabled: !!actor && !actorFetching && !!identity,
+    retry: false,
+  });
+
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
+export function useGetCallerWorldWideWebControllerStatus() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  const query = useQuery<boolean>({
+    queryKey: worldWideWebControllerStatusKey(identity?.getPrincipal().toString()),
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.hasWorldWideWebControllerRole();
     },
     enabled: !!actor && !actorFetching && !!identity,
     retry: false,
@@ -412,6 +433,65 @@ export function useRevokeSecurityRole() {
     },
     onError: (error: Error) => {
       toast.error(`Failed to revoke Security role: ${error.message}`);
+    },
+  });
+}
+
+export function useListWorldWideWebControllers() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<Principal[]>({
+    queryKey: worldWideWebControllersKey(),
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllWorldWideWebControllers();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useGrantWorldWideWebControllerRole() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (targetPrincipal: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const principal = Principal.fromText(targetPrincipal);
+      return actor.grantWorldWideWebControllerRole(principal);
+    },
+    onSuccess: (_, targetPrincipal) => {
+      queryClient.invalidateQueries({ queryKey: worldWideWebControllersKey() });
+      queryClient.invalidateQueries({ queryKey: worldWideWebControllerStatusKey(targetPrincipal) });
+      queryClient.invalidateQueries({ queryKey: ['worldWideWebControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+      toast.success('World Wide Web Controller role granted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to grant World Wide Web Controller role: ${error.message}`);
+    },
+  });
+}
+
+export function useRevokeWorldWideWebControllerRole() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (targetPrincipal: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const principal = Principal.fromText(targetPrincipal);
+      return actor.revokeWorldWideWebControllerRole(principal);
+    },
+    onSuccess: (_, targetPrincipal) => {
+      queryClient.invalidateQueries({ queryKey: worldWideWebControllersKey() });
+      queryClient.invalidateQueries({ queryKey: worldWideWebControllerStatusKey(targetPrincipal) });
+      queryClient.invalidateQueries({ queryKey: ['worldWideWebControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+      toast.success('World Wide Web Controller role revoked successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to revoke World Wide Web Controller role: ${error.message}`);
     },
   });
 }

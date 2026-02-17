@@ -4,7 +4,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useGetAppControllerPrincipal, useInitializeAppController } from '../hooks/useQueries';
-import { Copy, Shield, AlertCircle, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Copy, Shield, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function RolesAccessPanel() {
@@ -169,20 +169,13 @@ export default function RolesAccessPanel() {
                 Access to ICP operations and configuration management
               </span>
             </div>
+            <div className="flex items-start gap-2">
+              <Badge variant="outline" className="mt-0.5">World Wide Web Controller</Badge>
+              <span className="text-xs text-muted-foreground">
+                Access to ICP operations with web-specific controls (alias: Web control)
+              </span>
+            </div>
           </div>
-          
-          {/* Unsupported Role Warning */}
-          <Alert variant="destructive">
-            <XCircle className="h-4 w-4" />
-            <AlertDescription className="text-xs space-y-2">
-              <p className="font-medium">
-                "Web control" / "World Wide Web Controller" is not a supported role in this application.
-              </p>
-              <p>
-                Only the three roles listed above (App Controller, Security, ICP Controller) are available.
-              </p>
-            </AlertDescription>
-          </Alert>
 
           {/* Request Access Guidance */}
           {isAuthenticated && (
@@ -196,6 +189,7 @@ export default function RolesAccessPanel() {
                 <ul className="list-disc list-inside space-y-1 ml-2">
                   <li><strong>Security role</strong> for security and audit features</li>
                   <li><strong>ICP Controller role</strong> for ICP operations</li>
+                  <li><strong>World Wide Web Controller role</strong> for web-specific ICP operations</li>
                 </ul>
               </AlertDescription>
             </Alert>

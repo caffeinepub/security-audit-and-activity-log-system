@@ -74,7 +74,8 @@ export enum T__1 {
     general = "general",
     accountChange = "accountChange",
     configUpload = "configUpload",
-    dataImport = "dataImport"
+    dataImport = "dataImport",
+    worldWideWebControllerPrivilegeChange = "worldWideWebControllerPrivilegeChange"
 }
 export enum T__2 {
     warning = "warning",
@@ -91,6 +92,7 @@ export interface backendInterface {
     configureExternalBroadcasting(enabled: boolean, endpointUrl: string | null): Promise<void>;
     exportAuditLogToJson(): Promise<Array<T>>;
     flagUser(user: Principal): Promise<void>;
+    getAllWorldWideWebControllers(): Promise<Array<Principal>>;
     getAppController(): Promise<Principal | null>;
     getAuditLogs(filter: T__4): Promise<Array<T>>;
     getCallerAppControllerStatus(): Promise<boolean>;
@@ -101,17 +103,21 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     grantIcpControllerRole(target: Principal, name: string | null, description: string | null): Promise<void>;
     grantSecurityRole(target: Principal): Promise<void>;
+    grantWorldWideWebControllerRole(target: Principal): Promise<void>;
     hasIcpControllerRole(): Promise<boolean>;
+    hasWorldWideWebControllerRole(): Promise<boolean>;
     initialize(context: InstanceContext): Promise<void>;
     isAppController(user: Principal): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     isSecurityUser(): Promise<boolean>;
     isUserFlagged(user: Principal): Promise<boolean>;
+    isWorldWideWebController(target: Principal): Promise<boolean>;
     listIcpControllers(includeRevoked: boolean): Promise<Array<IcpController>>;
     recordAuditEntry(entry: T): Promise<void>;
     removeUser(user: Principal): Promise<void>;
     revokeIcpControllerRole(target: Principal): Promise<void>;
     revokeSecurityRole(target: Principal): Promise<void>;
+    revokeWorldWideWebControllerRole(target: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unflagUser(user: Principal): Promise<void>;

@@ -2,7 +2,7 @@ import type { TerminalCommand, TerminalOutput } from './types';
 import { Principal } from '@icp-sdk/core/principal';
 import { T__1, T__2 } from '../backend';
 import { tryRecordAuditEntry, appendAuditWarning, classifyError, requiresBackendAndAuth, formatTimestamp, parseSeverity, parseActionType } from './terminalGuards';
-import { icpControllerStatusKey, icpControllersKey, securityStatusKey } from '../queryKeys';
+import { icpControllerStatusKey, icpControllersKey, securityStatusKey, worldWideWebControllerStatusKey, worldWideWebControllersKey } from '../queryKeys';
 
 export const coreCommands: TerminalCommand[] = [
   {
@@ -390,6 +390,176 @@ export const coreCommands: TerminalCommand[] = [
     },
   },
 
+  // ===== World Wide Web Controller Role Management =====
+  {
+    name: 'www-controller-list',
+    aliases: ['list-www-controllers', 'web-control-list'],
+    description: 'List all World Wide Web Controllers (App Controller only)',
+    category: 'World Wide Web Controller',
+    usage: 'www-controller-list',
+    execute: async (args, context) => {
+      const authCheck = requiresBackendAndAuth(context);
+      if (authCheck) {
+        return { success: false, message: authCheck };
+      }
+
+      try {
+        const controllers = await context.actor.getAllWorldWideWebControllers();
+        
+        const auditWarning = await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.general,
+          details: 'Terminal command: www-controller-list executed',
+          success: true,
+          severity: T__2.info,
+        });
+
+        if (controllers.length === 0) {
+          return { success: true, message: appendAuditWarning('No World Wide Web Controllers have been assigned yet.', auditWarning) };
+        }
+
+        let output = `World Wide Web Controllers (${controllers.length}):\n\n`;
+        controllers.forEach((controller, index) => {
+          output += `${index + 1}. Principal: ${controller.toString()}\n`;
+        });
+
+        return { success: true, message: appendAuditWarning(output.trim(), auditWarning) };
+      } catch (error: any) {
+        await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.general,
+          details: `Terminal command failed: www-controller-list - ${error.message}`,
+          success: false,
+          severity: T__2.warning,
+        });
+        return { success: false, message: `Failed to list World Wide Web Controllers: ${classifyError(error, context)}` };
+      }
+    },
+  },
+  {
+    name: 'www-controller-grant',
+    aliases: ['grant-www-controller', 'web-control-grant'],
+    description: 'Grant World Wide Web Controller role to a user (App Controller only)',
+    category: 'World Wide Web Controller',
+    usage: 'www-controller-grant <principal>',
+    execute: async (args, context) => {
+      if (args.length === 0) {
+        return { success: false, message: 'Usage: www-controller-grant <principal>' };
+      }
+
+      const authCheck = requiresBackendAndAuth(context);
+      if (authCheck) {
+        return { success: false, message: authCheck };
+      }
+
+      try {
+        const principal = Principal.fromText(args[0]);
+        await context.actor.grantWorldWideWebControllerRole(principal);
+        
+        const auditWarning = await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.worldWideWebControllerPrivilegeChange,
+          details: `Terminal command: www-controller-grant ${args[0]}`,
+          success: true,
+          severity: T__2.warning,
+        });
+
+        context.queryClient.invalidateQueries({ queryKey: worldWideWebControllersKey() });
+        context.queryClient.invalidateQueries({ queryKey: worldWideWebControllerStatusKey(args[0]) });
+        context.queryClient.invalidateQueries({ queryKey: ['worldWideWebControllerStatus'] });
+        context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+
+        const message = `World Wide Web Controller role granted successfully to: ${args[0]}`;
+        return { success: true, message: appendAuditWarning(message, auditWarning) };
+      } catch (error: any) {
+        await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.worldWideWebControllerPrivilegeChange,
+          details: `Terminal command failed: www-controller-grant ${args[0]} - ${error.message}`,
+          success: false,
+          severity: T__2.critical,
+        });
+        return { success: false, message: `Failed to grant World Wide Web Controller role: ${classifyError(error, context)}` };
+      }
+    },
+  },
+  {
+    name: 'www-controller-revoke',
+    aliases: ['revoke-www-controller', 'web-control-revoke'],
+    description: 'Revoke World Wide Web Controller role from a user (App Controller only)',
+    category: 'World Wide Web Controller',
+    usage: 'www-controller-revoke <principal>',
+    execute: async (args, context) => {
+      if (args.length === 0) {
+        return { success: false, message: 'Usage: www-controller-revoke <principal>' };
+      }
+
+      const authCheck = requiresBackendAndAuth(context);
+      if (authCheck) {
+        return { success: false, message: authCheck };
+      }
+
+      try {
+        const principal = Principal.fromText(args[0]);
+        await context.actor.revokeWorldWideWebControllerRole(principal);
+        
+        const auditWarning = await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.worldWideWebControllerPrivilegeChange,
+          details: `Terminal command: www-controller-revoke ${args[0]}`,
+          success: true,
+          severity: T__2.warning,
+        });
+
+        context.queryClient.invalidateQueries({ queryKey: worldWideWebControllersKey() });
+        context.queryClient.invalidateQueries({ queryKey: worldWideWebControllerStatusKey(args[0]) });
+        context.queryClient.invalidateQueries({ queryKey: ['worldWideWebControllerStatus'] });
+        context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+
+        const message = `World Wide Web Controller role revoked successfully from: ${args[0]}`;
+        return { success: true, message: appendAuditWarning(message, auditWarning) };
+      } catch (error: any) {
+        await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.worldWideWebControllerPrivilegeChange,
+          details: `Terminal command failed: www-controller-revoke ${args[0]} - ${error.message}`,
+          success: false,
+          severity: T__2.critical,
+        });
+        return { success: false, message: `Failed to revoke World Wide Web Controller role: ${classifyError(error, context)}` };
+      }
+    },
+  },
+  {
+    name: 'www-controller-status',
+    aliases: ['is-www-controller', 'check-www-controller', 'web-control-status'],
+    description: 'Check if current user has World Wide Web Controller role',
+    category: 'World Wide Web Controller',
+    execute: async (args, context) => {
+      const authCheck = requiresBackendAndAuth(context);
+      if (authCheck) {
+        return { success: false, message: authCheck };
+      }
+
+      try {
+        const hasRole = await context.actor.hasWorldWideWebControllerRole();
+        
+        const auditWarning = await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.general,
+          details: 'Terminal command: www-controller-status executed',
+          success: true,
+          severity: T__2.info,
+        });
+
+        const status = hasRole ? 'YES - You have World Wide Web Controller role' : 'NO - You do not have World Wide Web Controller role';
+        return { success: true, message: appendAuditWarning(status, auditWarning) };
+      } catch (error: any) {
+        return { success: false, message: `Failed to check World Wide Web Controller status: ${classifyError(error, context)}` };
+      }
+    },
+  },
+
   // ===== Audit Log Operations =====
   {
     name: 'audit-export',
@@ -454,7 +624,7 @@ export const coreCommands: TerminalCommand[] = [
           output += `   Details: ${entry.details}\n`;
           output += `   Severity: ${entry.severity}\n`;
           if (entry.success !== undefined && entry.success !== null) {
-            output += `   Success: ${entry.success ? 'Yes' : 'No'}\n`;
+            output += `   Success: ${entry.success}\n`;
           }
           output += '\n';
         });
@@ -468,10 +638,10 @@ export const coreCommands: TerminalCommand[] = [
 
   // ===== User Profile Operations =====
   {
-    name: 'profile-show',
-    aliases: ['show-profile', 'whoami'],
-    description: 'Show current user profile',
-    category: 'Profile',
+    name: 'profile-view',
+    aliases: ['view-profile', 'whoami'],
+    description: 'View current user profile',
+    category: 'User',
     execute: async (args, context) => {
       const authCheck = requiresBackendAndAuth(context);
       if (authCheck) {
@@ -480,13 +650,16 @@ export const coreCommands: TerminalCommand[] = [
 
       try {
         const profile = await context.actor.getCallerUserProfile();
-        const principal = context.identity?.getPrincipal().toString() || 'Unknown';
-
         if (!profile) {
-          return { success: true, message: `Principal: ${principal}\nProfile: Not set up yet` };
+          return { success: true, message: 'No profile found. Please set up your profile first.' };
         }
 
-        return { success: true, message: `Principal: ${principal}\nName: ${profile.name}` };
+        const principal = context.identity.getPrincipal().toString();
+        let output = 'Your Profile:\n\n';
+        output += `Name: ${profile.name}\n`;
+        output += `Principal: ${principal}`;
+
+        return { success: true, message: output };
       } catch (error: any) {
         return { success: false, message: `Failed to retrieve profile: ${classifyError(error, context)}` };
       }
@@ -513,28 +686,12 @@ export const coreCommands: TerminalCommand[] = [
       try {
         const principal = Principal.fromText(args[0]);
         await context.actor.flagUser(principal);
-        
-        const auditWarning = await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.accountChange,
-          details: `Terminal command: user-flag ${args[0]}`,
-          success: true,
-          severity: T__2.warning,
-        });
 
         context.queryClient.invalidateQueries({ queryKey: ['flaggedUsers'] });
         context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
 
-        const message = `User flagged successfully: ${args[0]}`;
-        return { success: true, message: appendAuditWarning(message, auditWarning) };
+        return { success: true, message: `User flagged successfully: ${args[0]}` };
       } catch (error: any) {
-        await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.accountChange,
-          details: `Terminal command failed: user-flag ${args[0]} - ${error.message}`,
-          success: false,
-          severity: T__2.critical,
-        });
         return { success: false, message: `Failed to flag user: ${classifyError(error, context)}` };
       }
     },
@@ -558,28 +715,11 @@ export const coreCommands: TerminalCommand[] = [
       try {
         const principal = Principal.fromText(args[0]);
         await context.actor.unflagUser(principal);
-        
-        const auditWarning = await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.accountChange,
-          details: `Terminal command: user-unflag ${args[0]}`,
-          success: true,
-          severity: T__2.info,
-        });
 
         context.queryClient.invalidateQueries({ queryKey: ['flaggedUsers'] });
-        context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
 
-        const message = `User unflagged successfully: ${args[0]}`;
-        return { success: true, message: appendAuditWarning(message, auditWarning) };
+        return { success: true, message: `User unflagged successfully: ${args[0]}` };
       } catch (error: any) {
-        await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.accountChange,
-          details: `Terminal command failed: user-unflag ${args[0]} - ${error.message}`,
-          success: false,
-          severity: T__2.warning,
-        });
         return { success: false, message: `Failed to unflag user: ${classifyError(error, context)}` };
       }
     },
@@ -598,25 +738,17 @@ export const coreCommands: TerminalCommand[] = [
 
       try {
         const flaggedUsers = await context.actor.getFlaggedUsers();
-        
-        const auditWarning = await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.general,
-          details: 'Terminal command: user-list-flagged executed',
-          success: true,
-          severity: T__2.info,
-        });
 
         if (flaggedUsers.length === 0) {
-          return { success: true, message: appendAuditWarning('No flagged users found.', auditWarning) };
+          return { success: true, message: 'No flagged users found.' };
         }
 
         let output = `Flagged Users (${flaggedUsers.length}):\n\n`;
-        flaggedUsers.forEach((principal, index) => {
-          output += `${index + 1}. ${principal.toString()}\n`;
+        flaggedUsers.forEach((user, index) => {
+          output += `${index + 1}. ${user.toString()}\n`;
         });
 
-        return { success: true, message: appendAuditWarning(output.trim(), auditWarning) };
+        return { success: true, message: output.trim() };
       } catch (error: any) {
         return { success: false, message: `Failed to list flagged users: ${classifyError(error, context)}` };
       }
@@ -649,33 +781,13 @@ export const coreCommands: TerminalCommand[] = [
         const enabled = action === 'enable';
         const endpointUrl = args[1] || null;
 
-        if (enabled && !endpointUrl) {
-          return { success: false, message: 'Endpoint URL is required when enabling broadcasting.' };
-        }
-
         await context.actor.configureExternalBroadcasting(enabled, endpointUrl);
-        
-        const auditWarning = await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.configUpload,
-          details: `Terminal command: broadcast-config ${action}${endpointUrl ? ` ${endpointUrl}` : ''}`,
-          success: true,
-          severity: T__2.warning,
-        });
 
         context.queryClient.invalidateQueries({ queryKey: ['externalBroadcastingSettings'] });
         context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
 
-        const message = `Broadcasting ${enabled ? 'enabled' : 'disabled'} successfully${endpointUrl ? ` with endpoint: ${endpointUrl}` : ''}`;
-        return { success: true, message: appendAuditWarning(message, auditWarning) };
+        return { success: true, message: `Broadcasting ${enabled ? 'enabled' : 'disabled'} successfully${endpointUrl ? ` with endpoint: ${endpointUrl}` : ''}` };
       } catch (error: any) {
-        await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.configUpload,
-          details: `Terminal command failed: broadcast-config ${args.join(' ')} - ${error.message}`,
-          success: false,
-          severity: T__2.critical,
-        });
         return { success: false, message: `Failed to configure broadcasting: ${classifyError(error, context)}` };
       }
     },
@@ -683,7 +795,7 @@ export const coreCommands: TerminalCommand[] = [
   {
     name: 'broadcast-status',
     aliases: ['status-broadcast'],
-    description: 'Show current broadcasting configuration (Security/App Controller only)',
+    description: 'View current broadcasting configuration (Security/App Controller only)',
     category: 'Broadcasting',
     usage: 'broadcast-status',
     execute: async (args, context) => {
@@ -694,49 +806,36 @@ export const coreCommands: TerminalCommand[] = [
 
       try {
         const settings = await context.actor.getExternalBroadcastingSettings();
-        
-        const auditWarning = await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.general,
-          details: 'Terminal command: broadcast-status executed',
-          success: true,
-          severity: T__2.info,
-        });
 
-        let output = `Broadcasting Status:\n`;
-        output += `  Enabled: ${settings.enabled ? 'Yes' : 'No'}\n`;
-        if (settings.endpointUrl) {
-          output += `  Endpoint: ${settings.endpointUrl}`;
-        } else {
-          output += `  Endpoint: Not configured`;
-        }
+        let output = 'Broadcasting Configuration:\n\n';
+        output += `Status: ${settings.enabled ? 'Enabled' : 'Disabled'}\n`;
+        output += `Endpoint: ${settings.endpointUrl || 'Not configured'}`;
 
-        return { success: true, message: appendAuditWarning(output, auditWarning) };
+        return { success: true, message: output };
       } catch (error: any) {
         return { success: false, message: `Failed to retrieve broadcasting status: ${classifyError(error, context)}` };
       }
     },
   },
 
-  // ===== Local Diagnostic Commands =====
-  {
-    name: 'version',
-    aliases: ['ver'],
-    description: 'Display terminal version information',
-    category: 'Diagnostics',
-    execute: async () => ({
-      success: true,
-      message: 'ICP Ops Console Terminal v1.0.0\nSecurity & Operations Management System',
-    }),
-  },
+  // ===== Local Diagnostics =====
   {
     name: 'echo',
-    description: 'Echo the provided text',
+    description: 'Echo back the provided arguments',
     category: 'Diagnostics',
-    usage: 'echo <text>',
+    usage: 'echo <message>',
     execute: async (args) => ({
       success: true,
       message: args.join(' ') || '',
+    }),
+  },
+  {
+    name: 'date',
+    description: 'Display current date and time',
+    category: 'Diagnostics',
+    execute: async () => ({
+      success: true,
+      message: new Date().toString(),
     }),
   },
 ];

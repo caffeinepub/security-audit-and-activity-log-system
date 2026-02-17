@@ -9,24 +9,16 @@ interface DashboardViewSwitcherProps {
   canSwitchViews: boolean;
 }
 
-/**
- * View switcher control for users with multiple dashboard access levels.
- * Shows labeled buttons for Security Dashboard and ICP Operations with visual
- * indication of the currently selected view.
- */
 export default function DashboardViewSwitcher({
   selectedView,
   onSelectView,
   allowedViews,
   canSwitchViews,
 }: DashboardViewSwitcherProps) {
-  // Only render if user can switch between views
-  if (!canSwitchViews) {
-    return null;
-  }
+  if (!canSwitchViews) return null;
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border bg-muted/50 p-1">
+    <div className="flex items-center gap-1 rounded-lg border bg-muted/50 p-1">
       {allowedViews.includes('security') && (
         <Button
           variant={selectedView === 'security' ? 'default' : 'ghost'}

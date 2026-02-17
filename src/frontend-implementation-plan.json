@@ -1,36 +1,62 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Clarify unsupported 'Web control' role requests with in-app guidance",
+  "title": "Add Web Control (World Wide Web Controller) operator controls",
   "requirements": [
     {
-      "id": "REQ-64",
-      "summary": "Clarify in Roles & Access panel that 'Web control' / 'World Wide Web Controller' is not supported and guide users to supported roles and next steps.",
+      "id": "REQ-76",
+      "summary": "Render a distinct Web Control experience in IcpOpsDashboard by selecting a Web Control-specific terminal command registry for World Wide Web Controller users.",
       "acceptanceCriteria": [
-        "Roles & Access panel text explicitly mentions that \"Web control\" / \"World Wide Web Controller\" is not a supported role name in this app.",
-        "The UI clearly states (in English) that only these roles exist: App Controller, Security, ICP Controller.",
-        "The UI provides a clear next step: instruct the user to share their Principal ID with the App Controller to request either the Security role (for security/audit features) or the ICP Controller role (for ICP operations)."
+        "When a user has World Wide Web Controller role (and not ICP Controller role), the ICP Operations Console renders and uses a Web Control-specific command registry for the terminal.",
+        "When a user has ICP Controller role, the ICP Operations Console continues to use the existing ICP Controller command registry.",
+        "User-facing text on this page remains English-only."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/RolesAccessPanel.tsx",
+          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
           "operation": "modify",
-          "description": "Update the \"Supported Roles\" section copy to explicitly call out that \"Web control\" / \"World Wide Web Controller\" is not a supported role in this application; explicitly list App Controller, Security, and ICP Controller as the only roles; and add clear next-step guidance to share the user's Principal ID with the App Controller to request Security (security/audit) or ICP Controller (ICP operations). Use the authorization component's role-based access guidance patterns (copy/UX only). Verify the component's usage instructions before implementing."
+          "description": "Update role-based terminal behavior to choose between the existing icpControllerCommandRegistry and a new worldWideWebControllerCommandRegistry (ICP Controller takes precedence if both roles are present). Adjust terminal title/description strings to be Web Control-specific when applicable, while keeping all user-facing text English-only. Use the existing RBAC/role-check patterns provided by the authorization component (via existing role status hooks) to drive this UI behavior. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-65",
-      "summary": "Update Access Denied screen guidance for authenticated-but-unauthorized users to explicitly note 'Web control' is not supported and direct them to request Security or ICP Controller access.",
+      "id": "REQ-77",
+      "summary": "Add a Web Control-safe terminal command registry with minimal safe commands (help, clear, web-controller-status) and wire it into IcpOpsDashboard for World Wide Web Controller users.",
       "acceptanceCriteria": [
-        "When an authenticated user sees Access Denied, the page includes a sentence stating that \"Web control\" is not a supported role in this application.",
-        "The page continues to show the user’s Principal ID and one-click copy, and the guidance text recommends requesting Security or ICP Controller from the App Controller."
+        "A new command registry exists for World Wide Web Controller users and is used by the ICP Operations Terminal when the user is a Web Controller.",
+        "The registry includes: help, clear, and a \"web-controller-status\" (or equivalent) command that calls the backend to check the caller’s World Wide Web Controller status and prints an English result.",
+        "Web Control terminal commands do not expose Security Dashboard-only capabilities (audit logs, user management, broadcasting config, Security role admin, ICP Controller admin, or World Wide Web Controller admin)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AccessDeniedScreen.tsx",
+          "path": "frontend/src/terminal/worldWideWebControllerCommands.ts",
+          "operation": "create",
+          "description": "Create a new World Wide Web Controller-safe command registry exporting a TerminalCommand[] containing ONLY safe commands: help, clear, and a role self-check command (e.g., web-controller-status) that uses a real backend canister call available on the actor (hasWorldWideWebControllerRole) and prints an English-only result. Ensure the help output lists only commands in this registry, and ensure no security/audit dashboard-only, role-admin, user-management, or broadcast-config commands are present. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
           "operation": "modify",
-          "description": "Adjust authenticated Access Denied copy to: (1) explicitly state that \"Web control\" / \"World Wide Web Controller\" access cannot be granted because it is not a supported role in this app; (2) recommend requesting Security or ICP Controller access from the App Controller; and (3) keep the Principal ID display and one-click copy behavior intact. Align messaging with the authorization component's AccessDeniedScreen guidance approach (copy/UX only). Verify the component's usage instructions before implementing."
+          "description": "Import the new worldWideWebControllerCommandRegistry and wire it into RootTerminalPanel for World Wide Web Controller users (who are not ICP Controllers). Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-78",
+      "summary": "Ensure all Web Control terminal commands use best-effort audit recording patterns and never fail due to audit-recording issues.",
+      "acceptanceCriteria": [
+        "Each Web Control terminal command execution attempts audit recording where applicable.",
+        "If audit logging is unavailable (not authenticated, actor not available, or recording fails), the command still returns its primary output and includes a clear English warning if needed."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/terminal/worldWideWebControllerCommands.ts",
+          "operation": "modify",
+          "description": "Implement each command to follow existing terminal guard/audit helper patterns by using tryRecordAuditEntry and appendAuditWarning for best-effort audit recording. Ensure audit-recording failures are caught and reflected as an English warning appended to the command output, and never prevent the command’s primary output from being returned. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/terminal/terminalGuards.ts",
+          "operation": "modify",
+          "description": "If needed for consistency, add/adjust a small shared helper that simplifies producing a standard English audit warning output for Web Control commands without changing the reliability behavior (audit failures must never throw). Keep behavior aligned with tryRecordAuditEntry + appendAuditWarning patterns. Verify the component's usage instructions before implementing."
         }
       ]
     }

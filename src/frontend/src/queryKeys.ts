@@ -36,3 +36,17 @@ export function appControllerStatusKey(principalText?: string) {
 export function appControllerPrincipalKey() {
   return ['appControllerPrincipal'];
 }
+
+/**
+ * Query key for World Wide Web Controller status (principal-scoped).
+ */
+export function worldWideWebControllerStatusKey(principalText?: string) {
+  return ['worldWideWebControllerStatus', principalText];
+}
+
+/**
+ * Query key for World Wide Web Controllers list.
+ */
+export function worldWideWebControllersKey() {
+  return ['worldWideWebControllers'];
+}

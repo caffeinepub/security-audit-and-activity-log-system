@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-user-facing-copy-to-explicitly-clarify-that-a-requested-web-control-world-wide-web-controller-role-is-not-supported-by-this-application-and-guide-the-user-toward-the-supported-roles-app-controller-security-icp-controller-that-can-actually-be-granted",
-      "featureTitle": "Update user-facing copy to explicitly clarify that a requested \"Web control\" / \"World Wide Web Controller\" role is not supported by this application, and guide the user toward the supported roles (App Controller, Security, ICP Controller) that can actually be granted.",
+      "featureId": "feature-update-the-icp-operations-console-frontend-src-pages-icpopsdashboard-tsx-to-provide-a-distinct-web-control-experience-when-the-authenticated-user-has-the-world-wide-web-controller-role-web-control-including-selecting-a-web-control-specific-terminal-command-registry-instead-of-always-using-the-icp-controller-command-registry",
+      "featureTitle": "Update the ICP Operations Console (frontend/src/pages/IcpOpsDashboard.tsx) to provide a distinct Web Control experience when the authenticated user has the World Wide Web Controller role (\"Web Control\"), including selecting a Web Control-specific terminal command registry instead of always using the ICP Controller command registry.",
       "files": [
-        "frontend/src/components/RolesAccessPanel.tsx"
+        "frontend/src/pages/IcpOpsDashboard.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -17,15 +17,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-64"
+        "REQ-76"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-access-denied-screen-copy-for-authenticated-but-unauthorized-users-to-include-an-explicit-note-that-web-control-access-cannot-be-granted-because-it-is-not-a-supported-role-in-this-app-and-point-users-to-requesting-security-or-icp-controller-access-instead",
-      "featureTitle": "Update the Access Denied screen copy for authenticated-but-unauthorized users to include an explicit note that \"Web control\" access cannot be granted because it is not a supported role in this app, and point users to requesting Security or ICP Controller access instead.",
+      "featureId": "feature-create-a-new-web-control-safe-terminal-command-registry-new-file-under-frontend-src-terminal-e-g-frontend-src-terminal-worldwidewebcontrollercommands-ts-and-wire-it-into-icpopsdashboard-for-world-wide-web-controller-users-the-command-set-must-be-safe-no-security-audit-role-admin-user-management-broadcast-config-commands-and-must-include-at-minimum-help-clear-and-a-role-self-check-command-that-reports-world-wide-web-controller-role-status-using-a-real-backend-canister-call",
+      "featureTitle": "Create a new Web Control-safe terminal command registry (new file under frontend/src/terminal/, e.g. frontend/src/terminal/worldWideWebControllerCommands.ts) and wire it into IcpOpsDashboard for World Wide Web Controller users. The command set must be safe (no security/audit/role-admin/user-management/broadcast-config commands) and must include at minimum: help, clear, and a role self-check command that reports World Wide Web Controller role status using a real backend canister call.",
       "files": [
-        "frontend/src/components/AccessDeniedScreen.tsx"
+        "frontend/src/pages/IcpOpsDashboard.tsx",
+        "frontend/src/terminal/worldWideWebControllerCommands.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -37,7 +38,27 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-65"
+        "REQ-77"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-every-web-control-terminal-command-attempts-best-effort-audit-recording-using-the-existing-terminal-guard-audit-helper-patterns-and-that-audit-recording-failures-never-cause-the-command-itself-to-fail-mirror-the-reliability-behavior-expected-of-the-root-terminal",
+      "featureTitle": "Ensure every Web Control terminal command attempts best-effort audit recording using the existing terminal guard/audit helper patterns, and that audit-recording failures never cause the command itself to fail (mirror the reliability behavior expected of the Root Terminal).",
+      "files": [
+        "frontend/src/terminal/worldWideWebControllerCommands.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-78"
       ],
       "confidence": "high"
     }

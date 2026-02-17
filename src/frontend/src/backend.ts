@@ -156,7 +156,8 @@ export enum T__1 {
     general = "general",
     accountChange = "accountChange",
     configUpload = "configUpload",
-    dataImport = "dataImport"
+    dataImport = "dataImport",
+    worldWideWebControllerPrivilegeChange = "worldWideWebControllerPrivilegeChange"
 }
 export enum T__2 {
     warning = "warning",
@@ -174,6 +175,7 @@ export interface backendInterface {
     configureExternalBroadcasting(enabled: boolean, endpointUrl: string | null): Promise<void>;
     exportAuditLogToJson(): Promise<Array<T>>;
     flagUser(user: Principal): Promise<void>;
+    getAllWorldWideWebControllers(): Promise<Array<Principal>>;
     getAppController(): Promise<Principal | null>;
     getAuditLogs(filter: T__4): Promise<Array<T>>;
     getCallerAppControllerStatus(): Promise<boolean>;
@@ -184,17 +186,21 @@ export interface backendInterface {
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     grantIcpControllerRole(target: Principal, name: string | null, description: string | null): Promise<void>;
     grantSecurityRole(target: Principal): Promise<void>;
+    grantWorldWideWebControllerRole(target: Principal): Promise<void>;
     hasIcpControllerRole(): Promise<boolean>;
+    hasWorldWideWebControllerRole(): Promise<boolean>;
     initialize(context: InstanceContext): Promise<void>;
     isAppController(user: Principal): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     isSecurityUser(): Promise<boolean>;
     isUserFlagged(user: Principal): Promise<boolean>;
+    isWorldWideWebController(target: Principal): Promise<boolean>;
     listIcpControllers(includeRevoked: boolean): Promise<Array<IcpController>>;
     recordAuditEntry(entry: T): Promise<void>;
     removeUser(user: Principal): Promise<void>;
     revokeIcpControllerRole(target: Principal): Promise<void>;
     revokeSecurityRole(target: Principal): Promise<void>;
+    revokeWorldWideWebControllerRole(target: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unflagUser(user: Principal): Promise<void>;
@@ -270,6 +276,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.flagUser(arg0);
+            return result;
+        }
+    }
+    async getAllWorldWideWebControllers(): Promise<Array<Principal>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllWorldWideWebControllers();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllWorldWideWebControllers();
             return result;
         }
     }
@@ -413,6 +433,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async grantWorldWideWebControllerRole(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.grantWorldWideWebControllerRole(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.grantWorldWideWebControllerRole(arg0);
+            return result;
+        }
+    }
     async hasIcpControllerRole(): Promise<boolean> {
         if (this.processError) {
             try {
@@ -424,6 +458,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.hasIcpControllerRole();
+            return result;
+        }
+    }
+    async hasWorldWideWebControllerRole(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.hasWorldWideWebControllerRole();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.hasWorldWideWebControllerRole();
             return result;
         }
     }
@@ -497,6 +545,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async isWorldWideWebController(arg0: Principal): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isWorldWideWebController(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isWorldWideWebController(arg0);
+            return result;
+        }
+    }
     async listIcpControllers(arg0: boolean): Promise<Array<IcpController>> {
         if (this.processError) {
             try {
@@ -564,6 +626,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.revokeSecurityRole(arg0);
+            return result;
+        }
+    }
+    async revokeWorldWideWebControllerRole(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.revokeWorldWideWebControllerRole(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.revokeWorldWideWebControllerRole(arg0);
             return result;
         }
     }
@@ -768,8 +844,10 @@ function from_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uin
     configUpload: null;
 } | {
     dataImport: null;
+} | {
+    worldWideWebControllerPrivilegeChange: null;
 }): T__1 {
-    return "unauthorizedAttempt" in value ? T__1.unauthorizedAttempt : "loginAttempt" in value ? T__1.loginAttempt : "permissionChange" in value ? T__1.permissionChange : "superuserPrivilegeChange" in value ? T__1.superuserPrivilegeChange : "dataExport" in value ? T__1.dataExport : "general" in value ? T__1.general : "accountChange" in value ? T__1.accountChange : "configUpload" in value ? T__1.configUpload : "dataImport" in value ? T__1.dataImport : value;
+    return "unauthorizedAttempt" in value ? T__1.unauthorizedAttempt : "loginAttempt" in value ? T__1.loginAttempt : "permissionChange" in value ? T__1.permissionChange : "superuserPrivilegeChange" in value ? T__1.superuserPrivilegeChange : "dataExport" in value ? T__1.dataExport : "general" in value ? T__1.general : "accountChange" in value ? T__1.accountChange : "configUpload" in value ? T__1.configUpload : "dataImport" in value ? T__1.dataImport : "worldWideWebControllerPrivilegeChange" in value ? T__1.worldWideWebControllerPrivilegeChange : value;
 }
 function from_candid_vec_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_IcpController>): Array<IcpController> {
     return value.map((x)=>from_candid_IcpController_n26(_uploadFile, _downloadFile, x));
@@ -867,6 +945,8 @@ function to_candid_variant_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint
     configUpload: null;
 } | {
     dataImport: null;
+} | {
+    worldWideWebControllerPrivilegeChange: null;
 } {
     return value == T__1.unauthorizedAttempt ? {
         unauthorizedAttempt: null
@@ -886,6 +966,8 @@ function to_candid_variant_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint
         configUpload: null
     } : value == T__1.dataImport ? {
         dataImport: null
+    } : value == T__1.worldWideWebControllerPrivilegeChange ? {
+        worldWideWebControllerPrivilegeChange: null
     } : value;
 }
 function to_candid_variant_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: T__2): {

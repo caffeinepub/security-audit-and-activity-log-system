@@ -2,7 +2,7 @@ import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ShieldAlert, Lock, Copy, CheckCircle2, XCircle } from 'lucide-react';
+import { ShieldAlert, Lock, Copy, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
 import IcpConnectionPanel from './IcpConnectionPanel';
@@ -42,8 +42,8 @@ export default function AccessDeniedScreen() {
             <CardTitle className="text-2xl">Access Denied</CardTitle>
             <CardDescription>
               {isAuthenticated
-                ? 'You do not have permission to access the audit log system. Only the App Controller or authorized Security users can view security logs and manage users.'
-                : 'Please log in to access the security audit system.'}
+                ? 'You do not have permission to access this application.'
+                : 'Please log in to access the system.'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -57,29 +57,20 @@ export default function AccessDeniedScreen() {
             
             {isAuthenticated && (
               <>
-                {/* Unsupported Role Warning */}
-                <Alert variant="destructive">
-                  <XCircle className="h-4 w-4" />
-                  <AlertDescription className="space-y-2">
-                    <p className="font-medium text-sm">
-                      "Web control" is not a supported role in this application
-                    </p>
-                    <p className="text-xs">
-                      This application only supports three roles: App Controller, Security, and ICP Controller. 
-                      "Web control" / "World Wide Web Controller" access cannot be granted.
-                    </p>
-                  </AlertDescription>
-                </Alert>
-
                 {/* Access Request Guidance */}
                 <Alert>
                   <ShieldAlert className="h-4 w-4" />
                   <AlertDescription className="space-y-3">
                     <p className="font-medium">Request Access from App Controller</p>
                     <p className="text-sm">
-                      To gain access to this application, the App Controller must grant you either the <strong>Security role</strong> (for security and audit features) or the <strong>ICP Controller role</strong> (for ICP operations).
+                      To gain access to this application, the App Controller must grant you one of the following roles:
                     </p>
-                    <div className="space-y-2">
+                    <ul className="text-sm space-y-1 ml-4 list-disc">
+                      <li><strong>Security role</strong> – Access to security features, audit logs, and user management</li>
+                      <li><strong>ICP Controller role</strong> – Access to ICP operations and configuration management</li>
+                      <li><strong>World Wide Web Controller role</strong> (alias: Web control) – Access to ICP operations with web-specific controls</li>
+                    </ul>
+                    <div className="space-y-2 pt-2">
                       <p className="text-xs font-medium text-muted-foreground">Your Principal ID:</p>
                       <div className="flex items-center gap-2">
                         <code className="flex-1 rounded bg-muted px-3 py-2 font-mono text-xs break-all">
@@ -106,7 +97,7 @@ export default function AccessDeniedScreen() {
                       </div>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Share this Principal ID with the App Controller to request Security or ICP Controller access.
+                      Share this Principal ID with the App Controller to request access.
                     </p>
                   </AlertDescription>
                 </Alert>
