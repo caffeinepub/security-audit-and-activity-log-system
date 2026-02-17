@@ -1,0 +1,417 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 21,
+  "summary": "Project to add a \"Security\" role with higher privileges than Administrator for the caffeine website, controlled/authorized by the app controller (user), and expand the app to connect to the Internet Computer (canister API integration), add Internet Identity login, and support deployment to ICP mainnet; also add a working superuser UI control to support security audits.",
+  "architectural_notes": [
+    "Planned: dashboard will include an App Controller–only standalone in-browser code editor capable of editing both backend (Motoko) and frontend (React/TypeScript) code, with an action to apply changes and trigger deploy.",
+    "Planned: add ICP integration, including canister API wiring, Internet Identity authentication, and an ICP mainnet deployment path.",
+    "Planned: add an App Controller/Security-only in-app \"root terminal\" interface with an extensive command set for administrative management.",
+    "Decision: Root Terminal command set will be expanded to cover all backend capabilities and also include non-backend/utility commands; commands will be kept flat (no namespaces/groups).",
+    "Decision: Root Terminal administrative actions should be real (backend-powered) rather than simulated/local-only where applicable; remove simulations for admin operations."
+  ],
+  "known_issues": [
+    "Deployment/build flow failed during attempted deploy (\"Unable to complete deployment\" / \"build didn’t go through\").",
+    "Root Terminal feature is not working (user reports it doesn't work).",
+    "App can get stuck on \"Loading\" after deploy / on first load.",
+    "Root Terminal is not accepting commands or showing output even when ICP Connection shows \"Connected\" (terminal input/handler may be broken)."
+  ],
+  "isFixRequest": false,
+  "existing_features": [
+    {
+      "id": "feature-update-the-frontend-access-gating-so-that-users-who-are-either-app-controller-or-security-can-access-the-dashboard-all-others-see-access-denied",
+      "title": "Update the frontend access gating so that users who are either App Controller OR Security can access the dashboard; all others see Access Denied.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-user-facing-text-in-the-access-denied-screen-and-header-badge-s-to-reflect-the-new-security-role-english-only",
+      "title": "Update user-facing text in the Access Denied screen and header badge(s) to reflect the new Security role (English only).",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-app-controller-only-deployment-section-in-the-dashboard-ui-that-clearly-shows-where-and-how-to-deploy-the-app-including-a-prominent-external-link-to-https-caffeine-ai-and-concise-step-by-step-instructions-for-deploying-from-the-caffeine-platform-ui",
+      "title": "Add an App Controller–only “Deployment” section in the dashboard UI that clearly shows where and how to deploy the app, including a prominent external link to https://caffeine.ai and concise step-by-step instructions for deploying from the Caffeine platform UI.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-app-controller-only-dashboard-panel-to-manage-the-security-role-allow-entering-a-principal-granting-the-security-role-revoking-the-security-role-and-viewing-the-current-list-of-security-role-principals",
+      "title": "Add an App Controller–only dashboard panel to manage the Security role: allow entering a principal, granting the Security role, revoking the Security role, and viewing the current list of Security-role principals.",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-to-call-the-backend-apis-for-listing-security-role-principals-and-for-granting-revoking-the-security-role-including-cache-invalidation-for-any-affected-queries",
+      "title": "Add React Query hooks to call the backend APIs for listing Security-role principals and for granting/revoking the Security role, including cache invalidation for any affected queries.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-app-controller-only-standalone-code-editor-section-in-the-admin-dashboard-ui",
+      "title": "Add an App Controller–only, standalone \"Code Editor\" section in the admin dashboard UI.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-in-the-code-editor-section-provide-an-in-browser-editor-that-supports-editing-both-backend-motoko-code-and-frontend-react-typescript-code-by-selecting-from-a-fixed-set-of-supported-files-at-minimum-backend-main-mo-and-frontend-src-app-tsx",
+      "title": "In the Code Editor section, provide an in-browser editor that supports editing both backend Motoko code and frontend React/TypeScript code by selecting from a fixed set of supported files (at minimum: backend/main.mo and frontend/src/App.tsx).",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-apply-changes-action-in-the-code-editor-that-produces-a-deploy-ready-output-for-the-edited-files-without-attempting-to-self-modify-the-live-canister-code",
+      "title": "Implement an \"Apply changes\" action in the Code Editor that produces a deploy-ready output for the edited files without attempting to self-modify the live canister code.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-standalone-deploy-action-within-the-code-editor-section-that-guides-the-app-controller-to-deploy-via-https-caffeine-ai-reusing-the-same-deployment-guidance-approach-as-the-existing-deployment-panel",
+      "title": "Add a standalone \"Deploy\" action within the Code Editor section that guides the App Controller to deploy via https://caffeine.ai, reusing the same deployment guidance approach as the existing Deployment panel.",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-lightweight-safety-ux-layer-to-prevent-accidental-loss-of-edits-in-the-code-editor-unsaved-change-warning-and-reset",
+      "title": "Add a lightweight safety/UX layer to prevent accidental loss of edits in the Code Editor (unsaved-change warning and reset).",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-in-app-icp-connection-section-that-clearly-shows-whether-the-frontend-is-connected-to-the-internet-computer-canister-and-displays-the-active-canister-id-and-network-local-vs-mainnet-with-a-user-facing-error-state-when-the-backend-actor-is-not-available",
+      "title": "Add an in-app “ICP Connection” section that clearly shows whether the frontend is connected to the Internet Computer canister and displays the active canister ID and network (local vs mainnet), with a user-facing error state when the backend actor is not available.",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-internet-identity-login-is-fully-usable-for-icp-usage-by-adding-a-dashboard-visible-authentication-status-indicator-that-shows-the-caller-principal-when-logged-in-and-a-clear-english-error-message-when-login-fails-or-the-user-is-authenticated-but-the-principal-cannot-be-resolved-for-backend-calls",
+      "title": "Ensure Internet Identity login is fully usable for ICP usage by adding a dashboard-visible authentication status indicator that shows the caller principal when logged in, and a clear English error message when login fails or the user is authenticated but the principal cannot be resolved for backend calls.",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-icp-mainnet-deployment-guidance-in-the-dashboard-that-explains-in-english-how-to-deploy-this-app-to-the-internet-computer-mainnet-distinct-from-the-existing-https-caffeine-ai-deployment-guidance-and-include-a-clear-statement-of-prerequisites-dfx-setup-cycles-canister-ids",
+      "title": "Add ICP mainnet deployment guidance in the dashboard that explains (in English) how to deploy this app to the Internet Computer mainnet, distinct from the existing https://caffeine.ai deployment guidance, and include a clear statement of prerequisites (dfx setup, cycles, canister IDs).",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-working-superuser-ui-control-for-security-audits-that-is-visible-only-to-app-controller-and-security-users-it-must-provide-at-least-one-concrete-audit-workflow-action-exporting-audit-logs-to-a-downloadable-json-file-and-it-must-record-an-audit-log-entry-indicating-that-a-superuser-export-occurred",
+      "title": "Add a working “Superuser” UI control for security audits that is visible only to App Controller and Security users; it must provide at least one concrete audit workflow action: exporting audit logs to a downloadable JSON file, and it must record an audit-log entry indicating that a superuser export occurred.",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-expand-the-existing-superuser-audit-area-to-include-additional-superuser-actions-and-controls-beyond-audit-log-export-and-ensure-each-superuser-action-records-a-corresponding-audit-log-entry",
+      "title": "Expand the existing Superuser audit area to include additional superuser actions and controls beyond audit-log export, and ensure each superuser action records a corresponding audit log entry.",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hook-s-to-call-the-new-backend-read-api-for-external-broadcasting-configuration-and-update-the-ui-to-display-the-current-saved-configuration-state-not-just-local-form-state",
+      "title": "Add React Query hook(s) to call the new backend read API for external broadcasting configuration, and update the UI to display the current saved configuration state (not just local form state).",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-app-controller-security-only-root-terminal-panel-in-the-admin-dashboard-ui-that-provides-a-terminal-like-command-input-command-history-help-and-a-command-registry-designed-to-scale-to-hundreds-of-commands",
+      "title": "Add an App Controller/Security-only “Root Terminal” panel in the admin dashboard UI that provides a terminal-like command input, command history, help, and a command registry designed to scale to hundreds of commands.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-core-set-of-root-terminal-commands-that-map-to-existing-backend-capabilities-audit-logs-user-management-broadcasting-configuration-and-ensure-each-command-execution-is-recorded-as-an-audit-log-entry",
+      "title": "Implement a core set of Root Terminal commands that map to existing backend capabilities (audit logs, user management, broadcasting configuration) and ensure each command execution is recorded as an audit log entry.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-root-terminal-commands-execute-reliably-without-crashing-when-audit-logging-is-unavailable-e-g-user-not-authenticated-actor-not-available-or-audit-recording-fails-by-ensuring-audit-log-recording-from-terminal-commands-is-best-effort-and-never-causes-the-command-itself-to-fail",
+      "title": "Make Root Terminal commands execute reliably without crashing when audit logging is unavailable (e.g., user not authenticated, actor not available, or audit recording fails), by ensuring audit-log recording from terminal commands is best-effort and never causes the command itself to fail.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-root-terminal-user-facing-error-messages-and-status-hints-so-users-can-self-diagnose-why-commands-may-not-work-backend-connection-missing-login-required-insufficient-privileges-directly-in-the-terminal-output",
+      "title": "Improve Root Terminal user-facing error messages and status hints so users can self-diagnose why commands may not work (backend connection missing, login required, insufficient privileges) directly in the terminal output.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-root-terminal-basic-usability-works-end-to-end-typing-in-the-input-pressing-enter-to-execute-showing-output-and-core-commands-like-help-and-clear-functioning-consistently",
+      "title": "Ensure Root Terminal basic usability works end-to-end: typing in the input, pressing Enter to execute, showing output, and core commands like \"help\" and \"clear\" functioning consistently.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-expand-the-root-terminal-command-set-to-cover-all-available-backend-canister-capabilities-beyond-the-current-core-set-while-keeping-the-command-list-flat-non-namespaced-include-commands-for-security-role-administration-grant-revoke-and-status-in-addition-to-existing-audit-user-management-and-broadcasting-commands",
+      "title": "Expand the Root Terminal command set to cover all available backend canister capabilities beyond the current core set, while keeping the command list flat (non-namespaced). Include commands for Security role administration (grant, revoke, and status) in addition to existing audit, user-management, and broadcasting commands.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-root-terminal-commands-that-expose-backend-audit-log-functionality-beyond-export-including-at-minimum-listing-audit-logs-with-optional-filters-by-time-range-principal-severity-and-action-type-and-recording-a-new-audit-entry-with-user-supplied-fields-within-the-backend-s-authorization-rules",
+      "title": "Add Root Terminal commands that expose backend audit-log functionality beyond export, including at minimum: listing audit logs with optional filters (by time range, principal, severity, and action type) and recording a new audit entry with user-supplied fields (within the backend’s authorization rules).",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-root-terminal-commands-that-expose-backend-user-profile-capabilities-including-fetching-the-caller-s-profile-and-saving-updating-the-caller-s-profile-name",
+      "title": "Add Root Terminal commands that expose backend user-profile capabilities, including fetching the caller’s profile and saving/updating the caller’s profile (name).",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-root-terminal-utility-diagnostic-commands-non-backend-that-help-operators-self-diagnose-terminal-usage-and-environment-while-keeping-them-clearly-labeled-as-simulated-local-only-when-applicable",
+      "title": "Add Root Terminal utility/diagnostic commands (non-backend) that help operators self-diagnose terminal usage and environment, while keeping them clearly labeled as simulated/local-only when applicable.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-every-root-terminal-command-execution-backend-powered-and-local-only-attempts-to-record-a-best-effort-audit-log-entry-describing-the-command-invoked-including-arguments-where-safe-without-causing-the-command-to-fail-if-audit-logging-is-unavailable",
+      "title": "Ensure every Root Terminal command execution (backend-powered and local-only) attempts to record a best-effort audit log entry describing the command invoked (including arguments where safe), without causing the command to fail if audit logging is unavailable.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-new-icp-controls-panel-in-the-admin-dashboard-ui-visible-to-the-same-roles-as-the-dashboard-that-lets-an-operator-1-select-the-target-network-local-or-icp-mainnet-2-view-and-edit-the-active-canister-id-and-3-reset-these-settings-back-to-the-app-defaults",
+      "title": "Add a new \"ICP Controls\" panel in the Admin Dashboard UI (visible to the same roles as the dashboard) that lets an operator: (1) select the target network (Local or ICP Mainnet), (2) view and edit the active canister ID, and (3) reset these settings back to the app defaults.",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-persist-icp-controls-settings-on-the-client-so-that-a-they-survive-page-navigation-and-refresh-during-the-session-and-b-they-can-optionally-be-provided-via-url-parameters-for-quick-access-during-operations-url-provided-values-must-take-precedence-over-stored-values",
+      "title": "Persist ICP Controls settings on the client so that (a) they survive page navigation and refresh during the session, and (b) they can optionally be provided via URL parameters for quick access during operations; URL-provided values must take precedence over stored values.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-effective-icp-controls-configuration-into-backend-actor-creation-so-that-the-app-attempts-to-connect-to-the-canister-specified-by-the-active-settings-network-canister-id-the-app-must-re-create-reconnect-the-actor-when-these-settings-change-so-that-backend-powered-features-including-the-root-terminal-use-the-updated-target",
+      "title": "Wire the effective ICP Controls configuration into backend actor creation so that the app attempts to connect to the canister specified by the active settings (network + canister ID). The app must re-create/reconnect the actor when these settings change so that backend-powered features (including the Root Terminal) use the updated target.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-existing-icp-connection-status-panel-to-display-the-effective-network-and-canister-id-that-the-app-is-currently-configured-to-use-including-any-overrides-coming-from-icp-controls-and-provide-clear-english-error-text-when-the-configured-target-cannot-be-reached",
+      "title": "Update the existing \"ICP Connection Status\" panel to display the *effective* network and canister ID that the app is currently configured to use (including any overrides coming from ICP Controls), and provide clear English error text when the configured target cannot be reached.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-simulated-placeholder-command-set-from-the-root-terminal-command-registry-so-that-the-terminal-only-exposes-commands-that-are-either-a-real-backend-powered-administrative-operations-or-b-explicitly-labeled-local-only-diagnostics-no-fake-os-file-network-commands",
+      "title": "Remove the simulated/placeholder command set from the Root Terminal command registry so that the terminal only exposes commands that are either (a) real backend-powered administrative operations or (b) explicitly labeled local-only diagnostics (no fake OS/file/network commands).",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-that-any-root-terminal-commands-that-perform-administrative-actions-e-g-role-security-management-audit-operations-user-management-broadcasting-configuration-execute-real-backend-canister-calls-and-do-not-return-simulated-success-messages",
+      "title": "Ensure that any Root Terminal commands that perform administrative actions (e.g., role/security management, audit operations, user management, broadcasting configuration) execute real backend canister calls and do not return simulated success messages.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-root-terminal-user-facing-copy-to-accurately-describe-the-terminal-s-capabilities-internet-computer-canister-administration-avoiding-claims-of-full-system-access",
+      "title": "Update Root Terminal user-facing copy to accurately describe the terminal’s capabilities (Internet Computer canister administration), avoiding claims of “full system access.”",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Add a Security role above Administrator with site-wide security/authorization privileges for the user (app controller) on the caffeine website.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Add a new privileged role named \"Security\" that can be authorized by the App Controller and is treated as higher privilege than Administrator for security/audit operations.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Implement backend authorization so Security-role users can access and perform all existing security console operations currently restricted to the App Controller: reading audit logs, recording audit entries, flagging/unflagging users, removing users, and configuring external broadcasting.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Add backend methods to (a) grant and revoke Security role for a target principal (App Controller only), and (b) query whether the caller is Security.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Add an App Controller capability/UI to deploy new versions of the app (initiate deployment from within the app).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Extend the App Controller’s powers/privileges beyond the current deployment capability (details TBD).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Add backend support for App Controller–only Security role administration by exposing a query to list all current Security-role principals (for display in the dashboard).",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "When the App Controller grants or revokes the Security role, record an audit log entry describing the permission change (including the target principal) using the existing audit log mechanism.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Add an App Controller–only standalone in-browser code editor in the dashboard that can edit both backend Motoko and frontend React/TypeScript code and apply changes via an integrated deploy action.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Integrate the frontend with the Internet Computer canister APIs (connect frontend to canister for backend calls).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Add Internet Identity login/authentication (ICP) for user sign-in.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Add/support deployment of the app to ICP mainnet (deployment flow targeting ICP).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Add a working \"superuser\" button/control in the UI to enable the user to perform security audits properly.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Expand the Superuser UI to include additional superuser actions and controls (beyond the existing audit-log export) to better support security audit workflows.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Add an App Controller/Security-only \"root terminal\" interface in the dashboard with a large command set (hundreds of commands) for administrative management.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Add backend read APIs required to support the new superuser controls and the planned Root Terminal, including a query to retrieve the current external broadcasting configuration state (enabled flag and endpoint URL).",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Expand Root Terminal to a full, flat (non-namespaced) command set covering all backend capabilities (audit logs, user management, broadcasting config, roles, deployment, ICP status, code-editor actions, etc.) plus non-backend utility/diagnostic commands.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Add ICP controls in the app UI (beyond connection status), e.g., manage/select network (local vs mainnet), view/set active canister ID, and provide clear connection/auth controls/actions for ICP integration.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "Remove simulated/local-only behavior from the Root Terminal so administrative actions execute as real backend-powered operations (where authorized) rather than simulations.",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Caffeine Security Console",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}

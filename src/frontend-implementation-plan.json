@@ -1,0 +1,74 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Root Terminal: remove simulated commands and ensure admin commands are backend-backed",
+  "requirements": [
+    {
+      "id": "REQ-37",
+      "summary": "Remove simulated placeholder OS/file/network command registrations so only real backend admin commands and explicitly local-only diagnostics are exposed.",
+      "acceptanceCriteria": [
+        "The generated command lists in frontend/src/terminal/commandRegistry.ts (e.g., sysinfo/ps/ls/ping/git/sudo/etc.) are no longer registered as runnable commands.",
+        "Entering previously-simulated commands (e.g., \"ls\", \"ping\", \"ps\", \"sudo\") returns \"Command not found\" (or equivalent) rather than a simulated success message.",
+        "The Root Terminal \"help\" output no longer lists categories/commands that were previously simulated (System Info, File System, Network, etc.)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/terminal/commandRegistry.ts",
+          "operation": "modify",
+          "description": "Delete/disable generateExtendedCommands() so simulated command categories (System Info, File System, Network, etc.) are not registered; remove simulated alias mappings (e.g., l->ls, md->mkdir) so only aliases for real commands remain; ensure the registry only contains core backend-powered admin commands and any explicitly-labeled local-only diagnostics."
+        },
+        {
+          "path": "frontend/src/terminal/coreCommands.ts",
+          "operation": "modify",
+          "description": "Review command categories/descriptions to ensure no fake OS/file/network commands are defined; if any local-only diagnostics commands exist/are added, ensure they are explicitly labeled as local-only diagnostics and do not imply OS-level access."
+        }
+      ]
+    },
+    {
+      "id": "REQ-38",
+      "summary": "Ensure all administrative terminal commands execute real backend canister calls and surface success/failure based on the backend outcome (no simulated success).",
+      "acceptanceCriteria": [
+        "For each administrative terminal command, execution results reflect the outcome of the corresponding backend call (success only when the backend call succeeds; failure when it fails).",
+        "No administrative command output contains the word \"simulated\" or claims to have performed an action without calling the backend.",
+        "When the backend is not available or the user is not authenticated, administrative commands fail with a clear English message guiding the user to check ICP Connection Status and/or log in (reusing the existing guard messaging behavior)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/terminal/coreCommands.ts",
+          "operation": "modify",
+          "description": "Audit every administrative command implementation to ensure it (1) uses requiresBackendAndAuth(context) (or equivalent shared guard) before performing admin actions, (2) calls a real backend actor method (e.g., role/security management, audit operations, user management, broadcasting configuration) rather than returning hardcoded success, (3) removes any remaining simulated/placeholder copy in outputs, and (4) reports errors using classifyError(error, context) so auth/backend-unavailable cases guide the user to check ICP Connection Status and/or log in."
+        },
+        {
+          "path": "frontend/src/terminal/terminalGuards.ts",
+          "operation": "modify",
+          "description": "Ensure classifyError()/requiresBackendAndAuth() messages are clear, English, and consistently guide the user to ICP Connection Status and login for backend/auth failures; keep guard messaging aligned with existing UI behavior."
+        },
+        {
+          "path": "frontend/src/components/RootTerminalPanel.tsx",
+          "operation": "modify",
+          "description": "Ensure terminal execution error rendering remains based on command success/failure results (including backend failures) and does not mask backend errors with simulated success; keep the existing request/response model."
+        }
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "summary": "Update Root Terminal UI copy to accurately describe Internet Computer canister administration (no claims of full system access or simulated commands).",
+      "acceptanceCriteria": [
+        "The Root Terminal panel description text in frontend/src/components/RootTerminalPanel.tsx is updated to a truthful English description that does not imply OS-level access.",
+        "The initial welcome message and help text remain in English and do not suggest simulated command behavior."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/RootTerminalPanel.tsx",
+          "operation": "modify",
+          "description": "Update the CardDescription text to describe the terminal as an Internet Computer canister administration interface (auditing, roles, user/broadcast configuration) and remove the phrase implying \"full system access\"; verify the initial welcome message remains accurate and English-only."
+        },
+        {
+          "path": "frontend/src/terminal/coreCommands.ts",
+          "operation": "modify",
+          "description": "Review the help output and any command descriptions/usages to ensure wording is truthful (no simulated behavior claims; no OS-level access claims) and reflects only the commands that remain registered."
+        }
+      ]
+    }
+  ]
+}

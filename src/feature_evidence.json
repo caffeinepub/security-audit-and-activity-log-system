@@ -1,0 +1,68 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-remove-the-simulated-placeholder-command-set-from-the-root-terminal-command-registry-so-that-the-terminal-only-exposes-commands-that-are-either-a-real-backend-powered-administrative-operations-or-b-explicitly-labeled-local-only-diagnostics-no-fake-os-file-network-commands",
+      "featureTitle": "Remove the simulated/placeholder command set from the Root Terminal command registry so that the terminal only exposes commands that are either (a) real backend-powered administrative operations or (b) explicitly labeled local-only diagnostics (no fake OS/file/network commands).",
+      "files": [
+        "frontend/src/terminal/commandRegistry.ts",
+        "frontend/src/terminal/coreCommands.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-37"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-that-any-root-terminal-commands-that-perform-administrative-actions-e-g-role-security-management-audit-operations-user-management-broadcasting-configuration-execute-real-backend-canister-calls-and-do-not-return-simulated-success-messages",
+      "featureTitle": "Ensure that any Root Terminal commands that perform administrative actions (e.g., role/security management, audit operations, user management, broadcasting configuration) execute real backend canister calls and do not return simulated success messages.",
+      "files": [
+        "frontend/src/components/RootTerminalPanel.tsx",
+        "frontend/src/terminal/coreCommands.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-38"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-root-terminal-user-facing-copy-to-accurately-describe-the-terminal-s-capabilities-internet-computer-canister-administration-avoiding-claims-of-full-system-access",
+      "featureTitle": "Update Root Terminal user-facing copy to accurately describe the terminal’s capabilities (Internet Computer canister administration), avoiding claims of “full system access.”",
+      "files": [
+        "frontend/src/components/RootTerminalPanel.tsx",
+        "frontend/src/terminal/coreCommands.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-39"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

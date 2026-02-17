@@ -1,0 +1,69 @@
+{
+  "kind": "coverage_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-17T18:07:42.393Z",
+  "sources": {
+    "buildRequest": true,
+    "implementationPlan": true
+  },
+  "requirements": {
+    "total": 3,
+    "implemented": 3,
+    "items": [
+      {
+        "id": "REQ-37",
+        "summary": "Remove the simulated/placeholder command set from the Root Terminal command registry so that the terminal only exposes commands that are either (a) real backend-powered administrative operations or (b) explicitly labeled local-only diagnostics (no fake OS/file/network commands).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/terminal/commandRegistry.ts",
+          "frontend/src/terminal/coreCommands.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/terminal/commandRegistry.ts",
+          "frontend/src/terminal/coreCommands.ts"
+        ]
+      },
+      {
+        "id": "REQ-38",
+        "summary": "Ensure that any Root Terminal commands that perform administrative actions (e.g., role/security management, audit operations, user management, broadcasting configuration) execute real backend canister calls and do not return simulated success messages.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/terminal/coreCommands.ts",
+          "frontend/src/terminal/terminalGuards.ts",
+          "frontend/src/components/RootTerminalPanel.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/terminal/coreCommands.ts",
+          "frontend/src/components/RootTerminalPanel.tsx"
+        ]
+      },
+      {
+        "id": "REQ-39",
+        "summary": "Update Root Terminal user-facing copy to accurately describe the terminal’s capabilities (Internet Computer canister administration), avoiding claims of “full system access.”",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/RootTerminalPanel.tsx",
+          "frontend/src/terminal/coreCommands.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/RootTerminalPanel.tsx",
+          "frontend/src/terminal/coreCommands.ts"
+        ]
+      }
+    ]
+  },
+  "changedFiles": [
+    "backend/main.mo",
+    "build-request.json",
+    "feature_evidence.json",
+    "frontend-file-summaries.txt",
+    "frontend-implementation-plan.json",
+    "frontend/src/components/RootTerminalPanel.tsx",
+    "frontend/src/terminal/commandRegistry.ts",
+    "frontend/src/terminal/coreCommands.ts",
+    "project_state.json",
+    "scratch/component-selection.json",
+    "spec.md",
+    "spec_vs_diff_report.json"
+  ]
+}
