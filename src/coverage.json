@@ -1,49 +1,65 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T21:58:45.872Z",
+  "generatedAt": "2026-02-17T22:15:26.587Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
-    "implemented": 3,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-76",
-        "summary": "Update the ICP Operations Console (frontend/src/pages/IcpOpsDashboard.tsx) to provide a distinct Web Control experience when the authenticated user has the World Wide Web Controller role (\"Web Control\"), including selecting a Web Control-specific terminal command registry instead of always using the ICP Controller command registry.",
+        "id": "REQ-79",
+        "summary": "Expand the World Wide Web Controller (\"Web Control\") terminal command set to include the previously suggested additions: (1) read-only ICP diagnostic commands, (2) frontend-side operational tools, and (3) self-service role/principal confirmation helpers, while keeping the command set safe (no security/audit/role-admin/user-management/broadcasting-config commands).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/IcpOpsDashboard.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/IcpOpsDashboard.tsx"
-        ]
-      },
-      {
-        "id": "REQ-77",
-        "summary": "Create a new Web Control-safe terminal command registry (new file under frontend/src/terminal/, e.g. frontend/src/terminal/worldWideWebControllerCommands.ts) and wire it into IcpOpsDashboard for World Wide Web Controller users. The command set must be safe (no security/audit/role-admin/user-management/broadcast-config commands) and must include at minimum: help, clear, and a role self-check command that reports World Wide Web Controller role status using a real backend canister call.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/terminal/worldWideWebControllerCommands.ts",
-          "frontend/src/pages/IcpOpsDashboard.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/terminal/worldWideWebControllerCommands.ts",
-          "frontend/src/pages/IcpOpsDashboard.tsx"
-        ]
-      },
-      {
-        "id": "REQ-78",
-        "summary": "Ensure every Web Control terminal command attempts best-effort audit recording using the existing terminal guard/audit helper patterns, and that audit-recording failures never cause the command itself to fail (mirror the reliability behavior expected of the Root Terminal).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/terminal/worldWideWebControllerCommands.ts",
-          "frontend/src/terminal/terminalGuards.ts"
-        ],
-        "matchedFiles": [
+          "frontend/src/terminal/webControlCommandCatalog.ts",
           "frontend/src/terminal/worldWideWebControllerCommands.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/terminal/webControlCommandCatalog.ts",
+          "frontend/src/terminal/worldWideWebControllerCommands.ts"
+        ]
+      },
+      {
+        "id": "REQ-80",
+        "summary": "Scale the Web Control terminal to \"hundreds more\" functions by implementing a data-driven Web Control command catalog that produces at least 200 distinct Web Control commands available via \"help\", without making the terminal unusable.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/terminal/webControlCommandCatalog.ts",
+          "frontend/src/terminal/worldWideWebControllerCommands.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/terminal/webControlCommandCatalog.ts",
+          "frontend/src/terminal/worldWideWebControllerCommands.ts"
+        ]
+      },
+      {
+        "id": "REQ-81",
+        "summary": "Ensure every Web Control terminal command (existing and newly added) attempts best-effort audit recording using the existing terminal guard/audit helper pattern and never fails solely because audit logging is unavailable (backend not reachable, user not authenticated, or audit recording fails).",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/terminal/webControlAudit.ts",
+          "frontend/src/terminal/worldWideWebControllerCommands.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/terminal/webControlAudit.ts",
+          "frontend/src/terminal/worldWideWebControllerCommands.ts"
+        ]
+      },
+      {
+        "id": "REQ-82",
+        "summary": "Add a Web Control-focused “quick tools” UI section within the ICP Operations Console for World Wide Web Controller users that exposes safe frontend-side actions (for example: copy principal, export ICP Controls settings JSON, import ICP Controls settings JSON, reset ICP Controls to defaults, and refresh/retry connection checks) without exposing Security Dashboard-only functionality.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/WebControlQuickToolsPanel.tsx",
+          "frontend/src/pages/IcpOpsDashboard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/WebControlQuickToolsPanel.tsx",
+          "frontend/src/pages/IcpOpsDashboard.tsx"
         ]
       }
     ]
@@ -53,7 +69,10 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/components/WebControlQuickToolsPanel.tsx",
     "frontend/src/pages/IcpOpsDashboard.tsx",
+    "frontend/src/terminal/webControlAudit.ts",
+    "frontend/src/terminal/webControlCommandCatalog.ts",
     "frontend/src/terminal/worldWideWebControllerCommands.ts",
     "project_state.json",
     "scratch/component-selection.json",

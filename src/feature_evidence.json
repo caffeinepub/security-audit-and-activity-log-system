@@ -2,9 +2,73 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-icp-operations-console-frontend-src-pages-icpopsdashboard-tsx-to-provide-a-distinct-web-control-experience-when-the-authenticated-user-has-the-world-wide-web-controller-role-web-control-including-selecting-a-web-control-specific-terminal-command-registry-instead-of-always-using-the-icp-controller-command-registry",
-      "featureTitle": "Update the ICP Operations Console (frontend/src/pages/IcpOpsDashboard.tsx) to provide a distinct Web Control experience when the authenticated user has the World Wide Web Controller role (\"Web Control\"), including selecting a Web Control-specific terminal command registry instead of always using the ICP Controller command registry.",
+      "featureId": "feature-expand-the-world-wide-web-controller-web-control-terminal-command-set-to-include-the-previously-suggested-additions-1-read-only-icp-diagnostic-commands-2-frontend-side-operational-tools-and-3-self-service-role-principal-confirmation-helpers-while-keeping-the-command-set-safe-no-security-audit-role-admin-user-management-broadcasting-config-commands",
+      "featureTitle": "Expand the World Wide Web Controller (\"Web Control\") terminal command set to include the previously suggested additions: (1) read-only ICP diagnostic commands, (2) frontend-side operational tools, and (3) self-service role/principal confirmation helpers, while keeping the command set safe (no security/audit/role-admin/user-management/broadcasting-config commands).",
       "files": [
+        "frontend/src/terminal/webControlCommandCatalog.ts",
+        "frontend/src/terminal/worldWideWebControllerCommands.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-79"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-scale-the-web-control-terminal-to-hundreds-more-functions-by-implementing-a-data-driven-web-control-command-catalog-that-produces-at-least-200-distinct-web-control-commands-available-via-help-without-making-the-terminal-unusable",
+      "featureTitle": "Scale the Web Control terminal to \"hundreds more\" functions by implementing a data-driven Web Control command catalog that produces at least 200 distinct Web Control commands available via \"help\", without making the terminal unusable.",
+      "files": [
+        "frontend/src/terminal/webControlCommandCatalog.ts",
+        "frontend/src/terminal/worldWideWebControllerCommands.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-80"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-every-web-control-terminal-command-existing-and-newly-added-attempts-best-effort-audit-recording-using-the-existing-terminal-guard-audit-helper-pattern-and-never-fails-solely-because-audit-logging-is-unavailable-backend-not-reachable-user-not-authenticated-or-audit-recording-fails",
+      "featureTitle": "Ensure every Web Control terminal command (existing and newly added) attempts best-effort audit recording using the existing terminal guard/audit helper pattern and never fails solely because audit logging is unavailable (backend not reachable, user not authenticated, or audit recording fails).",
+      "files": [
+        "frontend/src/terminal/webControlAudit.ts",
+        "frontend/src/terminal/worldWideWebControllerCommands.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-81"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-web-control-focused-quick-tools-ui-section-within-the-icp-operations-console-for-world-wide-web-controller-users-that-exposes-safe-frontend-side-actions-for-example-copy-principal-export-icp-controls-settings-json-import-icp-controls-settings-json-reset-icp-controls-to-defaults-and-refresh-retry-connection-checks-without-exposing-security-dashboard-only-functionality",
+      "featureTitle": "Add a Web Control-focused “quick tools” UI section within the ICP Operations Console for World Wide Web Controller users that exposes safe frontend-side actions (for example: copy principal, export ICP Controls settings JSON, import ICP Controls settings JSON, reset ICP Controls to defaults, and refresh/retry connection checks) without exposing Security Dashboard-only functionality.",
+      "files": [
+        "frontend/src/components/WebControlQuickToolsPanel.tsx",
         "frontend/src/pages/IcpOpsDashboard.tsx"
       ],
       "components": [
@@ -17,48 +81,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-76"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-create-a-new-web-control-safe-terminal-command-registry-new-file-under-frontend-src-terminal-e-g-frontend-src-terminal-worldwidewebcontrollercommands-ts-and-wire-it-into-icpopsdashboard-for-world-wide-web-controller-users-the-command-set-must-be-safe-no-security-audit-role-admin-user-management-broadcast-config-commands-and-must-include-at-minimum-help-clear-and-a-role-self-check-command-that-reports-world-wide-web-controller-role-status-using-a-real-backend-canister-call",
-      "featureTitle": "Create a new Web Control-safe terminal command registry (new file under frontend/src/terminal/, e.g. frontend/src/terminal/worldWideWebControllerCommands.ts) and wire it into IcpOpsDashboard for World Wide Web Controller users. The command set must be safe (no security/audit/role-admin/user-management/broadcast-config commands) and must include at minimum: help, clear, and a role self-check command that reports World Wide Web Controller role status using a real backend canister call.",
-      "files": [
-        "frontend/src/pages/IcpOpsDashboard.tsx",
-        "frontend/src/terminal/worldWideWebControllerCommands.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-77"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-every-web-control-terminal-command-attempts-best-effort-audit-recording-using-the-existing-terminal-guard-audit-helper-patterns-and-that-audit-recording-failures-never-cause-the-command-itself-to-fail-mirror-the-reliability-behavior-expected-of-the-root-terminal",
-      "featureTitle": "Ensure every Web Control terminal command attempts best-effort audit recording using the existing terminal guard/audit helper patterns, and that audit-recording failures never cause the command itself to fail (mirror the reliability behavior expected of the Root Terminal).",
-      "files": [
-        "frontend/src/terminal/worldWideWebControllerCommands.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-78"
+        "REQ-82"
       ],
       "confidence": "high"
     }

@@ -1,62 +1,89 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add Web Control (World Wide Web Controller) operator controls",
+  "title": "Web Control: Data-Driven Safe Command Catalog + Quick Tools",
   "requirements": [
     {
-      "id": "REQ-76",
-      "summary": "Render a distinct Web Control experience in IcpOpsDashboard by selecting a Web Control-specific terminal command registry for World Wide Web Controller users.",
+      "id": "REQ-79",
+      "summary": "Expand Web Control commands with safe diagnostics, frontend operational tools, and self-service principal/role helpers (no admin/security capabilities).",
       "acceptanceCriteria": [
-        "When a user has World Wide Web Controller role (and not ICP Controller role), the ICP Operations Console renders and uses a Web Control-specific command registry for the terminal.",
-        "When a user has ICP Controller role, the ICP Operations Console continues to use the existing ICP Controller command registry.",
-        "User-facing text on this page remains English-only."
+        "When a user has the World Wide Web Controller role, the ICP Operations Console uses the Web Control terminal registry (frontend/src/terminal/worldWideWebControllerCommands.ts) and exposes the new command categories for diagnostics, operational tools, and self-service helpers.",
+        "All new Web Control commands are limited to safe read-only diagnostics and user self-service actions, and do not provide any ability to manage roles, access audit logs, manage users, or edit broadcasting configuration.",
+        "All user-facing command descriptions, usage strings, and outputs are in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
-          "operation": "modify",
-          "description": "Update role-based terminal behavior to choose between the existing icpControllerCommandRegistry and a new worldWideWebControllerCommandRegistry (ICP Controller takes precedence if both roles are present). Adjust terminal title/description strings to be Web Control-specific when applicable, while keeping all user-facing text English-only. Use the existing RBAC/role-check patterns provided by the authorization component (via existing role status hooks) to drive this UI behavior. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-77",
-      "summary": "Add a Web Control-safe terminal command registry with minimal safe commands (help, clear, web-controller-status) and wire it into IcpOpsDashboard for World Wide Web Controller users.",
-      "acceptanceCriteria": [
-        "A new command registry exists for World Wide Web Controller users and is used by the ICP Operations Terminal when the user is a Web Controller.",
-        "The registry includes: help, clear, and a \"web-controller-status\" (or equivalent) command that calls the backend to check the caller’s World Wide Web Controller status and prints an English result.",
-        "Web Control terminal commands do not expose Security Dashboard-only capabilities (audit logs, user management, broadcasting config, Security role admin, ICP Controller admin, or World Wide Web Controller admin)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/terminal/worldWideWebControllerCommands.ts",
+          "path": "frontend/src/terminal/webControlCommandCatalog.ts",
           "operation": "create",
-          "description": "Create a new World Wide Web Controller-safe command registry exporting a TerminalCommand[] containing ONLY safe commands: help, clear, and a role self-check command (e.g., web-controller-status) that uses a real backend canister call available on the actor (hasWorldWideWebControllerRole) and prints an English-only result. Ensure the help output lists only commands in this registry, and ensure no security/audit dashboard-only, role-admin, user-management, or broadcast-config commands are present. Verify the component's usage instructions before implementing."
+          "description": "Create a data-driven catalog that defines safe Web Control command metadata and generators for: (1) read-only ICP diagnostics (client-side/environment/connectivity summaries), (2) frontend-side operational tools (local config/export/import/reset helpers), and (3) self-service helpers (principal display/copy guidance and role confirmation helpers). Ensure the catalog explicitly excludes any security/audit/user-management/role-admin/broadcasting-config capabilities and keeps all text in English."
         },
         {
-          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
+          "path": "frontend/src/terminal/worldWideWebControllerCommands.ts",
           "operation": "modify",
-          "description": "Import the new worldWideWebControllerCommandRegistry and wire it into RootTerminalPanel for World Wide Web Controller users (who are not ICP Controllers). Verify the component's usage instructions before implementing."
+          "description": "Replace the static Web Control registry with catalog-driven command generation and updated category grouping for diagnostics/operational tools/self-service. Keep commands safe/read-only and ensure English descriptions/usage/output. Ensure the exported registry remains the single source for Web Control terminal usage in the ICP Operations Console."
         }
       ]
     },
     {
-      "id": "REQ-78",
-      "summary": "Ensure all Web Control terminal commands use best-effort audit recording patterns and never fail due to audit-recording issues.",
+      "id": "REQ-80",
+      "summary": "Scale Web Control to 200+ safe commands via a data-driven command catalog while keeping help responsive and readable.",
       "acceptanceCriteria": [
-        "Each Web Control terminal command execution attempts audit recording where applicable.",
-        "If audit logging is unavailable (not authenticated, actor not available, or recording fails), the command still returns its primary output and includes a clear English warning if needed."
+        "The Web Control terminal registry provides at least 200 distinct command names discoverable via \"help\" output for World Wide Web Controller users.",
+        "The \"help\" command remains responsive and readable with the expanded command set (grouped by category similar to the existing help behavior in frontend/src/terminal/worldWideWebControllerCommands.ts).",
+        "Each generated command has an English name, description, and (when applicable) usage string."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/terminal/worldWideWebControllerCommands.ts",
+          "path": "frontend/src/terminal/webControlCommandCatalog.ts",
           "operation": "modify",
-          "description": "Implement each command to follow existing terminal guard/audit helper patterns by using tryRecordAuditEntry and appendAuditWarning for best-effort audit recording. Ensure audit-recording failures are caught and reflected as an English warning appended to the command output, and never prevent the command’s primary output from being returned. Verify the component's usage instructions before implementing."
+          "description": "Implement command catalog generation to produce at least 200 distinct, safe command names across categories (including structured naming for large sets). Provide enough metadata (name/description/usage/category) for readable help output without runtime-heavy computation."
         },
         {
-          "path": "frontend/src/terminal/terminalGuards.ts",
+          "path": "frontend/src/terminal/worldWideWebControllerCommands.ts",
           "operation": "modify",
-          "description": "If needed for consistency, add/adjust a small shared helper that simplifies producing a standard English audit warning output for Web Control commands without changing the reliability behavior (audit failures must never throw). Keep behavior aligned with tryRecordAuditEntry + appendAuditWarning patterns. Verify the component's usage instructions before implementing."
+          "description": "Enhance Web Control help behavior to stay readable with hundreds of commands: group by category and support targeted help (e.g., help <command>, and a category/search-focused mode) so help output remains responsive and not excessively long. Keep all help text in English."
+        }
+      ]
+    },
+    {
+      "id": "REQ-81",
+      "summary": "Ensure every Web Control command uses best-effort audit recording and never fails solely due to audit unavailability.",
+      "acceptanceCriteria": [
+        "For every Web Control command that executes, the implementation attempts to record an audit entry using the existing helper pattern (e.g., tryRecordAuditEntry / appendAuditWarning) and continues even if audit recording fails.",
+        "If audit recording fails, the command output remains successful (when the underlying command succeeded) and includes a non-blocking English warning message consistent with the existing appendAuditWarning behavior.",
+        "No Web Control command throws an unhandled exception that breaks terminal execution flow; errors are surfaced as English terminal output using the existing error classification approach."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/terminal/webControlAudit.ts",
+          "operation": "create",
+          "description": "Add a small helper to standardize Web Control command execution: wrap command logic with try/catch, classifyError usage, and best-effort audit recording via tryRecordAuditEntry + appendAuditWarning (non-blocking). This should be reusable by all generated commands, including local-only commands like help/clear."
+        },
+        {
+          "path": "frontend/src/terminal/worldWideWebControllerCommands.ts",
+          "operation": "modify",
+          "description": "Refactor all existing and newly generated Web Control commands to use the shared best-effort audit wrapper pattern so every command attempts audit recording and never throws unhandled exceptions. Ensure warnings and error outputs remain English and consistent with appendAuditWarning/classifyError."
+        }
+      ]
+    },
+    {
+      "id": "REQ-82",
+      "summary": "Add a Web Control “Quick Tools” section in ICP Operations Console for safe frontend-side actions only.",
+      "acceptanceCriteria": [
+        "When the authenticated user has the World Wide Web Controller role, the ICP Operations Console displays a clearly labeled Web Control “Quick Tools” section with safe actions that operate on client-side configuration and diagnostics only.",
+        "The quick tools do not render any UI that performs security/audit/admin actions (no audit log export, no user management, no role management, no broadcasting configuration).",
+        "All user-facing labels and helper text in the Web Control quick tools section are in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/WebControlQuickToolsPanel.tsx",
+          "operation": "create",
+          "description": "Create a Web Control-focused Quick Tools panel for World Wide Web Controller users containing only safe frontend-side actions: copy principal (if available), export ICP Controls settings JSON, import ICP Controls settings JSON, reset ICP Controls to defaults, and refresh/retry connection checks. Ensure no Security Dashboard-only functionality is present and all labels/help text are in English."
+        },
+        {
+          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
+          "operation": "modify",
+          "description": "Wire the new Web Control Quick Tools panel into the ICP Operations Console UI so it renders only for World Wide Web Controller users (and does not appear for users without the role). Keep existing role precedence behavior intact and avoid introducing any admin/security-only panels into the Web Control view."
         }
       ]
     }

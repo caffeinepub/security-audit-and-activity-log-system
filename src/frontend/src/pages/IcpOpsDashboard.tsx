@@ -5,6 +5,7 @@ import AuthStatusPanel from '../components/AuthStatusPanel';
 import RolesAccessPanel from '../components/RolesAccessPanel';
 import IcpControlsPanel from '../components/IcpControlsPanel';
 import RootTerminalPanel from '../components/RootTerminalPanel';
+import WebControlQuickToolsPanel from '../components/WebControlQuickToolsPanel';
 import { icpControllerCommandRegistry } from '../terminal/icpControllerCommands';
 import { worldWideWebControllerCommandRegistry } from '../terminal/worldWideWebControllerCommands';
 import { useGetCallerIcpControllerStatus, useGetCallerWorldWideWebControllerStatus } from '../hooks/useQueries';
@@ -81,6 +82,8 @@ export default function IcpOpsDashboard() {
       <RolesAccessPanel />
 
       <IcpControlsPanel />
+
+      {isUsingWebControlTerminal && <WebControlQuickToolsPanel />}
 
       <RootTerminalPanel
         commandRegistry={terminalConfig.commandRegistry}

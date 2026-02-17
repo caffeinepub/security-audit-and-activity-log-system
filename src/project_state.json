@@ -1,13 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 43,
+  "projectStateVersion": 45,
   "summary": "Project to add a \"Security\" role with higher privileges than Administrator for the caffeine website, controlled/authorized by the app controller (user), and expand the app to connect to the Internet Computer (canister API integration), add Internet Identity login, and support deployment to ICP mainnet; also add a working superuser UI control to support security audits.",
   "architectural_notes": [
     "Planned: dashboard will include an App Controller–only standalone in-browser code editor capable of editing both backend (Motoko) and frontend (React/TypeScript) code, with an action to apply changes and trigger deploy.",
     "Planned: add ICP integration, including canister API wiring, Internet Identity authentication, and an ICP mainnet deployment path.",
     "Planned: add an App Controller/Security-only in-app \"root terminal\" interface with an extensive command set for administrative management.",
     "Decision: Root Terminal command set will be expanded to cover all backend capabilities and also include non-backend/utility commands; commands will be kept flat (no namespaces/groups).",
-    "Decision: Root Terminal administrative actions should be real (backend-powered) rather than simulated/local-only where applicable; remove simulations for admin operations."
+    "Decision: Root Terminal administrative actions should be real (backend-powered) rather than simulated/local-only where applicable; remove simulations for admin operations.",
+    "Decision: Expand the World Wide Web Controller (Web Control) feature set to include many more safe capabilities (hundreds), including read-only ICP diagnostics, frontend-only operational tools, and role/principal self-check helpers, while continuing to exclude security/audit/role-admin functionality."
   ],
   "known_issues": [
     "Deployment/build flow failed during attempted deploy (\"Unable to complete deployment\" / \"build didn’t go through\").",
@@ -531,6 +532,38 @@
         "REQ-78"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-expand-the-world-wide-web-controller-web-control-terminal-command-set-to-include-the-previously-suggested-additions-1-read-only-icp-diagnostic-commands-2-frontend-side-operational-tools-and-3-self-service-role-principal-confirmation-helpers-while-keeping-the-command-set-safe-no-security-audit-role-admin-user-management-broadcasting-config-commands",
+      "title": "Expand the World Wide Web Controller (\"Web Control\") terminal command set to include the previously suggested additions: (1) read-only ICP diagnostic commands, (2) frontend-side operational tools, and (3) self-service role/principal confirmation helpers, while keeping the command set safe (no security/audit/role-admin/user-management/broadcasting-config commands).",
+      "reqIds": [
+        "REQ-79"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-scale-the-web-control-terminal-to-hundreds-more-functions-by-implementing-a-data-driven-web-control-command-catalog-that-produces-at-least-200-distinct-web-control-commands-available-via-help-without-making-the-terminal-unusable",
+      "title": "Scale the Web Control terminal to \"hundreds more\" functions by implementing a data-driven Web Control command catalog that produces at least 200 distinct Web Control commands available via \"help\", without making the terminal unusable.",
+      "reqIds": [
+        "REQ-80"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-every-web-control-terminal-command-existing-and-newly-added-attempts-best-effort-audit-recording-using-the-existing-terminal-guard-audit-helper-pattern-and-never-fails-solely-because-audit-logging-is-unavailable-backend-not-reachable-user-not-authenticated-or-audit-recording-fails",
+      "title": "Ensure every Web Control terminal command (existing and newly added) attempts best-effort audit recording using the existing terminal guard/audit helper pattern and never fails solely because audit logging is unavailable (backend not reachable, user not authenticated, or audit recording fails).",
+      "reqIds": [
+        "REQ-81"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-web-control-focused-quick-tools-ui-section-within-the-icp-operations-console-for-world-wide-web-controller-users-that-exposes-safe-frontend-side-actions-for-example-copy-principal-export-icp-controls-settings-json-import-icp-controls-settings-json-reset-icp-controls-to-defaults-and-refresh-retry-connection-checks-without-exposing-security-dashboard-only-functionality",
+      "title": "Add a Web Control-focused “quick tools” UI section within the ICP Operations Console for World Wide Web Controller users that exposes safe frontend-side actions (for example: copy principal, export ICP Controls settings JSON, import ICP Controls settings JSON, reset ICP Controls to defaults, and refresh/retry connection checks) without exposing Security Dashboard-only functionality.",
+      "reqIds": [
+        "REQ-82"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -764,6 +797,12 @@
       "reqIds": [
         "REQ-74"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Expand the World Wide Web Controller (Web Control) experience significantly: add read-only ICP diagnostic commands, frontend-side operational tools/controls, self-service role/principal confirmation helpers, and scale the Web Control-safe terminal/controls catalog to hundreds of additional safe functions (excluding security/audit/role-admin capabilities).",
+      "reqIds": [],
       "status": "pending"
     }
   ],
