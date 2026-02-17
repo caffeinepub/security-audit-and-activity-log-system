@@ -59,6 +59,7 @@ export enum T__1 {
     unauthorizedAttempt = "unauthorizedAttempt",
     loginAttempt = "loginAttempt",
     permissionChange = "permissionChange",
+    superuserPrivilegeChange = "superuserPrivilegeChange",
     dataExport = "dataExport",
     general = "general",
     accountChange = "accountChange",
@@ -87,14 +88,18 @@ export interface backendInterface {
     getExternalBroadcastingSettings(): Promise<T__3>;
     getFlaggedUsers(): Promise<Array<Principal>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    grantIcpControllerRole(target: Principal): Promise<void>;
     grantSecurityRole(target: Principal): Promise<void>;
+    hasIcpControllerRole(): Promise<boolean>;
     initialize(context: InstanceContext): Promise<void>;
     isAppController(user: Principal): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     isSecurityUser(): Promise<boolean>;
     isUserFlagged(user: Principal): Promise<boolean>;
+    listIcpControllers(): Promise<Array<Principal>>;
     recordAuditEntry(entry: T): Promise<void>;
     removeUser(user: Principal): Promise<void>;
+    revokeIcpControllerRole(target: Principal): Promise<void>;
     revokeSecurityRole(target: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;

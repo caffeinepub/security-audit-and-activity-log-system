@@ -2,11 +2,55 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-simulated-placeholder-command-set-from-the-root-terminal-command-registry-so-that-the-terminal-only-exposes-commands-that-are-either-a-real-backend-powered-administrative-operations-or-b-explicitly-labeled-local-only-diagnostics-no-fake-os-file-network-commands",
-      "featureTitle": "Remove the simulated/placeholder command set from the Root Terminal command registry so that the terminal only exposes commands that are either (a) real backend-powered administrative operations or (b) explicitly labeled local-only diagnostics (no fake OS/file/network commands).",
+      "featureId": "feature-update-frontend-access-gating-so-authenticated-users-with-the-icp-controller-role-can-access-an-icp-operations-experience-without-requiring-app-controller-or-security-while-keeping-the-existing-security-dashboard-restricted-to-app-controller-or-security-users",
+      "featureTitle": "Update frontend access gating so authenticated users with the ICP Controller role can access an ICP-operations experience (without requiring App Controller or Security), while keeping the existing Security Dashboard restricted to App Controller or Security users.",
       "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/pages/IcpOpsDashboard.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-51"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-new-icp-controller-focused-page-panel-that-exposes-icp-operational-tools-read-write-client-side-configuration-connection-diagnostics-and-explicitly-excludes-security-audit-admin-functionality-audit-logs-flagged-users-broadcasting-config-superuser-audit-tools-security-role-management-and-icp-controller-role-management",
+      "featureTitle": "Add a new ICP Controller–focused page/panel that exposes ICP operational tools (read/write client-side configuration + connection diagnostics) and explicitly excludes security/audit/admin functionality (audit logs, flagged users, broadcasting config, superuser audit tools, Security role management, and ICP Controller role management).",
+      "files": [
+        "frontend/src/components/Header.tsx",
+        "frontend/src/pages/IcpOpsDashboard.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-52"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-an-icp-controller-only-root-terminal-mode-or-a-separate-terminal-instance-that-exposes-only-safe-icp-operations-diagnostic-and-profile-commands-and-hides-removes-security-audit-role-management-commands-for-icp-controller-only-users",
+      "featureTitle": "Add an ICP Controller-only Root Terminal mode (or a separate terminal instance) that exposes only safe ICP-operations/diagnostic and profile commands, and hides/removes security/audit/role-management commands for ICP Controller-only users.",
+      "files": [
+        "frontend/src/components/RootTerminalPanel.tsx",
+        "frontend/src/pages/IcpOpsDashboard.tsx",
         "frontend/src/terminal/commandRegistry.ts",
-        "frontend/src/terminal/coreCommands.ts"
+        "frontend/src/terminal/icpControllerCommands.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,49 +62,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-37"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-that-any-root-terminal-commands-that-perform-administrative-actions-e-g-role-security-management-audit-operations-user-management-broadcasting-configuration-execute-real-backend-canister-calls-and-do-not-return-simulated-success-messages",
-      "featureTitle": "Ensure that any Root Terminal commands that perform administrative actions (e.g., role/security management, audit operations, user management, broadcasting configuration) execute real backend canister calls and do not return simulated success messages.",
-      "files": [
-        "frontend/src/components/RootTerminalPanel.tsx",
-        "frontend/src/terminal/coreCommands.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-38"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-update-root-terminal-user-facing-copy-to-accurately-describe-the-terminal-s-capabilities-internet-computer-canister-administration-avoiding-claims-of-full-system-access",
-      "featureTitle": "Update Root Terminal user-facing copy to accurately describe the terminal’s capabilities (Internet Computer canister administration), avoiding claims of “full system access.”",
-      "files": [
-        "frontend/src/components/RootTerminalPanel.tsx",
-        "frontend/src/terminal/coreCommands.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-39"
+        "REQ-53"
       ],
       "confidence": "high"
     }

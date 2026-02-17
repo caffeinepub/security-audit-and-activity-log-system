@@ -1,54 +1,64 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T18:07:42.393Z",
+  "generatedAt": "2026-02-17T20:08:36.680Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 4,
     "implemented": 3,
     "items": [
       {
-        "id": "REQ-37",
-        "summary": "Remove the simulated/placeholder command set from the Root Terminal command registry so that the terminal only exposes commands that are either (a) real backend-powered administrative operations or (b) explicitly labeled local-only diagnostics (no fake OS/file/network commands).",
+        "id": "REQ-51",
+        "summary": "Update frontend access gating so authenticated users with the ICP Controller role can access an ICP-operations experience (without requiring App Controller or Security), while keeping the existing Security Dashboard restricted to App Controller or Security users.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/terminal/commandRegistry.ts",
-          "frontend/src/terminal/coreCommands.ts"
+          "frontend/src/App.tsx",
+          "frontend/src/pages/IcpOpsDashboard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/terminal/commandRegistry.ts",
-          "frontend/src/terminal/coreCommands.ts"
+          "frontend/src/App.tsx",
+          "frontend/src/pages/IcpOpsDashboard.tsx"
         ]
       },
       {
-        "id": "REQ-38",
-        "summary": "Ensure that any Root Terminal commands that perform administrative actions (e.g., role/security management, audit operations, user management, broadcasting configuration) execute real backend canister calls and do not return simulated success messages.",
+        "id": "REQ-52",
+        "summary": "Add a new ICP Controller–focused page/panel that exposes ICP operational tools (read/write client-side configuration + connection diagnostics) and explicitly excludes security/audit/admin functionality (audit logs, flagged users, broadcasting config, superuser audit tools, Security role management, and ICP Controller role management).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/terminal/coreCommands.ts",
-          "frontend/src/terminal/terminalGuards.ts",
-          "frontend/src/components/RootTerminalPanel.tsx"
+          "frontend/src/pages/IcpOpsDashboard.tsx",
+          "frontend/src/components/Header.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/terminal/coreCommands.ts",
-          "frontend/src/components/RootTerminalPanel.tsx"
+          "frontend/src/pages/IcpOpsDashboard.tsx",
+          "frontend/src/components/Header.tsx"
         ]
       },
       {
-        "id": "REQ-39",
-        "summary": "Update Root Terminal user-facing copy to accurately describe the terminal’s capabilities (Internet Computer canister administration), avoiding claims of “full system access.”",
+        "id": "REQ-53",
+        "summary": "Add an ICP Controller-only Root Terminal mode (or a separate terminal instance) that exposes only safe ICP-operations/diagnostic and profile commands, and hides/removes security/audit/role-management commands for ICP Controller-only users.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/terminal/commandRegistry.ts",
+          "frontend/src/terminal/icpControllerCommands.ts",
           "frontend/src/components/RootTerminalPanel.tsx",
-          "frontend/src/terminal/coreCommands.ts"
+          "frontend/src/pages/IcpOpsDashboard.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/terminal/commandRegistry.ts",
+          "frontend/src/terminal/icpControllerCommands.ts",
           "frontend/src/components/RootTerminalPanel.tsx",
-          "frontend/src/terminal/coreCommands.ts"
+          "frontend/src/pages/IcpOpsDashboard.tsx"
         ]
+      },
+      {
+        "id": "REQ-54",
+        "summary": "Update backend authorization to support ICP Controller-specific capabilities required by the new ICP Controller operational UI/terminal, by adding dedicated authorization checks and any minimal new backend APIs needed for ICP Controller workflows (without granting access to audit logs, user management, broadcasting configuration, or role administration).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
@@ -58,9 +68,13 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/components/Header.tsx",
     "frontend/src/components/RootTerminalPanel.tsx",
+    "frontend/src/pages/IcpOpsDashboard.tsx",
     "frontend/src/terminal/commandRegistry.ts",
     "frontend/src/terminal/coreCommands.ts",
+    "frontend/src/terminal/icpControllerCommands.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,72 +1,78 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Root Terminal: remove simulated commands and ensure admin commands are backend-backed",
+  "title": "ICP Ops Console: ICP Controller-only console, UI gating, and safe terminal mode",
   "requirements": [
     {
-      "id": "REQ-37",
-      "summary": "Remove simulated placeholder OS/file/network command registrations so only real backend admin commands and explicitly local-only diagnostics are exposed.",
+      "id": "REQ-51",
+      "summary": "Allow ICP Controller role to access an ICP operations experience while keeping the existing Security Dashboard restricted to App Controller or Security users.",
       "acceptanceCriteria": [
-        "The generated command lists in frontend/src/terminal/commandRegistry.ts (e.g., sysinfo/ps/ls/ping/git/sudo/etc.) are no longer registered as runnable commands.",
-        "Entering previously-simulated commands (e.g., \"ls\", \"ping\", \"ps\", \"sudo\") returns \"Command not found\" (or equivalent) rather than a simulated success message.",
-        "The Root Terminal \"help\" output no longer lists categories/commands that were previously simulated (System Info, File System, Network, etc.)."
+        "An authenticated user who is ICP Controller (via hasIcpControllerRole) is no longer blocked by the current App Controller/Security-only gating in frontend/src/App.tsx.",
+        "App Controller and Security users still see the existing AdminDashboard security console unchanged.",
+        "A non-authenticated user still sees the login prompt on the Access Denied screen."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Update access gating to include ICP Controller role checks (via useGetCallerIcpControllerStatus / hasIcpControllerRole) and route users to the correct experience: AdminDashboard for App Controller/Security, ICP Ops dashboard for ICP Controller-only, and AccessDeniedScreen for unauthenticated or unauthorized users. Use the selected \"authorization\" component’s frontend RBAC guidance for authenticated gating and role-driven UI decisions. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
+          "operation": "create",
+          "description": "Create a dedicated ICP Operations dashboard page for ICP Controller users (connectivity/configuration focus) that can be rendered from App.tsx when the user is ICP Controller-only (not App Controller/Security). Ensure content is operational (connection + config + auth status) and not security/audit/admin oriented."
+        }
+      ]
+    },
+    {
+      "id": "REQ-52",
+      "summary": "Add an ICP Controller-focused operational panel/page with ICP connection status, safe configuration controls (import/export/reset), and authentication status, excluding security/audit/admin tools.",
+      "acceptanceCriteria": [
+        "When logged in as ICP Controller (but not App Controller/Security), the UI shows: (1) ICP Connection status (including effective network + canister ID), (2) ICP Controls catalog (including import/export/reset), and (3) Authentication status (principal display/copy).",
+        "When logged in as ICP Controller-only, the UI does NOT render: Audit Log Viewer, SuperuserAuditPanel, UserManagementPanel, BroadcastConfigPanel, TestActionsPanel, RealTimeAlertPanel, SecuritySummaryPanel, DeploymentPanel, IcpMainnetDeploymentPanel, CodeEditorPanel, or IcpControllerManagementPanel.",
+        "All user-facing labels and explanatory copy for this new ICP Controller area are in English and clearly describe that it is for ICP connectivity/configuration operations, not security auditing."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
+          "operation": "modify",
+          "description": "Implement the ICP Controller operational UI layout and English copy. Compose only the allowed operational panels: IcpConnectionPanel (ICP connection status), IcpControlsPanel (catalog including import/export/reset), and AuthStatusPanel (authentication status with principal display/copy). Explicitly exclude/avoid importing or rendering any security/audit/admin panels listed in the requirement."
+        },
+        {
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Ensure role badges/identity affordances remain correct for ICP Controller-only sessions (already using useGetCallerIcpControllerStatus). Optionally adjust header text/UX to avoid implying the user is in the Security Dashboard when the ICP Ops dashboard is active, without introducing new routes. Use the selected \"authorization\" component’s frontend RBAC guidance for role-driven UI. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-53",
+      "summary": "Provide an ICP Controller-only terminal mode that only exposes safe ICP operations/diagnostic and profile commands and clearly rejects restricted commands.",
+      "acceptanceCriteria": [
+        "When logged in as ICP Controller-only, the terminal command list/help output does not include commands that call Security/App Controller restricted endpoints (e.g., audit-list, audit-record, audit-export, security-grant, security-revoke, security-status, user management, broadcasting configuration, ICP controller grant/revoke/list).",
+        "When logged in as App Controller or Security, the terminal continues to show the full existing command set as it does today.",
+        "Attempting to run a restricted command as ICP Controller-only yields a clear English message indicating insufficient privileges (without crashing the terminal)."
       ],
       "file_operations": [
         {
           "path": "frontend/src/terminal/commandRegistry.ts",
           "operation": "modify",
-          "description": "Delete/disable generateExtendedCommands() so simulated command categories (System Info, File System, Network, etc.) are not registered; remove simulated alias mappings (e.g., l->ls, md->mkdir) so only aliases for real commands remain; ensure the registry only contains core backend-powered admin commands and any explicitly-labeled local-only diagnostics."
+          "description": "Refactor the registry to support building multiple registries (e.g., full registry vs. ICP Controller-safe registry) without breaking the existing default behavior. Keep the full registry as the default export used by the Security Dashboard terminal."
         },
         {
-          "path": "frontend/src/terminal/coreCommands.ts",
-          "operation": "modify",
-          "description": "Review command categories/descriptions to ensure no fake OS/file/network commands are defined; if any local-only diagnostics commands exist/are added, ensure they are explicitly labeled as local-only diagnostics and do not imply OS-level access."
-        }
-      ]
-    },
-    {
-      "id": "REQ-38",
-      "summary": "Ensure all administrative terminal commands execute real backend canister calls and surface success/failure based on the backend outcome (no simulated success).",
-      "acceptanceCriteria": [
-        "For each administrative terminal command, execution results reflect the outcome of the corresponding backend call (success only when the backend call succeeds; failure when it fails).",
-        "No administrative command output contains the word \"simulated\" or claims to have performed an action without calling the backend.",
-        "When the backend is not available or the user is not authenticated, administrative commands fail with a clear English message guiding the user to check ICP Connection Status and/or log in (reusing the existing guard messaging behavior)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/terminal/coreCommands.ts",
-          "operation": "modify",
-          "description": "Audit every administrative command implementation to ensure it (1) uses requiresBackendAndAuth(context) (or equivalent shared guard) before performing admin actions, (2) calls a real backend actor method (e.g., role/security management, audit operations, user management, broadcasting configuration) rather than returning hardcoded success, (3) removes any remaining simulated/placeholder copy in outputs, and (4) reports errors using classifyError(error, context) so auth/backend-unavailable cases guide the user to check ICP Connection Status and/or log in."
-        },
-        {
-          "path": "frontend/src/terminal/terminalGuards.ts",
-          "operation": "modify",
-          "description": "Ensure classifyError()/requiresBackendAndAuth() messages are clear, English, and consistently guide the user to ICP Connection Status and login for backend/auth failures; keep guard messaging aligned with existing UI behavior."
+          "path": "frontend/src/terminal/icpControllerCommands.ts",
+          "operation": "create",
+          "description": "Define the ICP Controller-safe command set for the ICP Controller-only terminal mode. Include only safe commands such as help/clear and profile commands (e.g., profile-get/whoami, profile-set-name) and optional connectivity/role self-check commands that do not expose security/audit/role-management capabilities."
         },
         {
           "path": "frontend/src/components/RootTerminalPanel.tsx",
           "operation": "modify",
-          "description": "Ensure terminal execution error rendering remains based on command success/failure results (including backend failures) and does not mask backend errors with simulated success; keep the existing request/response model."
-        }
-      ]
-    },
-    {
-      "id": "REQ-39",
-      "summary": "Update Root Terminal UI copy to accurately describe Internet Computer canister administration (no claims of full system access or simulated commands).",
-      "acceptanceCriteria": [
-        "The Root Terminal panel description text in frontend/src/components/RootTerminalPanel.tsx is updated to a truthful English description that does not imply OS-level access.",
-        "The initial welcome message and help text remain in English and do not suggest simulated command behavior."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/RootTerminalPanel.tsx",
-          "operation": "modify",
-          "description": "Update the CardDescription text to describe the terminal as an Internet Computer canister administration interface (auditing, roles, user/broadcast configuration) and remove the phrase implying \"full system access\"; verify the initial welcome message remains accurate and English-only."
+          "description": "Add support for a separate terminal instance/mode by allowing injection of a command registry and terminal labels (title/description), and implement ICP Controller-only behavior: help output reflects only the safe registry; unknown commands that are known restricted commands produce a clear English 'insufficient privileges' message rather than a generic not-found. Ensure it never crashes and remains unchanged for App Controller/Security usage."
         },
         {
-          "path": "frontend/src/terminal/coreCommands.ts",
+          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
           "operation": "modify",
-          "description": "Review the help output and any command descriptions/usages to ensure wording is truthful (no simulated behavior claims; no OS-level access claims) and reflects only the commands that remain registered."
+          "description": "Wire an ICP Controller-only terminal instance into the ICP Ops dashboard using the safe ICP Controller command registry, and ensure the existing Security Dashboard continues to use the full RootTerminalPanel behavior."
         }
       ]
     }

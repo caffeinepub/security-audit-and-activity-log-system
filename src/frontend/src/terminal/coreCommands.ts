@@ -13,7 +13,10 @@ export const coreCommands: TerminalCommand[] = [
     execute: async (args, context) => {
       if (args.length > 0) {
         const { commandRegistry } = await import('./commandRegistry');
-        const cmd = commandRegistry.get(args[0]);
+        const cmdName = args[0].toLowerCase();
+        const cmd = commandRegistry.find(
+          (c) => c.name === cmdName || c.aliases?.includes(cmdName)
+        );
         if (cmd) {
           return {
             success: true,
@@ -24,11 +27,12 @@ export const coreCommands: TerminalCommand[] = [
       }
 
       const { commandRegistry } = await import('./commandRegistry');
-      const byCategory = commandRegistry.getCommandsByCategory();
+      const categories = Array.from(new Set(commandRegistry.map((c) => c.category)));
       let output = 'Available Commands:\n\n';
       
-      byCategory.forEach((commands, category) => {
+      categories.forEach((category) => {
         output += `${category}:\n`;
+        const commands = commandRegistry.filter((c) => c.category === category);
         commands.forEach(cmd => {
           output += `  ${cmd.name.padEnd(25)} - ${cmd.description}\n`;
         });
@@ -478,7 +482,7 @@ export const coreCommands: TerminalCommand[] = [
           actionType: T__1.accountChange,
           details: `Terminal command failed: profile-set-name - ${error.message}`,
           success: false,
-          severity: T__2.warning,
+          severity: T__2.critical,
         });
         return { success: false, message: `Failed to set profile name: ${classifyError(error, context)}` };
       }
@@ -534,7 +538,7 @@ export const coreCommands: TerminalCommand[] = [
   {
     name: 'user-unflag',
     aliases: ['unflag-user'],
-    description: 'Remove suspicious flag from a user',
+    description: 'Remove flag from a user',
     category: 'User Management',
     usage: 'user-unflag <principal>',
     execute: async (args, context) => {
@@ -560,18 +564,10 @@ export const coreCommands: TerminalCommand[] = [
         });
 
         context.queryClient.invalidateQueries({ queryKey: ['flaggedUsers'] });
-        context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
 
         const message = `User unflagged successfully: ${args[0]}`;
         return { success: true, message: appendAuditWarning(message, auditWarning) };
       } catch (error: any) {
-        await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.accountChange,
-          details: `Terminal command failed: user-unflag ${args[0]} - ${error.message}`,
-          success: false,
-          severity: T__2.warning,
-        });
         return { success: false, message: `Failed to unflag user: ${classifyError(error, context)}` };
       }
     },
@@ -638,7 +634,7 @@ export const coreCommands: TerminalCommand[] = [
         const auditWarning = await tryRecordAuditEntry(context, {
           timestamp: BigInt(Date.now()) * BigInt(1_000_000),
           actionType: T__1.general,
-          details: `Terminal command: user-list-flagged executed with ${flaggedUsers.length} results`,
+          details: `Terminal command: user-list-flagged executed (${flaggedUsers.length} users)`,
           success: true,
           severity: T__2.info,
         });
@@ -647,7 +643,7 @@ export const coreCommands: TerminalCommand[] = [
           return { success: true, message: appendAuditWarning('No flagged users found.', auditWarning) };
         }
 
-        let output = `Found ${flaggedUsers.length} flagged users:\n\n`;
+        let output = `Flagged Users (${flaggedUsers.length}):\n\n`;
         flaggedUsers.forEach((principal, index) => {
           output += `[${index + 1}] ${principal.toString()}\n`;
         });
@@ -663,8 +659,8 @@ export const coreCommands: TerminalCommand[] = [
   {
     name: 'broadcast-config',
     aliases: ['config-broadcast'],
-    description: 'Configure external broadcasting settings',
-    category: 'Broadcasting',
+    description: 'Configure external broadcasting',
+    category: 'Configuration',
     usage: 'broadcast-config --enabled=<true|false> [--endpoint=<url>]',
     execute: async (args, context) => {
       const authCheck = requiresBackendAndAuth(context);
@@ -692,21 +688,21 @@ export const coreCommands: TerminalCommand[] = [
         
         const auditWarning = await tryRecordAuditEntry(context, {
           timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.configUpload,
+          actionType: T__1.permissionChange,
           details: `Terminal command: broadcast-config enabled=${enabled} endpoint=${endpoint || 'none'}`,
           success: true,
           severity: T__2.warning,
         });
 
-        context.queryClient.invalidateQueries({ queryKey: ['broadcastSettings'] });
+        context.queryClient.invalidateQueries({ queryKey: ['externalBroadcastingSettings'] });
         context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
 
-        const message = `Broadcasting configuration updated successfully.\nEnabled: ${enabled}\nEndpoint: ${endpoint || 'none'}`;
+        const message = `Broadcasting configuration updated:\nEnabled: ${enabled}\nEndpoint: ${endpoint || 'Not set'}`;
         return { success: true, message: appendAuditWarning(message, auditWarning) };
       } catch (error: any) {
         await tryRecordAuditEntry(context, {
           timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.configUpload,
+          actionType: T__1.permissionChange,
           details: `Terminal command failed: broadcast-config - ${error.message}`,
           success: false,
           severity: T__2.critical,
@@ -718,8 +714,8 @@ export const coreCommands: TerminalCommand[] = [
   {
     name: 'broadcast-status',
     aliases: ['status-broadcast'],
-    description: 'Get current broadcasting configuration',
-    category: 'Broadcasting',
+    description: 'Check current broadcasting configuration',
+    category: 'Configuration',
     execute: async (args, context) => {
       const authCheck = requiresBackendAndAuth(context);
       if (authCheck) {
@@ -737,7 +733,7 @@ export const coreCommands: TerminalCommand[] = [
           severity: T__2.info,
         });
 
-        const output = `Broadcasting Configuration:\nEnabled: ${settings.enabled}\nEndpoint: ${settings.endpointUrl || 'none'}`;
+        const output = `Broadcasting Configuration:\nEnabled: ${settings.enabled}\nEndpoint: ${settings.endpointUrl || 'Not set'}`;
         return { success: true, message: appendAuditWarning(output, auditWarning) };
       } catch (error: any) {
         return { success: false, message: `Failed to get broadcasting status: ${classifyError(error, context)}` };
@@ -745,23 +741,23 @@ export const coreCommands: TerminalCommand[] = [
     },
   },
 
-  // ===== Local-only Diagnostic Commands =====
+  // ===== Diagnostic Commands =====
   {
     name: 'now',
-    description: 'Display current timestamp (local diagnostic)',
+    description: 'Display current timestamp',
     category: 'Diagnostics',
     execute: async () => {
       const now = Date.now();
-      const date = new Date(now);
+      const nowNs = BigInt(now) * BigInt(1_000_000);
       return {
         success: true,
-        message: `Current timestamp: ${now}\nFormatted: ${date.toISOString()}\nLocal: ${date.toLocaleString()}`,
+        message: `Current time:\nMilliseconds: ${now}\nNanoseconds: ${nowNs}\nDate: ${new Date(now).toISOString()}`,
       };
     },
   },
   {
     name: 'echo',
-    description: 'Echo back the provided arguments (local diagnostic)',
+    description: 'Echo back the provided arguments',
     category: 'Diagnostics',
     usage: 'echo <text>',
     execute: async (args) => {
@@ -774,7 +770,7 @@ export const coreCommands: TerminalCommand[] = [
   {
     name: 'terminal-status',
     aliases: ['status'],
-    description: 'Display terminal connection status (local diagnostic)',
+    description: 'Display terminal connection status',
     category: 'Diagnostics',
     execute: async (args, context) => {
       const hasActor = !!context.actor;
@@ -783,7 +779,7 @@ export const coreCommands: TerminalCommand[] = [
 
       return {
         success: true,
-        message: `Terminal Status:\nBackend Connected: ${hasActor ? 'YES' : 'NO'}\nAuthenticated: ${hasIdentity ? 'YES' : 'NO'}\nPrincipal: ${principal}\n\nNote: This is a local diagnostic command. Use ICP Connection Status panel for detailed connection diagnostics.`,
+        message: `Terminal Status:\nBackend Connection: ${hasActor ? 'Connected' : 'Not connected'}\nAuthentication: ${hasIdentity ? 'Authenticated' : 'Not authenticated'}\nPrincipal: ${principal}`,
       };
     },
   },

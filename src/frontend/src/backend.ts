@@ -141,6 +141,7 @@ export enum T__1 {
     unauthorizedAttempt = "unauthorizedAttempt",
     loginAttempt = "loginAttempt",
     permissionChange = "permissionChange",
+    superuserPrivilegeChange = "superuserPrivilegeChange",
     dataExport = "dataExport",
     general = "general",
     accountChange = "accountChange",
@@ -170,14 +171,18 @@ export interface backendInterface {
     getExternalBroadcastingSettings(): Promise<T__3>;
     getFlaggedUsers(): Promise<Array<Principal>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    grantIcpControllerRole(target: Principal): Promise<void>;
     grantSecurityRole(target: Principal): Promise<void>;
+    hasIcpControllerRole(): Promise<boolean>;
     initialize(context: InstanceContext): Promise<void>;
     isAppController(user: Principal): Promise<boolean>;
     isCallerAdmin(): Promise<boolean>;
     isSecurityUser(): Promise<boolean>;
     isUserFlagged(user: Principal): Promise<boolean>;
+    listIcpControllers(): Promise<Array<Principal>>;
     recordAuditEntry(entry: T): Promise<void>;
     removeUser(user: Principal): Promise<void>;
+    revokeIcpControllerRole(target: Principal): Promise<void>;
     revokeSecurityRole(target: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
@@ -354,6 +359,20 @@ export class Backend implements backendInterface {
             return from_candid_opt_n19(this._uploadFile, this._downloadFile, result);
         }
     }
+    async grantIcpControllerRole(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.grantIcpControllerRole(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.grantIcpControllerRole(arg0);
+            return result;
+        }
+    }
     async grantSecurityRole(arg0: Principal): Promise<void> {
         if (this.processError) {
             try {
@@ -365,6 +384,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.grantSecurityRole(arg0);
+            return result;
+        }
+    }
+    async hasIcpControllerRole(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.hasIcpControllerRole();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.hasIcpControllerRole();
             return result;
         }
     }
@@ -438,6 +471,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async listIcpControllers(): Promise<Array<Principal>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.listIcpControllers();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.listIcpControllers();
+            return result;
+        }
+    }
     async recordAuditEntry(arg0: T): Promise<void> {
         if (this.processError) {
             try {
@@ -463,6 +510,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.removeUser(arg0);
+            return result;
+        }
+    }
+    async revokeIcpControllerRole(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.revokeIcpControllerRole(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.revokeIcpControllerRole(arg0);
             return result;
         }
     }
@@ -617,6 +678,8 @@ function from_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uin
 } | {
     permissionChange: null;
 } | {
+    superuserPrivilegeChange: null;
+} | {
     dataExport: null;
 } | {
     general: null;
@@ -627,7 +690,7 @@ function from_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uin
 } | {
     dataImport: null;
 }): T__1 {
-    return "unauthorizedAttempt" in value ? T__1.unauthorizedAttempt : "loginAttempt" in value ? T__1.loginAttempt : "permissionChange" in value ? T__1.permissionChange : "dataExport" in value ? T__1.dataExport : "general" in value ? T__1.general : "accountChange" in value ? T__1.accountChange : "configUpload" in value ? T__1.configUpload : "dataImport" in value ? T__1.dataImport : value;
+    return "unauthorizedAttempt" in value ? T__1.unauthorizedAttempt : "loginAttempt" in value ? T__1.loginAttempt : "permissionChange" in value ? T__1.permissionChange : "superuserPrivilegeChange" in value ? T__1.superuserPrivilegeChange : "dataExport" in value ? T__1.dataExport : "general" in value ? T__1.general : "accountChange" in value ? T__1.accountChange : "configUpload" in value ? T__1.configUpload : "dataImport" in value ? T__1.dataImport : value;
 }
 function from_candid_vec_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_T>): Array<T> {
     return value.map((x)=>from_candid_T_n5(_uploadFile, _downloadFile, x));
@@ -711,6 +774,8 @@ function to_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint
 } | {
     permissionChange: null;
 } | {
+    superuserPrivilegeChange: null;
+} | {
     dataExport: null;
 } | {
     general: null;
@@ -727,6 +792,8 @@ function to_candid_variant_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint
         loginAttempt: null
     } : value == T__1.permissionChange ? {
         permissionChange: null
+    } : value == T__1.superuserPrivilegeChange ? {
+        superuserPrivilegeChange: null
     } : value == T__1.dataExport ? {
         dataExport: null
     } : value == T__1.general ? {

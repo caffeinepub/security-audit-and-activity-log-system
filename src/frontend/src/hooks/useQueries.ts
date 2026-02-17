@@ -80,6 +80,27 @@ export function useGetCallerSecurityStatus() {
   };
 }
 
+export function useGetCallerIcpControllerStatus() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  const query = useQuery<boolean>({
+    queryKey: ['icpControllerStatus', identity?.getPrincipal().toString()],
+    queryFn: async () => {
+      if (!actor) return false;
+      return actor.hasIcpControllerRole();
+    },
+    enabled: !!actor && !actorFetching && !!identity,
+    retry: false,
+  });
+
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
 export function useInitializeAppController() {
   const { actor } = useActor();
   const { identity } = useInternetIdentity();
@@ -262,6 +283,65 @@ export function useExportAuditLog() {
     },
     onError: (error: Error) => {
       toast.error(`Failed to export audit log: ${error.message}`);
+    },
+  });
+}
+
+export function useListIcpControllers() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<Principal[]>({
+    queryKey: ['icpControllers'],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.listIcpControllers();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useGrantIcpControllerRole() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  const { identity } = useInternetIdentity();
+
+  return useMutation({
+    mutationFn: async (targetPrincipal: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const principal = Principal.fromText(targetPrincipal);
+      return actor.grantIcpControllerRole(principal);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['icpControllers'] });
+      queryClient.invalidateQueries({ queryKey: ['icpControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+      toast.success('ICP Controller role granted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to grant ICP Controller role: ${error.message}`);
+    },
+  });
+}
+
+export function useRevokeIcpControllerRole() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  const { identity } = useInternetIdentity();
+
+  return useMutation({
+    mutationFn: async (targetPrincipal: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const principal = Principal.fromText(targetPrincipal);
+      return actor.revokeIcpControllerRole(principal);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['icpControllers'] });
+      queryClient.invalidateQueries({ queryKey: ['icpControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+      toast.success('ICP Controller role revoked successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to revoke ICP Controller role: ${error.message}`);
     },
   });
 }

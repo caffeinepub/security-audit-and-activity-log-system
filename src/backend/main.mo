@@ -12,8 +12,6 @@ import OutCall "http-outcalls/outcall";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
-
-
 actor {
   module ActionType {
     public type T = {
@@ -25,6 +23,7 @@ actor {
       #unauthorizedAttempt;
       #configUpload;
       #general;
+      #superuserPrivilegeChange;
     };
   };
 
@@ -109,6 +108,9 @@ actor {
   var externalEndpointUrl : ?Text = null;
 
   var securityUsers = Map.empty<Principal, SecurityUser>();
+
+  // New part: ICP controller state map
+  var icpControllerState = Map.empty<Principal, Bool>();
 
   public shared ({ caller }) func initialize(context : InstanceContext) : async () {
     if (caller != context.contextPrincipal) {
@@ -422,5 +424,78 @@ actor {
     auditLogEntries.add(exportLogEntry);
     auditLogEntries.toArray();
   };
-};
 
+  // ICP Controller Role Management (App controller only)
+  public shared ({ caller }) func grantIcpControllerRole(target : Principal) : async () {
+    assertAppController(caller);
+    doIcpControllerGrantInternal(target, caller);
+  };
+
+  public shared ({ caller }) func revokeIcpControllerRole(target : Principal) : async () {
+    assertAppController(caller);
+    doIcpControllerRevokeInternal(target, caller);
+  };
+
+  public shared ({ caller }) func listIcpControllers() : async [Principal] {
+    assertAppController(caller);
+    icpControllerState.keys().toArray();
+  };
+
+  public query ({ caller }) func hasIcpControllerRole() : async Bool {
+    icpControllerState.containsKey(caller);
+  };
+
+  // Internal helper functions
+  func doIcpControllerGrantInternal(target : Principal, caller : Principal) {
+    if (icpControllerState.containsKey(target)) {
+      Runtime.trap("User already has ICP Controller role. Use ICP Controllers for idempotent calls.");
+    };
+
+    icpControllerState.add(target, true);
+
+    recordIcpControllerAuditEvent(
+      "ICP Controller privilege granted to " # target.toText() # " by " # caller.toText(),
+      caller,
+      target,
+      true,
+    );
+  };
+
+  func doIcpControllerRevokeInternal(target : Principal, caller : Principal) {
+    switch (icpControllerState.get(target)) {
+      case (null) {
+        Runtime.trap("User does not have ICP Controller role - cannot revoke");
+      };
+      case (?_) {
+        icpControllerState.remove(target);
+
+        recordIcpControllerAuditEvent(
+          "ICP Controller privilege revoked from " # target.toText() # " by " # caller.toText(),
+          caller,
+          target,
+          false,
+        );
+      };
+    };
+  };
+
+  func recordIcpControllerAuditEvent(
+    details : Text,
+    initiator : Principal,
+    target : Principal,
+    granted : Bool,
+  ) {
+    let auditEntry : AuditEntry.T = {
+      timestamp = Time.now();
+      user = initiator;
+      actionType = #superuserPrivilegeChange;
+      details = details # " (Target " # target.toText() # ", granted: " # debug_show granted # ")";
+      ipAddress = null;
+      deviceInfo = null;
+      sessionData = null;
+      success = ?true;
+      severity = #info;
+    };
+    auditLogEntries.add(auditEntry);
+  };
+};

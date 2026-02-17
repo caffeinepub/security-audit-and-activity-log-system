@@ -25,6 +25,7 @@ import AuthStatusPanel from '../components/AuthStatusPanel';
 import IcpMainnetDeploymentPanel from '../components/IcpMainnetDeploymentPanel';
 import SuperuserAuditPanel from '../components/SuperuserAuditPanel';
 import RootTerminalPanel from '../components/RootTerminalPanel';
+import IcpControllerManagementPanel from '../components/IcpControllerManagementPanel';
 
 interface AdminDashboardProps {
   showAccessGranted?: boolean;
@@ -65,6 +66,10 @@ export default function AdminDashboard({ showAccessGranted = false }: AdminDashb
 
   const { data: logs, isLoading, refetch } = useGetAuditLogs(filter);
 
+  // Get all logs for real-time panels (no filter)
+  const allLogsFilter: FilterCriteria = useMemo(() => ({} as FilterCriteria), []);
+  const { data: allLogs } = useGetAuditLogs(allLogsFilter);
+
   const clearFilters = () => {
     setFromDate('');
     setToDate('');
@@ -85,6 +90,7 @@ export default function AdminDashboard({ showAccessGranted = false }: AdminDashb
       unauthorizedAttempt: { variant: 'destructive', label: 'Unauthorized Access', icon: '/assets/generated/unauthorized-access.dim_64x64.png' },
       configUpload: { variant: 'destructive', label: 'Config Upload', icon: '/assets/generated/file-upload.dim_64x64.png' },
       general: { variant: 'default', label: 'General', icon: '/assets/generated/security-shield-check.dim_64x64.png' },
+      superuserPrivilegeChange: { variant: 'secondary', label: 'Superuser Privilege Change', icon: '/assets/generated/role-change.dim_64x64.png' },
     };
     return configs[type] || { variant: 'default', label: type, icon: '/assets/generated/security-shield-check.dim_64x64.png' };
   };
@@ -117,47 +123,48 @@ export default function AdminDashboard({ showAccessGranted = false }: AdminDashb
         <Alert className="border-green-500/50 bg-green-500/10 text-green-700 dark:text-green-400">
           <CheckCircle2 className="h-4 w-4" />
           <AlertDescription className="font-medium">
-            Access granted: You are now the sole App Controller with unrestricted access to all audit logs, configurations, and user management.
+            Access granted: You are now the sole App Controller with unrestricted access to all security features.
           </AlertDescription>
         </Alert>
       )}
 
       <div className="flex items-center justify-between">
         <div>
-          <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-3xl font-bold tracking-tight">Audit Log Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            Security Dashboard
             {isAppController && (
-              <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-1 text-white">
-                <Crown className="h-4 w-4" />
+              <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 px-2 py-1 text-white">
+                <Crown className="h-3.5 w-3.5" />
                 App Controller
               </Badge>
             )}
-          </div>
-          <p className="text-muted-foreground">Monitor and review all system activity with full administrative control</p>
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Monitor security events, manage users, and configure system settings
+          </p>
         </div>
-        <Button onClick={() => refetch()} variant="outline" size="sm">
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
       </div>
 
-      <IcpConnectionPanel />
+      <div className="grid gap-6 md:grid-cols-2">
+        <IcpConnectionPanel />
+        <AuthStatusPanel />
+      </div>
 
       <IcpControlsPanel />
 
-      <AuthStatusPanel />
+      <RealTimeAlertPanel logs={allLogs || []} />
 
-      <RealTimeAlertPanel logs={logs || []} />
-
-      <SecuritySummaryPanel logs={logs || []} />
+      <SecuritySummaryPanel logs={allLogs || []} />
 
       <SuperuserAuditPanel currentLogs={logs || []} />
 
-      <RootTerminalPanel />
+      <TestActionsPanel />
 
       <BroadcastConfigPanel />
 
       <UserManagementPanel />
+
+      {isAppController && <IcpControllerManagementPanel />}
 
       {isAppController && <DeploymentPanel />}
 
@@ -165,121 +172,123 @@ export default function AdminDashboard({ showAccessGranted = false }: AdminDashb
 
       {isAppController && <CodeEditorPanel />}
 
-      <TestActionsPanel />
+      <RootTerminalPanel />
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Filters
-              </CardTitle>
-              <CardDescription>Filter audit logs by date, user, action type, or severity</CardDescription>
-            </div>
-            {hasActiveFilters && (
-              <Button onClick={clearFilters} variant="ghost" size="sm">
-                <X className="mr-2 h-4 w-4" />
-                Clear Filters
-              </Button>
-            )}
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Audit Log Viewer
+          </CardTitle>
+          <CardDescription>View and filter security audit logs with real-time updates</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-            <div className="space-y-2">
-              <Label htmlFor="fromDate" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                From Date
-              </Label>
-              <Input
-                id="fromDate"
-                type="datetime-local"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-              />
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-semibold">Filters</h3>
+              {hasActiveFilters && (
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 px-2 text-xs">
+                  <X className="mr-1 h-3 w-3" />
+                  Clear All
+                </Button>
+              )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="toDate" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                To Date
-              </Label>
-              <Input
-                id="toDate"
-                type="datetime-local"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="userPrincipal" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                User Principal
-              </Label>
-              <Input
-                id="userPrincipal"
-                placeholder="Enter principal ID"
-                value={userPrincipal}
-                onChange={(e) => setUserPrincipal(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="actionType" className="flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                Action Type
-              </Label>
-              <Select value={actionType} onValueChange={setActionType}>
-                <SelectTrigger id="actionType">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="loginAttempt">Login Attempt</SelectItem>
-                  <SelectItem value="permissionChange">Permission Change</SelectItem>
-                  <SelectItem value="dataExport">Data Export</SelectItem>
-                  <SelectItem value="dataImport">Data Import</SelectItem>
-                  <SelectItem value="accountChange">Account Change</SelectItem>
-                  <SelectItem value="unauthorizedAttempt">Unauthorized Access</SelectItem>
-                  <SelectItem value="configUpload">Config Upload</SelectItem>
-                  <SelectItem value="general">General</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="severity" className="flex items-center gap-2">
-                <Activity className="h-4 w-4" />
-                Severity
-              </Label>
-              <Select value={severity} onValueChange={setSeverity}>
-                <SelectTrigger id="severity">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Severities</SelectItem>
-                  <SelectItem value="info">Info</SelectItem>
-                  <SelectItem value="warning">Warning</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Audit Log Entries</CardTitle>
-          <CardDescription>
-            {logs ? `Showing ${logs.length} entries` : 'Loading...'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="fromDate" className="flex items-center gap-1.5 text-xs">
+                  <Calendar className="h-3 w-3" />
+                  From Date
+                </Label>
+                <Input
+                  id="fromDate"
+                  type="datetime-local"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="toDate" className="flex items-center gap-1.5 text-xs">
+                  <Calendar className="h-3 w-3" />
+                  To Date
+                </Label>
+                <Input
+                  id="toDate"
+                  type="datetime-local"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="text-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="userPrincipal" className="flex items-center gap-1.5 text-xs">
+                  <User className="h-3 w-3" />
+                  User Principal
+                </Label>
+                <Input
+                  id="userPrincipal"
+                  placeholder="Filter by principal ID"
+                  value={userPrincipal}
+                  onChange={(e) => setUserPrincipal(e.target.value)}
+                  className="text-sm font-mono"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="actionType" className="text-xs">Action Type</Label>
+                <Select value={actionType} onValueChange={setActionType}>
+                  <SelectTrigger id="actionType" className="text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="loginAttempt">Login Attempt</SelectItem>
+                    <SelectItem value="permissionChange">Permission Change</SelectItem>
+                    <SelectItem value="dataExport">Data Export</SelectItem>
+                    <SelectItem value="dataImport">Data Import</SelectItem>
+                    <SelectItem value="accountChange">Account Change</SelectItem>
+                    <SelectItem value="unauthorizedAttempt">Unauthorized Access</SelectItem>
+                    <SelectItem value="configUpload">Config Upload</SelectItem>
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="superuserPrivilegeChange">Superuser Privilege Change</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="severity" className="text-xs">Severity</Label>
+                <Select value={severity} onValueChange={setSeverity}>
+                  <SelectTrigger id="severity" className="text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Severities</SelectItem>
+                    <SelectItem value="info">Info</SelectItem>
+                    <SelectItem value="warning">Warning</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-end">
+                <Button onClick={() => refetch()} variant="outline" size="sm" className="w-full">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh
+                </Button>
+              </div>
             </div>
-          ) : logs && logs.length > 0 ? (
-            <div className="rounded-md border">
+          </div>
+
+          <div className="rounded-md border">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            ) : logs && logs.length > 0 ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -296,33 +305,25 @@ export default function AdminDashboard({ showAccessGranted = false }: AdminDashb
                     const actionConfig = getActionTypeConfig(log.actionType);
                     const severityConfig = getSeverityConfig(log.severity);
                     return (
-                      <TableRow key={index}>
-                        <TableCell className="font-mono text-xs">
+                      <TableRow key={index} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedLog(log)}>
+                        <TableCell className="font-mono text-xs whitespace-nowrap">
                           {formatTimestamp(log.timestamp)}
                         </TableCell>
-                        <TableCell className="font-mono text-xs">
-                          {formatPrincipal(log.user)}
-                        </TableCell>
+                        <TableCell className="font-mono text-xs">{formatPrincipal(log.user)}</TableCell>
                         <TableCell>
-                          <Badge variant={actionConfig.variant as any}>
+                          <Badge variant={actionConfig.variant as any} className="text-xs">
                             {actionConfig.label}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${severityConfig.bgColor} ${severityConfig.color}`}>
+                          <span className={`text-xs font-medium ${severityConfig.color}`}>
                             {severityConfig.label}
-                          </div>
+                          </span>
                         </TableCell>
-                        <TableCell className="max-w-md truncate">
-                          {log.details}
-                        </TableCell>
+                        <TableCell className="max-w-md truncate text-sm">{log.details}</TableCell>
                         <TableCell className="text-right">
-                          <Button
-                            onClick={() => setSelectedLog(log)}
-                            variant="ghost"
-                            size="sm"
-                          >
-                            View Details
+                          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedLog(log); }}>
+                            View
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -330,10 +331,16 @@ export default function AdminDashboard({ showAccessGranted = false }: AdminDashb
                   })}
                 </TableBody>
               </Table>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              No audit log entries found matching the current filters.
+            ) : (
+              <div className="text-center py-12 text-sm text-muted-foreground">
+                No audit logs found matching the current filters
+              </div>
+            )}
+          </div>
+
+          {logs && logs.length > 0 && (
+            <div className="text-xs text-muted-foreground text-center">
+              Showing {logs.length} {logs.length === 1 ? 'entry' : 'entries'} • Auto-refreshing every 10 seconds
             </div>
           )}
         </CardContent>

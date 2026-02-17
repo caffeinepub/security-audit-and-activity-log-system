@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 21,
+  "projectStateVersion": 29,
   "summary": "Project to add a \"Security\" role with higher privileges than Administrator for the caffeine website, controlled/authorized by the app controller (user), and expand the app to connect to the Internet Computer (canister API integration), add Internet Identity login, and support deployment to ICP mainnet; also add a working superuser UI control to support security audits.",
   "architectural_notes": [
     "Planned: dashboard will include an App Controller–only standalone in-browser code editor capable of editing both backend (Motoko) and frontend (React/TypeScript) code, with an action to apply changes and trigger deploy.",
@@ -280,6 +280,102 @@
         "REQ-39"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-expand-the-existing-admin-dashboard-icp-controls-area-frontend-src-components-icpcontrolspanel-tsx-into-a-scalable-icp-controls-catalog-ui-that-can-support-hundreds-of-icp-related-controls-without-becoming-unusable-including-1-category-navigation-tabs-accordion-side-nav-2-a-search-box-that-filters-controls-by-name-keywords-and-3-a-compact-control-list-layout-suitable-for-200-entries",
+      "title": "Expand the existing Admin Dashboard “ICP Controls” area (frontend/src/components/IcpControlsPanel.tsx) into a scalable “ICP Controls Catalog” UI that can support hundreds of ICP-related controls without becoming unusable, including: (1) category navigation (tabs/accordion/side-nav), (2) a search box that filters controls by name/keywords, and (3) a compact control list layout suitable for 200+ entries.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-a-data-driven-icp-controls-registry-new-frontend-module-that-defines-icp-control-items-id-title-description-category-type-and-any-parameters-and-populate-it-with-at-least-200-icp-control-entries-that-are-real-ui-controls-toggles-inputs-buttons-presets-rather-than-hardcoded-jsx-so-new-controls-can-be-added-by-appending-registry-entries",
+      "title": "Implement a data-driven “ICP controls registry” (new frontend module) that defines ICP control items (id, title, description, category, type, and any parameters), and populate it with at least 200 ICP control entries that are real UI controls (toggles/inputs/buttons/presets) rather than hardcoded JSX, so new controls can be added by appending registry entries.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-existing-icp-controls-client-side-configuration-frontend-src-hooks-useicpcontrols-ts-and-frontend-src-utils-icpcontrols-ts-to-support-additional-icp-operational-settings-beyond-network-canisterid-for-example-agent-host-override-presets-request-timeout-polling-retry-tuning-and-diagnostics-toggles-and-persist-these-settings-with-the-same-precedence-rules-already-used-url-parameter-overrides-take-precedence-over-sessionstorage-which-takes-precedence-over-defaults",
+      "title": "Extend the existing ICP Controls client-side configuration (frontend/src/hooks/useIcpControls.ts and frontend/src/utils/icpControls.ts) to support additional ICP operational settings beyond network/canisterId (for example: agent host override presets, request timeout, polling/retry tuning, and diagnostics toggles), and persist these settings with the same precedence rules already used (URL parameter overrides take precedence over sessionStorage, which takes precedence over defaults).",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-expanded-icp-controls-catalog-includes-a-clear-export-settings-and-import-settings-capability-that-allows-an-operator-to-download-the-current-effective-icp-controls-configuration-as-a-json-file-and-later-re-import-it-to-restore-the-same-configuration-client-side-only",
+      "title": "Ensure the expanded ICP Controls Catalog includes a clear “Export settings” and “Import settings” capability that allows an operator to download the current effective ICP controls configuration as a JSON file and later re-import it to restore the same configuration (client-side only).",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-access-denied-experience-for-authenticated-users-to-clearly-explain-how-to-obtain-superuser-level-access-app-controller-or-security-role-for-icp-operations-and-provide-the-user-s-principal-id-with-a-one-click-copy-action-so-it-can-be-sent-to-the-app-controller-for-security-role-granting",
+      "title": "Update the Access Denied experience for authenticated users to clearly explain how to obtain Superuser-level access (App Controller or Security role) for ICP operations, and provide the user’s Principal ID with a one-click copy action so it can be sent to the App Controller for Security-role granting.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-allow-authenticated-but-unauthorized-users-to-view-icp-connectivity-and-configuration-information-needed-to-access-the-icp-properly-by-rendering-read-only-icp-status-and-editable-icp-controls-configuration-directly-on-the-access-denied-screen-without-exposing-audit-logs-user-management-superuser-audit-actions-or-the-root-terminal",
+      "title": "Allow authenticated-but-unauthorized users to view ICP connectivity and configuration information needed to “access the ICP properly” by rendering read-only ICP status and editable ICP Controls configuration directly on the Access Denied screen, without exposing audit logs, user management, superuser audit actions, or the Root Terminal.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hook-s-to-the-frontend-to-call-the-new-backend-apis-for-1-checking-the-caller-s-icp-controller-status-and-2-listing-granting-revoking-icp-controller-principals-including-cache-invalidation-for-any-affected-queries",
+      "title": "Add React Query hook(s) to the frontend to call the new backend APIs for: (1) checking the caller’s ICP Controller status, and (2) listing/granting/revoking ICP Controller principals, including cache invalidation for any affected queries.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-ui-to-display-an-icp-controller-role-badge-for-authenticated-users-who-have-the-icp-controller-role-including-users-who-are-also-app-controller-using-english-user-facing-text",
+      "title": "Update the frontend UI to display an \"ICP Controller\" role badge for authenticated users who have the ICP Controller role (including users who are also App Controller), using English user-facing text.",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-app-controller-only-dashboard-panel-to-manage-the-icp-controller-role-allow-entering-a-principal-granting-the-icp-controller-role-revoking-the-icp-controller-role-and-viewing-the-current-list-of-icp-controller-principals",
+      "title": "Add an App Controller–only dashboard panel to manage the ICP Controller role: allow entering a principal, granting the ICP Controller role, revoking the ICP Controller role, and viewing the current list of ICP Controller principals.",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-frontend-access-gating-so-authenticated-users-with-the-icp-controller-role-can-access-an-icp-operations-experience-without-requiring-app-controller-or-security-while-keeping-the-existing-security-dashboard-restricted-to-app-controller-or-security-users",
+      "title": "Update frontend access gating so authenticated users with the ICP Controller role can access an ICP-operations experience (without requiring App Controller or Security), while keeping the existing Security Dashboard restricted to App Controller or Security users.",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-new-icp-controller-focused-page-panel-that-exposes-icp-operational-tools-read-write-client-side-configuration-connection-diagnostics-and-explicitly-excludes-security-audit-admin-functionality-audit-logs-flagged-users-broadcasting-config-superuser-audit-tools-security-role-management-and-icp-controller-role-management",
+      "title": "Add a new ICP Controller–focused page/panel that exposes ICP operational tools (read/write client-side configuration + connection diagnostics) and explicitly excludes security/audit/admin functionality (audit logs, flagged users, broadcasting config, superuser audit tools, Security role management, and ICP Controller role management).",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-icp-controller-only-root-terminal-mode-or-a-separate-terminal-instance-that-exposes-only-safe-icp-operations-diagnostic-and-profile-commands-and-hides-removes-security-audit-role-management-commands-for-icp-controller-only-users",
+      "title": "Add an ICP Controller-only Root Terminal mode (or a separate terminal instance) that exposes only safe ICP-operations/diagnostic and profile commands, and hides/removes security/audit/role-management commands for ICP Controller-only users.",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -407,6 +503,54 @@
       "id": "AR-20",
       "summary": "Remove simulated/local-only behavior from the Root Terminal so administrative actions execute as real backend-powered operations (where authorized) rather than simulations.",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Greatly expand the Admin Dashboard \"ICP Controls\" into a large set (hundreds) of ICP-related controls/actions for operations and administration.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Add a Superuser access mode/permissions so the user can access and operate ICP features properly (ICP connectivity, controls, and related admin actions).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Add an \"ICP Controller\" role/permission and allow making a user both ICP Controller and App Controller (including authorization checks and UI/management flow as needed).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-24",
+      "summary": "Add a new privileged role named \"ICP Controller\" to the backend canister that can be granted/revoked by the App Controller, and expose APIs to: (1) grant the ICP Controller role to a target Principal (App Controller only), (2) revoke the ICP Controller role from a target Principal (App Controller only), (3) list all current ICP Controller Principals (App Controller only), and (4) query whether the caller has ICP Controller role.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Record an audit log entry for each ICP Controller role change (grant/revoke) using the existing audit log mechanism, including the target Principal and whether the change was a grant or revoke.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Add new dashboard features/actions that are available specifically to the \"ICP Controller\" role (beyond current access/badging/management), with appropriate authorization checks and UI gating.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-30",
+      "summary": "Update backend authorization to support ICP Controller-specific capabilities required by the new ICP Controller operational UI/terminal, by adding dedicated authorization checks and any minimal new backend APIs needed for ICP Controller workflows (without granting access to audit logs, user management, broadcasting configuration, or role administration).",
+      "reqIds": [
+        "REQ-54"
+      ],
       "status": "pending"
     }
   ],

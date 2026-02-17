@@ -1,9 +1,9 @@
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { useGetCallerUserProfile, useGetCallerAppControllerStatus, useGetCallerSecurityStatus } from '../hooks/useQueries';
+import { useGetCallerUserProfile, useGetCallerAppControllerStatus, useGetCallerSecurityStatus, useGetCallerIcpControllerStatus } from '../hooks/useQueries';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Moon, Sun, Crown, ShieldCheck } from 'lucide-react';
+import { Moon, Sun, Crown, ShieldCheck, Server } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 
@@ -12,12 +12,16 @@ export default function Header() {
   const { data: userProfile } = useGetCallerUserProfile();
   const { data: isAppController } = useGetCallerAppControllerStatus();
   const { data: isSecurity } = useGetCallerSecurityStatus();
+  const { data: isIcpController } = useGetCallerIcpControllerStatus();
   const { theme, setTheme } = useTheme();
   const queryClient = useQueryClient();
 
   const isAuthenticated = !!identity;
   const disabled = loginStatus === 'logging-in';
   const buttonText = loginStatus === 'logging-in' ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login';
+
+  const hasSecurityAccess = isAppController || isSecurity;
+  const hasIcpControllerOnlyAccess = isIcpController && !hasSecurityAccess;
 
   const handleAuth = async () => {
     if (isAuthenticated) {
@@ -41,12 +45,22 @@ export default function Header() {
     setTheme(theme === 'dark' ? 'light' : 'dark');
   };
 
+  const getHeaderTitle = () => {
+    if (hasSecurityAccess) {
+      return 'Caffeine Security Console';
+    }
+    if (hasIcpControllerOnlyAccess) {
+      return 'Caffeine ICP Operations';
+    }
+    return 'Caffeine Security Console';
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Caffeine Security Console
+            {getHeaderTitle()}
           </h1>
         </div>
 
@@ -68,6 +82,12 @@ export default function Header() {
                   <span className="hidden sm:inline">Security</span>
                 </Badge>
               )}
+              {isIcpController && !isAppController && !isSecurity && (
+                <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-purple-500 to-indigo-600 px-2 py-0.5 text-white">
+                  <Server className="h-3 w-3" />
+                  <span className="hidden sm:inline">ICP Controller</span>
+                </Badge>
+              )}
             </div>
           )}
 
@@ -86,7 +106,6 @@ export default function Header() {
             onClick={handleAuth}
             disabled={disabled}
             variant={isAuthenticated ? 'outline' : 'default'}
-            size="sm"
           >
             {buttonText}
           </Button>

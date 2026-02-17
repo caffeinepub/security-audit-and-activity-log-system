@@ -28,6 +28,7 @@ export interface T {
 export type T__1 = { 'unauthorizedAttempt' : null } |
   { 'loginAttempt' : null } |
   { 'permissionChange' : null } |
+  { 'superuserPrivilegeChange' : null } |
   { 'dataExport' : null } |
   { 'general' : null } |
   { 'accountChange' : null } |
@@ -80,14 +81,18 @@ export interface _SERVICE {
   'getExternalBroadcastingSettings' : ActorMethod<[], T__3>,
   'getFlaggedUsers' : ActorMethod<[], Array<Principal>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'grantIcpControllerRole' : ActorMethod<[Principal], undefined>,
   'grantSecurityRole' : ActorMethod<[Principal], undefined>,
+  'hasIcpControllerRole' : ActorMethod<[], boolean>,
   'initialize' : ActorMethod<[InstanceContext], undefined>,
   'isAppController' : ActorMethod<[Principal], boolean>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isSecurityUser' : ActorMethod<[], boolean>,
   'isUserFlagged' : ActorMethod<[Principal], boolean>,
+  'listIcpControllers' : ActorMethod<[], Array<Principal>>,
   'recordAuditEntry' : ActorMethod<[T], undefined>,
   'removeUser' : ActorMethod<[Principal], undefined>,
+  'revokeIcpControllerRole' : ActorMethod<[Principal], undefined>,
   'revokeSecurityRole' : ActorMethod<[Principal], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
