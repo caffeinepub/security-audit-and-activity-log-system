@@ -2,11 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-frontend-access-gating-so-authenticated-users-with-the-icp-controller-role-can-access-an-icp-operations-experience-without-requiring-app-controller-or-security-while-keeping-the-existing-security-dashboard-restricted-to-app-controller-or-security-users",
-      "featureTitle": "Update frontend access gating so authenticated users with the ICP Controller role can access an ICP-operations experience (without requiring App Controller or Security), while keeping the existing Security Dashboard restricted to App Controller or Security users.",
+      "featureId": "feature-add-an-explicit-user-visible-way-to-open-the-icp-controller-experience-the-icp-operations-console-so-that-users-with-the-icp-controller-role-can-reliably-find-it-instead-of-relying-on-implicit-role-based-rendering",
+      "featureTitle": "Add an explicit, user-visible way to open the ICP Controller experience (the ICP Operations Console) so that users with the ICP Controller role can reliably find it instead of relying on implicit role-based rendering.",
       "files": [
         "frontend/src/App.tsx",
-        "frontend/src/pages/IcpOpsDashboard.tsx"
+        "frontend/src/components/DashboardViewSwitcher.tsx",
+        "frontend/src/components/Header.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,16 +19,39 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-51"
+        "REQ-55"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-new-icp-controller-focused-page-panel-that-exposes-icp-operational-tools-read-write-client-side-configuration-connection-diagnostics-and-explicitly-excludes-security-audit-admin-functionality-audit-logs-flagged-users-broadcasting-config-superuser-audit-tools-security-role-management-and-icp-controller-role-management",
-      "featureTitle": "Add a new ICP Controller–focused page/panel that exposes ICP operational tools (read/write client-side configuration + connection diagnostics) and explicitly excludes security/audit/admin functionality (audit logs, flagged users, broadcasting config, superuser audit tools, Security role management, and ICP Controller role management).",
+      "featureId": "feature-support-users-who-have-both-security-app-controller-access-and-the-icp-controller-role-by-allowing-them-to-switch-between-the-security-dashboard-admindashboard-and-the-icp-operations-console-icpopsdashboard-without-changing-roles",
+      "featureTitle": "Support users who have both Security/App Controller access and the ICP Controller role by allowing them to switch between the Security Dashboard (AdminDashboard) and the ICP Operations Console (IcpOpsDashboard) without changing roles.",
       "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/DashboardViewSwitcher.tsx",
+        "frontend/src/components/Header.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-56"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-persist-the-selected-view-security-dashboard-vs-icp-operations-on-the-client-so-that-refresh-navigation-during-the-session-keeps-the-user-on-the-last-selected-view-while-still-respecting-role-based-access-rules",
+      "featureTitle": "Persist the selected view (Security Dashboard vs ICP Operations) on the client so that refresh/navigation during the session keeps the user on the last selected view, while still respecting role-based access rules.",
+      "files": [
+        "frontend/src/App.tsx",
         "frontend/src/components/Header.tsx",
-        "frontend/src/pages/IcpOpsDashboard.tsx"
+        "frontend/src/hooks/useDashboardView.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -39,30 +63,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-52"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-an-icp-controller-only-root-terminal-mode-or-a-separate-terminal-instance-that-exposes-only-safe-icp-operations-diagnostic-and-profile-commands-and-hides-removes-security-audit-role-management-commands-for-icp-controller-only-users",
-      "featureTitle": "Add an ICP Controller-only Root Terminal mode (or a separate terminal instance) that exposes only safe ICP-operations/diagnostic and profile commands, and hides/removes security/audit/role-management commands for ICP Controller-only users.",
-      "files": [
-        "frontend/src/components/RootTerminalPanel.tsx",
-        "frontend/src/pages/IcpOpsDashboard.tsx",
-        "frontend/src/terminal/commandRegistry.ts",
-        "frontend/src/terminal/icpControllerCommands.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-53"
+        "REQ-57"
       ],
       "confidence": "high"
     }

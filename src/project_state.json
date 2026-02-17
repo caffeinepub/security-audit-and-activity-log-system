@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 29,
+  "projectStateVersion": 31,
   "summary": "Project to add a \"Security\" role with higher privileges than Administrator for the caffeine website, controlled/authorized by the app controller (user), and expand the app to connect to the Internet Computer (canister API integration), add Internet Identity login, and support deployment to ICP mainnet; also add a working superuser UI control to support security audits.",
   "architectural_notes": [
     "Planned: dashboard will include an App Controller–only standalone in-browser code editor capable of editing both backend (Motoko) and frontend (React/TypeScript) code, with an action to apply changes and trigger deploy.",
@@ -13,9 +13,10 @@
     "Deployment/build flow failed during attempted deploy (\"Unable to complete deployment\" / \"build didn’t go through\").",
     "Root Terminal feature is not working (user reports it doesn't work).",
     "App can get stuck on \"Loading\" after deploy / on first load.",
-    "Root Terminal is not accepting commands or showing output even when ICP Connection shows \"Connected\" (terminal input/handler may be broken)."
+    "Root Terminal is not accepting commands or showing output even when ICP Connection shows \"Connected\" (terminal input/handler may be broken).",
+    "ICP Controller page/panel is not visible/accessible in the app UI (user reports they don't see the ICP Controller page)."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-update-the-frontend-access-gating-so-that-users-who-are-either-app-controller-or-security-can-access-the-dashboard-all-others-see-access-denied",
@@ -374,6 +375,30 @@
       "title": "Add an ICP Controller-only Root Terminal mode (or a separate terminal instance) that exposes only safe ICP-operations/diagnostic and profile commands, and hides/removes security/audit/role-management commands for ICP Controller-only users.",
       "reqIds": [
         "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-explicit-user-visible-way-to-open-the-icp-controller-experience-the-icp-operations-console-so-that-users-with-the-icp-controller-role-can-reliably-find-it-instead-of-relying-on-implicit-role-based-rendering",
+      "title": "Add an explicit, user-visible way to open the ICP Controller experience (the ICP Operations Console) so that users with the ICP Controller role can reliably find it instead of relying on implicit role-based rendering.",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-support-users-who-have-both-security-app-controller-access-and-the-icp-controller-role-by-allowing-them-to-switch-between-the-security-dashboard-admindashboard-and-the-icp-operations-console-icpopsdashboard-without-changing-roles",
+      "title": "Support users who have both Security/App Controller access and the ICP Controller role by allowing them to switch between the Security Dashboard (AdminDashboard) and the ICP Operations Console (IcpOpsDashboard) without changing roles.",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-persist-the-selected-view-security-dashboard-vs-icp-operations-on-the-client-so-that-refresh-navigation-during-the-session-keeps-the-user-on-the-last-selected-view-while-still-respecting-role-based-access-rules",
+      "title": "Persist the selected view (Security Dashboard vs ICP Operations) on the client so that refresh/navigation during the session keeps the user on the last selected view, while still respecting role-based access rules.",
+      "reqIds": [
+        "REQ-57"
       ],
       "version": 1
     }

@@ -1,38 +1,28 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T20:08:36.676Z",
-  "summary": "Diff adds a new ICP Operations console page for ICP Controller-only users, introduces a restricted terminal command registry for ICP Controller, and updates App-level role gating to route Security/App Controller users to the existing AdminDashboard and ICP Controller-only users to the new ICP ops experience. Backend shows beginnings of ICP Controller state, but the diff evidence is insufficient to confirm the required explicit ICP Controller auth helper and safe backend authorization boundaries. Diff also appears to introduce ICP Controller role administration hooks/panels, which were explicitly out of scope.",
+  "generatedAt": "2026-02-17T20:24:13.321Z",
+  "summary": "Implemented a session-persisted dashboard view state hook and a UI view switcher intended to let multi-role users toggle between Security Dashboard and ICP Operations. However, the diff does not show an explicit, user-visible navigation control for ICP Controller-only users to open ICP Operations as required.",
   "missing_requirements": [
     {
-      "id": "REQ-54",
-      "requirement": "Backend main actor contains an explicit ICP Controller authorization helper (e.g., an assert function) that can be used to gate ICP Controller-allowed endpoints, and ensures ICP Controller-only users cannot call Security/App Controller-only endpoints.",
-      "reason": "backend/main.mo shows a new `icpControllerState` map but the diff excerpt does not show an explicit ICP Controller authorization helper (assert/check function) nor demonstrates that new/modified endpoints are gated appropriately. Because content is truncated, this cannot be verified from provided evidence.",
+      "id": "REQ-55",
+      "requirement": "Add an explicit, user-visible way to open the ICP Controller experience (ICP Operations Console) so users with the ICP Controller role can reliably find it; hide/disable it for users without the ICP Controller role.",
+      "reason": "The new navigation control (DashboardViewSwitcher) only renders when `canSwitchViews` is true (i.e., when the user has more than one allowed view). That means ICP Controller-only users (who have only the 'icp-ops' view) would not see any explicit control to open ICP Operations; the header only changes title based on selection/role, which is not a user-invoked navigation control.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/components/DashboardViewSwitcher.tsx (renders null when !canSwitchViews)",
+        "frontend/src/hooks/useDashboardView.ts (canSwitchViews: allowedViews.length > 1)",
+        "frontend/src/components/Header.tsx (only renders switcher when canSwitchViews && selectedView && onSelectView && allowedViews)"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "ICP Controller role administration (status/list/grant/revoke) added to frontend query hooks and referenced as an AdminDashboard panel.",
-      "reason": "BuildRequest explicitly lists ICP Controller role administration as a non-goal/excluded area. The diff summary indicates hooks for “ICP Controller role management (status, list, grant, revoke)” and that AdminDashboard includes an “ICP Controller management panel (App Controller only)”, which is functionality not requested and explicitly disallowed.",
-      "evidence": [
-        "frontend-file-summaries.txt (mentions frontend/src/hooks/useQueries.ts includes ICP Controller role management; mentions frontend/src/pages/AdminDashboard.tsx includes ICP Controller management panel)"
-      ]
-    }
-  ],
-  "confidence": 0.63,
+  "hallucinated_features": [],
+  "confidence": 0.74,
   "changed_files": [
-    "backend/main.mo",
     "frontend-file-summaries.txt",
     "frontend/src/App.tsx",
+    "frontend/src/components/DashboardViewSwitcher.tsx",
     "frontend/src/components/Header.tsx",
-    "frontend/src/components/RootTerminalPanel.tsx",
-    "frontend/src/pages/IcpOpsDashboard.tsx",
-    "frontend/src/terminal/commandRegistry.ts",
-    "frontend/src/terminal/coreCommands.ts",
-    "frontend/src/terminal/icpControllerCommands.ts",
+    "frontend/src/hooks/useDashboardView.ts",
     "project_state.json"
   ]
 }

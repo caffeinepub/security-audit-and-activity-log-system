@@ -6,8 +6,17 @@ import { Badge } from '@/components/ui/badge';
 import { Moon, Sun, Crown, ShieldCheck, Server } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
+import DashboardViewSwitcher from './DashboardViewSwitcher';
+import { DashboardView } from '../hooks/useDashboardView';
 
-export default function Header() {
+interface HeaderProps {
+  selectedView?: DashboardView;
+  onSelectView?: (view: DashboardView) => void;
+  allowedViews?: DashboardView[];
+  canSwitchViews?: boolean;
+}
+
+export default function Header({ selectedView, onSelectView, allowedViews, canSwitchViews }: HeaderProps) {
   const { login, clear, loginStatus, identity } = useInternetIdentity();
   const { data: userProfile } = useGetCallerUserProfile();
   const { data: isAppController } = useGetCallerAppControllerStatus();
@@ -46,6 +55,15 @@ export default function Header() {
   };
 
   const getHeaderTitle = () => {
+    // Use selectedView if provided (for authenticated users with view switcher)
+    if (selectedView === 'icp-ops') {
+      return 'Caffeine ICP Operations';
+    }
+    if (selectedView === 'security') {
+      return 'Caffeine Security Console';
+    }
+
+    // Fallback to role-based title
     if (hasSecurityAccess) {
       return 'Caffeine Security Console';
     }
@@ -65,6 +83,16 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* View switcher for users with multiple access levels */}
+          {canSwitchViews && selectedView && onSelectView && allowedViews && (
+            <DashboardViewSwitcher
+              selectedView={selectedView}
+              onSelectView={onSelectView}
+              allowedViews={allowedViews}
+              canSwitchViews={canSwitchViews}
+            />
+          )}
+
           {isAuthenticated && userProfile && (
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground hidden sm:inline">

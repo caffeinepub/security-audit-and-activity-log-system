@@ -1,78 +1,82 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "ICP Ops Console: ICP Controller-only console, UI gating, and safe terminal mode",
+  "title": "Make ICP Operations Console discoverable with role-aware view switching and session persistence",
   "requirements": [
     {
-      "id": "REQ-51",
-      "summary": "Allow ICP Controller role to access an ICP operations experience while keeping the existing Security Dashboard restricted to App Controller or Security users.",
+      "id": "REQ-55",
+      "summary": "Expose an explicit, role-gated navigation control to open the ICP Operations Console for ICP Controller users",
       "acceptanceCriteria": [
-        "An authenticated user who is ICP Controller (via hasIcpControllerRole) is no longer blocked by the current App Controller/Security-only gating in frontend/src/App.tsx.",
-        "App Controller and Security users still see the existing AdminDashboard security console unchanged.",
-        "A non-authenticated user still sees the login prompt on the Access Denied screen."
+        "When the authenticated user has the ICP Controller role, there is a clearly labeled navigation control (for example, a button or tab) with English text that opens the ICP Operations Console.",
+        "If the authenticated user does not have the ICP Controller role, the ICP Operations navigation control is not shown (or is shown disabled with an English explanation)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Update access gating to include ICP Controller role checks (via useGetCallerIcpControllerStatus / hasIcpControllerRole) and route users to the correct experience: AdminDashboard for App Controller/Security, ICP Ops dashboard for ICP Controller-only, and AccessDeniedScreen for unauthenticated or unauthorized users. Use the selected \"authorization\" component’s frontend RBAC guidance for authenticated gating and role-driven UI decisions. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
+          "path": "frontend/src/components/DashboardViewSwitcher.tsx",
           "operation": "create",
-          "description": "Create a dedicated ICP Operations dashboard page for ICP Controller users (connectivity/configuration focus) that can be rendered from App.tsx when the user is ICP Controller-only (not App Controller/Security). Ensure content is operational (connection + config + auth status) and not security/audit/admin oriented."
-        }
-      ]
-    },
-    {
-      "id": "REQ-52",
-      "summary": "Add an ICP Controller-focused operational panel/page with ICP connection status, safe configuration controls (import/export/reset), and authentication status, excluding security/audit/admin tools.",
-      "acceptanceCriteria": [
-        "When logged in as ICP Controller (but not App Controller/Security), the UI shows: (1) ICP Connection status (including effective network + canister ID), (2) ICP Controls catalog (including import/export/reset), and (3) Authentication status (principal display/copy).",
-        "When logged in as ICP Controller-only, the UI does NOT render: Audit Log Viewer, SuperuserAuditPanel, UserManagementPanel, BroadcastConfigPanel, TestActionsPanel, RealTimeAlertPanel, SecuritySummaryPanel, DeploymentPanel, IcpMainnetDeploymentPanel, CodeEditorPanel, or IcpControllerManagementPanel.",
-        "All user-facing labels and explanatory copy for this new ICP Controller area are in English and clearly describe that it is for ICP connectivity/configuration operations, not security auditing."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
-          "operation": "modify",
-          "description": "Implement the ICP Controller operational UI layout and English copy. Compose only the allowed operational panels: IcpConnectionPanel (ICP connection status), IcpControlsPanel (catalog including import/export/reset), and AuthStatusPanel (authentication status with principal display/copy). Explicitly exclude/avoid importing or rendering any security/audit/admin panels listed in the requirement."
+          "description": "Create a small, reusable view switcher control composed from existing shadcn/ui components (do not modify anything under frontend/src/components/ui) that can show an \"ICP Operations\" navigation control only when allowed by roles, and can optionally render disabled state with an English explanation when not allowed. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Ensure role badges/identity affordances remain correct for ICP Controller-only sessions (already using useGetCallerIcpControllerStatus). Optionally adjust header text/UX to avoid implying the user is in the Security Dashboard when the ICP Ops dashboard is active, without introducing new routes. Use the selected \"authorization\" component’s frontend RBAC guidance for role-driven UI. Verify the component's usage instructions before implementing."
+          "description": "Integrate the explicit \"ICP Operations\" navigation control into the header (using the new DashboardViewSwitcher) and ensure it is only shown when the authenticated user has ICP Controller access; do not show it for users without that role (or render disabled with an English explanation if chosen). Also ensure the header title/affordances can reflect the currently selected view. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the new explicit navigation control by lifting selected dashboard view state into App and passing selectedView + onSelectView into Header so users can open ICP Operations without relying on implicit role-based rendering. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-53",
-      "summary": "Provide an ICP Controller-only terminal mode that only exposes safe ICP operations/diagnostic and profile commands and clearly rejects restricted commands.",
+      "id": "REQ-56",
+      "summary": "Allow users with both Security/App Controller access and ICP Controller role to switch between Security Dashboard and ICP Operations without reload/logout",
       "acceptanceCriteria": [
-        "When logged in as ICP Controller-only, the terminal command list/help output does not include commands that call Security/App Controller restricted endpoints (e.g., audit-list, audit-record, audit-export, security-grant, security-revoke, security-status, user management, broadcasting configuration, ICP controller grant/revoke/list).",
-        "When logged in as App Controller or Security, the terminal continues to show the full existing command set as it does today.",
-        "Attempting to run a restricted command as ICP Controller-only yields a clear English message indicating insufficient privileges (without crashing the terminal)."
+        "If a user is both (App Controller or Security) AND ICP Controller, the UI provides a clear view switcher with English labels (e.g., \"Security Dashboard\" and \"ICP Operations\") that changes the main content between AdminDashboard and IcpOpsDashboard.",
+        "Switching views does not log the user out and does not require a page reload.",
+        "The currently selected view is visually indicated in the UI."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/terminal/commandRegistry.ts",
+          "path": "frontend/src/components/DashboardViewSwitcher.tsx",
           "operation": "modify",
-          "description": "Refactor the registry to support building multiple registries (e.g., full registry vs. ICP Controller-safe registry) without breaking the existing default behavior. Keep the full registry as the default export used by the Security Dashboard terminal."
+          "description": "Extend the switcher to support two labeled options (\"Security Dashboard\" and \"ICP Operations\") when both views are permitted, visually indicate the currently selected view, and call back to the parent to switch main content without reload. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/terminal/icpControllerCommands.ts",
+          "path": "frontend/src/components/Header.tsx",
+          "operation": "modify",
+          "description": "Render the view switcher in a prominent, user-visible location in the header when the user has both Security/App Controller access and ICP Controller role; keep the rest of the header (auth, theme toggle) intact. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Update App rendering logic so that when the user has both permitted views, switching the selected view changes the main content between AdminDashboard and IcpOpsDashboard without logging out and without a full page reload, while keeping the existing role-gating rules. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-57",
+      "summary": "Persist the selected dashboard view for the session and fall back safely when access changes",
+      "acceptanceCriteria": [
+        "After selecting \"ICP Operations\" (or the equivalent), a page refresh keeps the user in the ICP Operations Console for the remainder of the session (unless access rules prevent it).",
+        "If the user loses access to a view (e.g., logs out), the app falls back to the appropriate screen (Access Denied or the permitted dashboard) without errors.",
+        "All user-facing persistence-related copy (if any) is in English."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useDashboardView.ts",
           "operation": "create",
-          "description": "Define the ICP Controller-safe command set for the ICP Controller-only terminal mode. Include only safe commands such as help/clear and profile commands (e.g., profile-get/whoami, profile-set-name) and optional connectivity/role self-check commands that do not expose security/audit/role-management capabilities."
+          "description": "Create a hook that manages the selected view with session-scoped persistence (use sessionStorage via existing helpers in frontend/src/utils/urlParams.ts), validates the persisted selection against the currently allowed views, and provides a safe fallback to an allowed view when roles/access change. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/RootTerminalPanel.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Add support for a separate terminal instance/mode by allowing injection of a command registry and terminal labels (title/description), and implement ICP Controller-only behavior: help output reflects only the safe registry; unknown commands that are known restricted commands produce a clear English 'insufficient privileges' message rather than a generic not-found. Ensure it never crashes and remains unchanged for App Controller/Security usage."
+          "description": "Adopt the new useDashboardView hook to initialize selected view from session storage, keep it in sync when roles change, clear persisted selection on logout, and ensure the app falls back to AccessDeniedScreen or the permitted dashboard without errors. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
+          "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Wire an ICP Controller-only terminal instance into the ICP Ops dashboard using the safe ICP Controller command registry, and ensure the existing Security Dashboard continues to use the full RootTerminalPanel behavior."
+          "description": "Consume selectedView (from App) to keep header labeling consistent with the persisted/active view; ensure any persistence-related copy remains English (or omit copy entirely). Verify the component's usage instructions before implementing."
         }
       ]
     }

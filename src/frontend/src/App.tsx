@@ -10,6 +10,7 @@ import IcpOpsDashboard from './pages/IcpOpsDashboard';
 import AccessDeniedScreen from './components/AccessDeniedScreen';
 import { Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useDashboardView } from './hooks/useDashboardView';
 
 export default function App() {
   const { identity, loginStatus } = useInternetIdentity();
@@ -20,6 +21,18 @@ export default function App() {
   const { data: isIcpController, isLoading: icpControllerLoading, isFetched: icpControllerFetched } = useGetCallerIcpControllerStatus();
   const initializeAppController = useInitializeAppController();
   const [showAccessGranted, setShowAccessGranted] = useState(false);
+
+  // Determine access level with default false values
+  const hasSecurityAccess = isAppController === true || isSecurity === true;
+  const hasIcpControllerAccess = isIcpController === true;
+  const hasAnyAccess = hasSecurityAccess || hasIcpControllerAccess;
+
+  // Use dashboard view hook for session-persisted view switching
+  const { selectedView, onSelectView, allowedViews, canSwitchViews } = useDashboardView(
+    hasSecurityAccess,
+    hasIcpControllerAccess,
+    isAuthenticated
+  );
 
   // Reset access granted message on logout
   useEffect(() => {
@@ -65,11 +78,6 @@ export default function App() {
   // Show profile setup modal if user is authenticated but has no profile
   const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
 
-  // Determine access level
-  const hasSecurityAccess = isAppController || isSecurity;
-  const hasIcpControllerOnlyAccess = isIcpController && !hasSecurityAccess;
-  const hasAnyAccess = hasSecurityAccess || hasIcpControllerOnlyAccess;
-
   // Show access denied if not authenticated or no access
   if (!isAuthenticated || !hasAnyAccess) {
     return (
@@ -86,16 +94,25 @@ export default function App() {
     );
   }
 
+  // Render the appropriate dashboard based on selected view
+  const renderDashboard = () => {
+    if (selectedView === 'icp-ops') {
+      return <IcpOpsDashboard showAccessGranted={showAccessGranted} />;
+    }
+    return <AdminDashboard showAccessGranted={showAccessGranted} />;
+  };
+
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <div className="flex min-h-screen flex-col">
-        <Header />
+        <Header
+          selectedView={selectedView}
+          onSelectView={onSelectView}
+          allowedViews={allowedViews}
+          canSwitchViews={canSwitchViews}
+        />
         <main className="flex-1">
-          {hasSecurityAccess ? (
-            <AdminDashboard showAccessGranted={showAccessGranted} />
-          ) : (
-            <IcpOpsDashboard showAccessGranted={showAccessGranted} />
-          )}
+          {renderDashboard()}
         </main>
         <Footer />
       </div>

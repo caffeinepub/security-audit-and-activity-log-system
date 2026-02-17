@@ -1,80 +1,71 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T20:08:36.680Z",
+  "generatedAt": "2026-02-17T20:24:13.325Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
+    "total": 3,
     "implemented": 3,
     "items": [
       {
-        "id": "REQ-51",
-        "summary": "Update frontend access gating so authenticated users with the ICP Controller role can access an ICP-operations experience (without requiring App Controller or Security), while keeping the existing Security Dashboard restricted to App Controller or Security users.",
+        "id": "REQ-55",
+        "summary": "Add an explicit, user-visible way to open the ICP Controller experience (the ICP Operations Console) so that users with the ICP Controller role can reliably find it instead of relying on implicit role-based rendering.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/pages/IcpOpsDashboard.tsx"
+          "frontend/src/components/DashboardViewSwitcher.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/pages/IcpOpsDashboard.tsx"
+          "frontend/src/components/DashboardViewSwitcher.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/App.tsx"
         ]
       },
       {
-        "id": "REQ-52",
-        "summary": "Add a new ICP Controller–focused page/panel that exposes ICP operational tools (read/write client-side configuration + connection diagnostics) and explicitly excludes security/audit/admin functionality (audit logs, flagged users, broadcasting config, superuser audit tools, Security role management, and ICP Controller role management).",
+        "id": "REQ-56",
+        "summary": "Support users who have both Security/App Controller access and the ICP Controller role by allowing them to switch between the Security Dashboard (AdminDashboard) and the ICP Operations Console (IcpOpsDashboard) without changing roles.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/IcpOpsDashboard.tsx",
+          "frontend/src/components/DashboardViewSwitcher.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/DashboardViewSwitcher.tsx",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-57",
+        "summary": "Persist the selected view (Security Dashboard vs ICP Operations) on the client so that refresh/navigation during the session keeps the user on the last selected view, while still respecting role-based access rules.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useDashboardView.ts",
+          "frontend/src/App.tsx",
           "frontend/src/components/Header.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/IcpOpsDashboard.tsx",
+          "frontend/src/hooks/useDashboardView.ts",
+          "frontend/src/App.tsx",
           "frontend/src/components/Header.tsx"
         ]
-      },
-      {
-        "id": "REQ-53",
-        "summary": "Add an ICP Controller-only Root Terminal mode (or a separate terminal instance) that exposes only safe ICP-operations/diagnostic and profile commands, and hides/removes security/audit/role-management commands for ICP Controller-only users.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/terminal/commandRegistry.ts",
-          "frontend/src/terminal/icpControllerCommands.ts",
-          "frontend/src/components/RootTerminalPanel.tsx",
-          "frontend/src/pages/IcpOpsDashboard.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/terminal/commandRegistry.ts",
-          "frontend/src/terminal/icpControllerCommands.ts",
-          "frontend/src/components/RootTerminalPanel.tsx",
-          "frontend/src/pages/IcpOpsDashboard.tsx"
-        ]
-      },
-      {
-        "id": "REQ-54",
-        "summary": "Update backend authorization to support ICP Controller-specific capabilities required by the new ICP Controller operational UI/terminal, by adding dedicated authorization checks and any minimal new backend APIs needed for ICP Controller workflows (without granting access to audit logs, user management, broadcasting configuration, or role administration).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
+    "frontend/src/components/DashboardViewSwitcher.tsx",
     "frontend/src/components/Header.tsx",
-    "frontend/src/components/RootTerminalPanel.tsx",
-    "frontend/src/pages/IcpOpsDashboard.tsx",
-    "frontend/src/terminal/commandRegistry.ts",
-    "frontend/src/terminal/coreCommands.ts",
-    "frontend/src/terminal/icpControllerCommands.ts",
+    "frontend/src/hooks/useDashboardView.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

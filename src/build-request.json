@@ -1,90 +1,72 @@
 {
   "kind": "build_request",
-  "title": "Add ICP Controller-only operational console and permissions",
-  "projectName": "ICP Ops Console",
+  "title": "Make the ICP Controller (ICP Operations) page discoverable and accessible",
+  "projectName": "Caffeine Console",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-51",
-      "text": "Update frontend access gating so authenticated users with the ICP Controller role can access an ICP-operations experience (without requiring App Controller or Security), while keeping the existing Security Dashboard restricted to App Controller or Security users.",
+      "id": "REQ-55",
+      "text": "Add an explicit, user-visible way to open the ICP Controller experience (the ICP Operations Console) so that users with the ICP Controller role can reliably find it instead of relying on implicit role-based rendering.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-7"
         ],
         "quotes": [
-          "Okay now add new features available to the icp controller"
+          "I don't see the icp controller page"
         ]
       },
       "acceptanceCriteria": [
-        "An authenticated user who is ICP Controller (via hasIcpControllerRole) is no longer blocked by the current App Controller/Security-only gating in frontend/src/App.tsx.",
-        "App Controller and Security users still see the existing AdminDashboard security console unchanged.",
-        "A non-authenticated user still sees the login prompt on the Access Denied screen."
+        "When the authenticated user has the ICP Controller role, there is a clearly labeled navigation control (for example, a button or tab) with English text that opens the ICP Operations Console.",
+        "If the authenticated user does not have the ICP Controller role, the ICP Operations navigation control is not shown (or is shown disabled with an English explanation)."
       ]
     },
     {
-      "id": "REQ-52",
-      "text": "Add a new ICP Controller–focused page/panel that exposes ICP operational tools (read/write client-side configuration + connection diagnostics) and explicitly excludes security/audit/admin functionality (audit logs, flagged users, broadcasting config, superuser audit tools, Security role management, and ICP Controller role management).",
+      "id": "REQ-56",
+      "text": "Support users who have both Security/App Controller access and the ICP Controller role by allowing them to switch between the Security Dashboard (AdminDashboard) and the ICP Operations Console (IcpOpsDashboard) without changing roles.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-7"
         ],
         "quotes": [
-          "Okay now add new features available to the icp controller"
+          "I don't see the icp controller page"
         ]
       },
       "acceptanceCriteria": [
-        "When logged in as ICP Controller (but not App Controller/Security), the UI shows: (1) ICP Connection status (including effective network + canister ID), (2) ICP Controls catalog (including import/export/reset), and (3) Authentication status (principal display/copy).",
-        "When logged in as ICP Controller-only, the UI does NOT render: Audit Log Viewer, SuperuserAuditPanel, UserManagementPanel, BroadcastConfigPanel, TestActionsPanel, RealTimeAlertPanel, SecuritySummaryPanel, DeploymentPanel, IcpMainnetDeploymentPanel, CodeEditorPanel, or IcpControllerManagementPanel.",
-        "All user-facing labels and explanatory copy for this new ICP Controller area are in English and clearly describe that it is for ICP connectivity/configuration operations, not security auditing."
+        "If a user is both (App Controller or Security) AND ICP Controller, the UI provides a clear view switcher with English labels (e.g., \"Security Dashboard\" and \"ICP Operations\") that changes the main content between AdminDashboard and IcpOpsDashboard.",
+        "Switching views does not log the user out and does not require a page reload.",
+        "The currently selected view is visually indicated in the UI."
       ]
     },
     {
-      "id": "REQ-53",
-      "text": "Add an ICP Controller-only Root Terminal mode (or a separate terminal instance) that exposes only safe ICP-operations/diagnostic and profile commands, and hides/removes security/audit/role-management commands for ICP Controller-only users.",
+      "id": "REQ-57",
+      "text": "Persist the selected view (Security Dashboard vs ICP Operations) on the client so that refresh/navigation during the session keeps the user on the last selected view, while still respecting role-based access rules.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-7"
         ],
         "quotes": [
-          "Okay now add new features available to the icp controller"
+          "I don't see the icp controller page"
         ]
       },
       "acceptanceCriteria": [
-        "When logged in as ICP Controller-only, the terminal command list/help output does not include commands that call Security/App Controller restricted endpoints (e.g., audit-list, audit-record, audit-export, security-grant, security-revoke, security-status, user management, broadcasting configuration, ICP controller grant/revoke/list).",
-        "When logged in as App Controller or Security, the terminal continues to show the full existing command set as it does today.",
-        "Attempting to run a restricted command as ICP Controller-only yields a clear English message indicating insufficient privileges (without crashing the terminal)."
-      ]
-    },
-    {
-      "id": "REQ-54",
-      "text": "Update backend authorization to support ICP Controller-specific capabilities required by the new ICP Controller operational UI/terminal, by adding dedicated authorization checks and any minimal new backend APIs needed for ICP Controller workflows (without granting access to audit logs, user management, broadcasting configuration, or role administration).",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "Okay now add new features available to the icp controller"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend main actor (backend/main.mo) contains an explicit ICP Controller authorization helper (e.g., an assert function) that can be used to gate ICP Controller-allowed endpoints.",
-        "No existing Security/App Controller-only backend endpoints (audit logs, recordAuditEntry, exportAuditLogToJson, user flag/remove, configureExternalBroadcasting, grant/revoke/list roles) become callable by ICP Controller-only users as a result of this change.",
-        "If any new backend method is added for ICP Controller operations, it is callable by ICP Controller and continues to be denied for unauthenticated callers and for authenticated callers without ICP Controller role."
+        "After selecting \"ICP Operations\" (or the equivalent), a page refresh keeps the user in the ICP Operations Console for the remainder of the session (unless access rules prevent it).",
+        "If the user loses access to a view (e.g., logs out), the app falls back to the appropriate screen (Access Denied or the permitted dashboard) without errors.",
+        "All user-facing persistence-related copy (if any) is in English."
       ]
     }
   ],
   "constraints": [
-    "Do not edit frontend immutable paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui.",
-    "Backend must remain a single Motoko actor with all logic in backend/main.mo; only add backend/migration.mo changes if state shape changes require migration."
+    "Do not modify files under frontend/src/components/ui (shadcn components); compose them instead.",
+    "Do not modify frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, or frontend/src/main.tsx (immutable paths).",
+    "Keep the existing role-gating rules: Security Dashboard remains restricted to App Controller or Security users; ICP Operations remains available to ICP Controller users (including those who also have App Controller/Security)."
   ],
   "nonGoals": [
-    "Do not grant ICP Controller role access to audit logs, superuser audit export, flagged user management, external broadcasting configuration, Security role administration, or ICP Controller role administration.",
-    "Do not add third-party authentication beyond Internet Identity.",
-    "Do not introduce external databases or additional backend services."
+    "Do not add or change backend Motoko APIs or role definitions for this request.",
+    "Do not add third-party routing frameworks (e.g., Next.js) or external authentication providers.",
+    "Do not expose security/audit/admin panels (audit logs, user management, broadcasting config, security role management, ICP controller role management) inside the ICP Operations Console for ICP Controller-only users."
   ],
   "imageRequirements": {
     "required": [],
