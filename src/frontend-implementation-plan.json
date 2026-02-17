@@ -1,82 +1,36 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Make ICP Operations Console discoverable with role-aware view switching and session persistence",
+  "title": "Clarify unsupported 'Web control' role requests with in-app guidance",
   "requirements": [
     {
-      "id": "REQ-55",
-      "summary": "Expose an explicit, role-gated navigation control to open the ICP Operations Console for ICP Controller users",
+      "id": "REQ-64",
+      "summary": "Clarify in Roles & Access panel that 'Web control' / 'World Wide Web Controller' is not supported and guide users to supported roles and next steps.",
       "acceptanceCriteria": [
-        "When the authenticated user has the ICP Controller role, there is a clearly labeled navigation control (for example, a button or tab) with English text that opens the ICP Operations Console.",
-        "If the authenticated user does not have the ICP Controller role, the ICP Operations navigation control is not shown (or is shown disabled with an English explanation)."
+        "Roles & Access panel text explicitly mentions that \"Web control\" / \"World Wide Web Controller\" is not a supported role name in this app.",
+        "The UI clearly states (in English) that only these roles exist: App Controller, Security, ICP Controller.",
+        "The UI provides a clear next step: instruct the user to share their Principal ID with the App Controller to request either the Security role (for security/audit features) or the ICP Controller role (for ICP operations)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/DashboardViewSwitcher.tsx",
-          "operation": "create",
-          "description": "Create a small, reusable view switcher control composed from existing shadcn/ui components (do not modify anything under frontend/src/components/ui) that can show an \"ICP Operations\" navigation control only when allowed by roles, and can optionally render disabled state with an English explanation when not allowed. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/components/RolesAccessPanel.tsx",
           "operation": "modify",
-          "description": "Integrate the explicit \"ICP Operations\" navigation control into the header (using the new DashboardViewSwitcher) and ensure it is only shown when the authenticated user has ICP Controller access; do not show it for users without that role (or render disabled with an English explanation if chosen). Also ensure the header title/affordances can reflect the currently selected view. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Wire the new explicit navigation control by lifting selected dashboard view state into App and passing selectedView + onSelectView into Header so users can open ICP Operations without relying on implicit role-based rendering. Verify the component's usage instructions before implementing."
+          "description": "Update the \"Supported Roles\" section copy to explicitly call out that \"Web control\" / \"World Wide Web Controller\" is not a supported role in this application; explicitly list App Controller, Security, and ICP Controller as the only roles; and add clear next-step guidance to share the user's Principal ID with the App Controller to request Security (security/audit) or ICP Controller (ICP operations). Use the authorization component's role-based access guidance patterns (copy/UX only). Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-56",
-      "summary": "Allow users with both Security/App Controller access and ICP Controller role to switch between Security Dashboard and ICP Operations without reload/logout",
+      "id": "REQ-65",
+      "summary": "Update Access Denied screen guidance for authenticated-but-unauthorized users to explicitly note 'Web control' is not supported and direct them to request Security or ICP Controller access.",
       "acceptanceCriteria": [
-        "If a user is both (App Controller or Security) AND ICP Controller, the UI provides a clear view switcher with English labels (e.g., \"Security Dashboard\" and \"ICP Operations\") that changes the main content between AdminDashboard and IcpOpsDashboard.",
-        "Switching views does not log the user out and does not require a page reload.",
-        "The currently selected view is visually indicated in the UI."
+        "When an authenticated user sees Access Denied, the page includes a sentence stating that \"Web control\" is not a supported role in this application.",
+        "The page continues to show the user’s Principal ID and one-click copy, and the guidance text recommends requesting Security or ICP Controller from the App Controller."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/DashboardViewSwitcher.tsx",
+          "path": "frontend/src/components/AccessDeniedScreen.tsx",
           "operation": "modify",
-          "description": "Extend the switcher to support two labeled options (\"Security Dashboard\" and \"ICP Operations\") when both views are permitted, visually indicate the currently selected view, and call back to the parent to switch main content without reload. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Render the view switcher in a prominent, user-visible location in the header when the user has both Security/App Controller access and ICP Controller role; keep the rest of the header (auth, theme toggle) intact. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Update App rendering logic so that when the user has both permitted views, switching the selected view changes the main content between AdminDashboard and IcpOpsDashboard without logging out and without a full page reload, while keeping the existing role-gating rules. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-57",
-      "summary": "Persist the selected dashboard view for the session and fall back safely when access changes",
-      "acceptanceCriteria": [
-        "After selecting \"ICP Operations\" (or the equivalent), a page refresh keeps the user in the ICP Operations Console for the remainder of the session (unless access rules prevent it).",
-        "If the user loses access to a view (e.g., logs out), the app falls back to the appropriate screen (Access Denied or the permitted dashboard) without errors.",
-        "All user-facing persistence-related copy (if any) is in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useDashboardView.ts",
-          "operation": "create",
-          "description": "Create a hook that manages the selected view with session-scoped persistence (use sessionStorage via existing helpers in frontend/src/utils/urlParams.ts), validates the persisted selection against the currently allowed views, and provides a safe fallback to an allowed view when roles/access change. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Adopt the new useDashboardView hook to initialize selected view from session storage, keep it in sync when roles change, clear persisted selection on logout, and ensure the app falls back to AccessDeniedScreen or the permitted dashboard without errors. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/Header.tsx",
-          "operation": "modify",
-          "description": "Consume selectedView (from App) to keep header labeling consistent with the persisted/active view; ensure any persistence-related copy remains English (or omit copy entirely). Verify the component's usage instructions before implementing."
+          "description": "Adjust authenticated Access Denied copy to: (1) explicitly state that \"Web control\" / \"World Wide Web Controller\" access cannot be granted because it is not a supported role in this app; (2) recommend requesting Security or ICP Controller access from the App Controller; and (3) keep the Principal ID display and one-click copy behavior intact. Align messaging with the authorization component's AccessDeniedScreen guidance approach (copy/UX only). Verify the component's usage instructions before implementing."
         }
       ]
     }

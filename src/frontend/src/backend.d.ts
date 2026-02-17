@@ -7,6 +7,20 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface TransformationOutput {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
+}
+export type Time = bigint;
+export interface InstanceContext {
+    contextPrincipal: Principal;
+    contextTimestamp: Time;
+}
+export interface http_header {
+    value: string;
+    name: string;
+}
 export interface http_request_result {
     status: bigint;
     body: Uint8Array;
@@ -23,12 +37,6 @@ export interface T__3 {
     enabled: boolean;
     endpointUrl?: string;
 }
-export interface TransformationOutput {
-    status: bigint;
-    body: Uint8Array;
-    headers: Array<http_header>;
-}
-export type Time = bigint;
 export interface TransformationInput {
     context: Uint8Array;
     response: http_request_result;
@@ -44,15 +52,17 @@ export interface T {
     severity: T__2;
     ipAddress?: string;
 }
-export interface InstanceContext {
-    contextPrincipal: Principal;
-    contextTimestamp: Time;
+export interface IcpController {
+    principal: Principal;
+    revokedTimestamp?: Time;
+    name?: string;
+    createdBy?: Principal;
+    description?: string;
+    roleAssigned: boolean;
+    lastActiveTimestamp?: Time;
+    assignedTimestamp: Time;
 }
 export interface UserProfile {
-    name: string;
-}
-export interface http_header {
-    value: string;
     name: string;
 }
 export enum T__1 {
@@ -81,6 +91,7 @@ export interface backendInterface {
     configureExternalBroadcasting(enabled: boolean, endpointUrl: string | null): Promise<void>;
     exportAuditLogToJson(): Promise<Array<T>>;
     flagUser(user: Principal): Promise<void>;
+    getAppController(): Promise<Principal | null>;
     getAuditLogs(filter: T__4): Promise<Array<T>>;
     getCallerAppControllerStatus(): Promise<boolean>;
     getCallerUserProfile(): Promise<UserProfile | null>;
@@ -88,7 +99,7 @@ export interface backendInterface {
     getExternalBroadcastingSettings(): Promise<T__3>;
     getFlaggedUsers(): Promise<Array<Principal>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
-    grantIcpControllerRole(target: Principal): Promise<void>;
+    grantIcpControllerRole(target: Principal, name: string | null, description: string | null): Promise<void>;
     grantSecurityRole(target: Principal): Promise<void>;
     hasIcpControllerRole(): Promise<boolean>;
     initialize(context: InstanceContext): Promise<void>;
@@ -96,7 +107,7 @@ export interface backendInterface {
     isCallerAdmin(): Promise<boolean>;
     isSecurityUser(): Promise<boolean>;
     isUserFlagged(user: Principal): Promise<boolean>;
-    listIcpControllers(): Promise<Array<Principal>>;
+    listIcpControllers(includeRevoked: boolean): Promise<Array<IcpController>>;
     recordAuditEntry(entry: T): Promise<void>;
     removeUser(user: Principal): Promise<void>;
     revokeIcpControllerRole(target: Principal): Promise<void>;
@@ -104,4 +115,5 @@ export interface backendInterface {
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unflagUser(user: Principal): Promise<void>;
+    updateIcpControllerDescription(target: Principal, name: string, description: string | null): Promise<void>;
 }

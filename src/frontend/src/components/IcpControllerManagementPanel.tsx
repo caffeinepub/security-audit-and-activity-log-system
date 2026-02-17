@@ -1,192 +1,262 @@
 import { useState } from 'react';
-import { useListIcpControllers, useGrantIcpControllerRole, useRevokeIcpControllerRole } from '../hooks/useQueries';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Server, UserPlus, UserMinus, AlertCircle, Shield } from 'lucide-react';
-import { Principal } from '@icp-sdk/core/principal';
-import { toast } from 'sonner';
+import { useListIcpControllers, useGrantIcpControllerRole, useRevokeIcpControllerRole } from '../hooks/useQueries';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { Loader2, UserPlus, UserMinus, Shield, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { format } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 export default function IcpControllerManagementPanel() {
   const [principalInput, setPrincipalInput] = useState('');
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const { data: icpControllers, isLoading } = useListIcpControllers();
-  const grantRole = useGrantIcpControllerRole();
-  const revokeRole = useRevokeIcpControllerRole();
+  const [nameInput, setNameInput] = useState('');
+  const [descriptionInput, setDescriptionInput] = useState('');
+  const [revokeTarget, setRevokeTarget] = useState<string | null>(null);
 
-  const validatePrincipal = (input: string): boolean => {
-    if (!input.trim()) {
-      setValidationError('Please enter a principal ID');
-      return false;
-    }
+  const { identity } = useInternetIdentity();
+  const { data: controllers, isLoading } = useListIcpControllers(false);
+  const grantMutation = useGrantIcpControllerRole();
+  const revokeMutation = useRevokeIcpControllerRole();
 
-    try {
-      Principal.fromText(input.trim());
-      setValidationError(null);
-      return true;
-    } catch (error: any) {
-      setValidationError(`Invalid principal ID: ${error.message}`);
-      return false;
-    }
-  };
+  const isAuthenticated = !!identity;
+  const callerPrincipal = identity?.getPrincipal().toString();
 
   const handleGrantRole = async () => {
-    if (!validatePrincipal(principalInput)) {
-      return;
-    }
+    if (!principalInput.trim()) return;
 
     try {
-      await grantRole.mutateAsync(principalInput.trim());
+      await grantMutation.mutateAsync({
+        targetPrincipal: principalInput.trim(),
+        name: nameInput.trim() || undefined,
+        description: descriptionInput.trim() || undefined,
+      });
       setPrincipalInput('');
-      setValidationError(null);
-    } catch (error: any) {
-      // Error is already handled by the mutation's onError
+      setNameInput('');
+      setDescriptionInput('');
+    } catch (error) {
+      // Error handling is done in the mutation
     }
   };
 
-  const handleRevokeRole = async (principal: Principal) => {
+  const handleRevokeRole = async () => {
+    if (!revokeTarget) return;
+
     try {
-      await revokeRole.mutateAsync(principal.toString());
-    } catch (error: any) {
-      // Error is already handled by the mutation's onError
+      await revokeMutation.mutateAsync(revokeTarget);
+      setRevokeTarget(null);
+    } catch (error) {
+      // Error handling is done in the mutation
     }
   };
 
-  const formatPrincipal = (principal: Principal) => {
-    const str = principal.toString();
-    if (str.length > 30) {
-      return `${str.slice(0, 15)}...${str.slice(-12)}`;
+  const handleFillMyPrincipal = () => {
+    if (callerPrincipal) {
+      setPrincipalInput(callerPrincipal);
     }
-    return str;
+  };
+
+  const handleGrantToMe = async () => {
+    if (!callerPrincipal) return;
+
+    try {
+      await grantMutation.mutateAsync({
+        targetPrincipal: callerPrincipal,
+        name: nameInput.trim() || undefined,
+        description: descriptionInput.trim() || undefined,
+      });
+      setNameInput('');
+      setDescriptionInput('');
+    } catch (error) {
+      // Error handling is done in the mutation
+    }
+  };
+
+  const isPrincipalValid = (principal: string): boolean => {
+    try {
+      return principal.trim().length > 0;
+    } catch {
+      return false;
+    }
   };
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Server className="h-5 w-5" />
+          <Shield className="h-5 w-5" />
           ICP Controller Management
         </CardTitle>
         <CardDescription>
-          Grant or revoke ICP Controller role for managing canister controllers on the Internet Computer
+          Grant and revoke ICP Controller role for operational access
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <Alert>
-          <Shield className="h-4 w-4" />
+          <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            ICP Controllers can manage canister settings and controllers on the Internet Computer network. Only grant this role to trusted administrators.
+            <strong>App Controller only:</strong> ICP Controllers have access to ICP operations and configuration management.
           </AlertDescription>
         </Alert>
 
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="icpControllerInput">Grant ICP Controller Role</Label>
-            <div className="flex gap-3">
-              <div className="flex-1 space-y-2">
-                <Input
-                  id="icpControllerInput"
-                  placeholder="Enter principal ID"
-                  value={principalInput}
-                  onChange={(e) => {
-                    setPrincipalInput(e.target.value);
-                    if (validationError) {
-                      setValidationError(null);
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleGrantRole();
-                    }
-                  }}
-                  className={validationError ? 'border-destructive' : ''}
-                />
-                {validationError && (
-                  <p className="text-sm text-destructive flex items-center gap-1">
-                    <AlertCircle className="h-3 w-3" />
-                    {validationError}
-                  </p>
+        {/* Grant Role Section */}
+        <div className="space-y-4 p-4 border rounded-lg">
+          <h3 className="font-semibold flex items-center gap-2">
+            <UserPlus className="h-4 w-4" />
+            Grant ICP Controller Role
+          </h3>
+
+          {isAuthenticated && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleFillMyPrincipal}
+                disabled={grantMutation.isPending}
+              >
+                Fill My Principal
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleGrantToMe}
+                disabled={grantMutation.isPending || !callerPrincipal}
+              >
+                {grantMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Granting...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    Grant ICP Controller to Me
+                  </>
                 )}
-              </div>
-              <div className="flex items-start">
-                <Button 
-                  onClick={handleGrantRole} 
-                  disabled={grantRole.isPending || !principalInput.trim()}
-                >
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Grant Role
-                </Button>
-              </div>
+              </Button>
             </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="principalInput">Principal ID *</Label>
+            <Input
+              id="principalInput"
+              placeholder="Enter principal ID"
+              value={principalInput}
+              onChange={(e) => setPrincipalInput(e.target.value)}
+              disabled={grantMutation.isPending}
+            />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="nameInput">Name (optional)</Label>
+            <Input
+              id="nameInput"
+              placeholder="Enter name"
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              disabled={grantMutation.isPending}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="descriptionInput">Description (optional)</Label>
+            <Textarea
+              id="descriptionInput"
+              placeholder="Enter description"
+              value={descriptionInput}
+              onChange={(e) => setDescriptionInput(e.target.value)}
+              disabled={grantMutation.isPending}
+              rows={3}
+            />
+          </div>
+
+          <Button
+            onClick={handleGrantRole}
+            disabled={!isPrincipalValid(principalInput) || grantMutation.isPending}
+            className="w-full"
+          >
+            {grantMutation.isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Granting Role...
+              </>
+            ) : (
+              <>
+                <UserPlus className="mr-2 h-4 w-4" />
+                Grant Role
+              </>
+            )}
+          </Button>
         </div>
 
-        <div>
-          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <Server className="h-4 w-4 text-purple-500" />
-            Current ICP Controllers ({icpControllers?.length || 0})
-          </h3>
+        {/* Current ICP Controllers List */}
+        <div className="space-y-4">
+          <h3 className="font-semibold">Current ICP Controllers</h3>
+
           {isLoading ? (
-            <div className="text-center py-8 text-sm text-muted-foreground">Loading ICP Controllers...</div>
-          ) : icpControllers && icpControllers.length > 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : controllers && controllers.length > 0 ? (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Principal ID</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Principal</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Assigned</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {icpControllers.map((principal, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-mono text-xs">{formatPrincipal(principal)}</TableCell>
+                  {controllers.map((controller) => (
+                    <TableRow key={controller.principal.toString()}>
+                      <TableCell className="font-mono text-xs max-w-[200px] truncate">
+                        {controller.principal.toString()}
+                      </TableCell>
                       <TableCell>
-                        <Badge variant="default" className="gap-1 bg-gradient-to-r from-purple-500 to-indigo-600">
-                          <Server className="h-3 w-3" />
-                          ICP Controller
-                        </Badge>
+                        {controller.name ? (
+                          <span className="text-sm">{controller.name}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="max-w-[250px] truncate">
+                        {controller.description ? (
+                          <span className="text-sm">{controller.description}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-xs">
+                        {format(Number(controller.assignedTimestamp) / 1_000_000, 'MMM dd, yyyy')}
                       </TableCell>
                       <TableCell className="text-right">
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              disabled={revokeRole.isPending}
-                            >
-                              <UserMinus className="mr-2 h-4 w-4" />
-                              Revoke
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="flex items-center gap-2">
-                                <UserMinus className="h-5 w-5 text-destructive" />
-                                Revoke ICP Controller Role
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to revoke ICP Controller role from this principal? 
-                                They will no longer be able to manage canister controllers on the Internet Computer.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleRevokeRole(principal)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Revoke Role
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setRevokeTarget(controller.principal.toString())}
+                          disabled={revokeMutation.isPending}
+                        >
+                          <UserMinus className="h-4 w-4 mr-1" />
+                          Revoke
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -194,12 +264,42 @@ export default function IcpControllerManagementPanel() {
               </Table>
             </div>
           ) : (
-            <div className="text-center py-8 text-sm text-muted-foreground border rounded-md bg-muted/20">
-              No ICP Controllers have been assigned yet
-            </div>
+            <Alert>
+              <AlertDescription>
+                No ICP Controllers have been assigned yet.
+              </AlertDescription>
+            </Alert>
           )}
         </div>
       </CardContent>
+
+      {/* Revoke Confirmation Dialog */}
+      <AlertDialog open={!!revokeTarget} onOpenChange={(open) => !open && setRevokeTarget(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Revoke ICP Controller Role</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to revoke the ICP Controller role from this principal?
+              <br />
+              <br />
+              <code className="text-xs bg-muted p-2 rounded block break-all">
+                {revokeTarget}
+              </code>
+              <br />
+              This action will remove their access to ICP operations.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRevokeRole}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Revoke Role
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 31,
+  "projectStateVersion": 37,
   "summary": "Project to add a \"Security\" role with higher privileges than Administrator for the caffeine website, controlled/authorized by the app controller (user), and expand the app to connect to the Internet Computer (canister API integration), add Internet Identity login, and support deployment to ICP mainnet; also add a working superuser UI control to support security audits.",
   "architectural_notes": [
     "Planned: dashboard will include an App Controller–only standalone in-browser code editor capable of editing both backend (Motoko) and frontend (React/TypeScript) code, with an action to apply changes and trigger deploy.",
@@ -14,9 +14,10 @@
     "Root Terminal feature is not working (user reports it doesn't work).",
     "App can get stuck on \"Loading\" after deploy / on first load.",
     "Root Terminal is not accepting commands or showing output even when ICP Connection shows \"Connected\" (terminal input/handler may be broken).",
-    "ICP Controller page/panel is not visible/accessible in the app UI (user reports they don't see the ICP Controller page)."
+    "ICP Controller page/panel is not visible/accessible in the app UI (user reports they don't see the ICP Controller page).",
+    "ICP Controller page/panel still not visible/accessible in the app UI (user reports they still can't see it after latest deploy)."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-update-the-frontend-access-gating-so-that-users-who-are-either-app-controller-or-security-can-access-the-dashboard-all-others-see-access-denied",
@@ -401,6 +402,62 @@
         "REQ-57"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-fix-icp-controller-page-icp-operations-console-visibility-by-correcting-react-query-cache-invalidation-for-the-icp-controller-status-query-so-the-ui-updates-immediately-after-granting-revoking-the-icp-controller-role",
+      "title": "Fix ICP Controller page (\"ICP Operations Console\") visibility by correcting React Query cache invalidation for the ICP Controller status query so the UI updates immediately after granting/revoking the ICP Controller role.",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-icp-focused-root-terminal-commands-to-the-security-app-controller-root-terminal-full-registry-to-administer-and-inspect-the-icp-controller-role-using-real-backend-canister-calls",
+      "title": "Add ICP-focused \"root terminal\" commands to the Security/App Controller Root Terminal (full registry) to administer and inspect the ICP Controller role using real backend canister calls.",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-frontend-roles-access-panel-shown-to-authenticated-users-on-both-the-security-dashboard-and-the-icp-operations-console-that-1-displays-the-logged-in-principal-2-displays-the-current-app-controller-principal-returned-by-the-backend-or-shows-not-initialized-3-explains-in-english-that-only-these-roles-exist-in-this-app-app-controller-security-and-icp-controller-and-4-explicitly-states-that-requests-for-roles-like-world-wide-web-controller-root-controller-or-hacker-controller-are-not-supported",
+      "title": "Add a frontend \"Roles & Access\" panel (shown to authenticated users on both the Security Dashboard and the ICP Operations Console) that: (1) displays the logged-in Principal, (2) displays the current App Controller Principal returned by the backend (or shows \"Not initialized\"), (3) explains in English that only these roles exist in this app: App Controller, Security, and ICP Controller, and (4) explicitly states that requests for roles like \"World Wide Web Controller\", \"Root Controller\", or \"Hacker Controller\" are not supported.",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-one-click-claim-app-controller-action-to-the-new-roles-access-panel-that-is-only-enabled-when-a-the-backend-reports-the-system-is-not-initialized-and-b-the-user-is-authenticated-clicking-it-must-call-the-existing-backend-initialize-context-using-the-caller-principal-and-current-time-then-refresh-relevant-role-status-queries",
+      "title": "Add a one-click \"Claim App Controller\" action to the new Roles & Access panel that is only enabled when (a) the backend reports the system is not initialized and (b) the user is authenticated; clicking it must call the existing backend initialize(context) using the caller principal and current time, then refresh relevant role/status queries.",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-one-click-grant-icp-controller-to-me-helper-in-the-existing-icp-controller-management-panel-app-controller-only-ui-that-fills-the-principal-input-with-the-currently-authenticated-user-s-principal-id-and-allows-granting-the-icp-controller-role-with-a-single-click-ensure-the-ui-updates-immediately-after-granting",
+      "title": "Add a one-click \"Grant ICP Controller to me\" helper in the existing ICP Controller Management panel (App Controller-only UI) that fills the principal input with the currently authenticated user’s Principal ID and allows granting the ICP Controller role with a single click; ensure the UI updates immediately after granting.",
+      "reqIds": [
+        "REQ-63"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-user-facing-copy-to-explicitly-clarify-that-a-requested-web-control-world-wide-web-controller-role-is-not-supported-by-this-application-and-guide-the-user-toward-the-supported-roles-app-controller-security-icp-controller-that-can-actually-be-granted",
+      "title": "Update user-facing copy to explicitly clarify that a requested \"Web control\" / \"World Wide Web Controller\" role is not supported by this application, and guide the user toward the supported roles (App Controller, Security, ICP Controller) that can actually be granted.",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-access-denied-screen-copy-for-authenticated-but-unauthorized-users-to-include-an-explicit-note-that-web-control-access-cannot-be-granted-because-it-is-not-a-supported-role-in-this-app-and-point-users-to-requesting-security-or-icp-controller-access-instead",
+      "title": "Update the Access Denied screen copy for authenticated-but-unauthorized users to include an explicit note that \"Web control\" access cannot be granted because it is not a supported role in this app, and point users to requesting Security or ICP Controller access instead.",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -576,6 +633,26 @@
       "reqIds": [
         "REQ-54"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-31",
+      "summary": "Add ICP-focused Root Terminal commands (\"icp root commands\") for ICP operations/diagnostics, appropriate to the user’s role (e.g., ICP Controller-safe subset vs full Security/App Controller set).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Add a backend query API that returns the currently configured App Controller principal (or null/none if the system is not initialized yet), so the UI can accurately show who the App Controller is and whether the App Controller role can still be claimed.",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Handle user request to add \"Web control\" access/role (either implement a new role if in-scope or explicitly message that only App Controller, Security, and ICP Controller are supported).",
+      "reqIds": [],
       "status": "pending"
     }
   ],

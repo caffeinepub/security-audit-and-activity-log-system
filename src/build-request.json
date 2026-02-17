@@ -1,75 +1,66 @@
 {
   "kind": "build_request",
-  "title": "Make the ICP Controller (ICP Operations) page discoverable and accessible",
-  "projectName": "Caffeine Console",
+  "title": "Handle 'Web control' role requests with clear in-app guidance (no new role)",
+  "projectName": "ICP Security Console",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-55",
-      "text": "Add an explicit, user-visible way to open the ICP Controller experience (the ICP Operations Console) so that users with the ICP Controller role can reliably find it instead of relying on implicit role-based rendering.",
+      "id": "REQ-64",
+      "text": "Update user-facing copy to explicitly clarify that a requested \"Web control\" / \"World Wide Web Controller\" role is not supported by this application, and guide the user toward the supported roles (App Controller, Security, ICP Controller) that can actually be granted.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-4"
         ],
         "quotes": [
-          "I don't see the icp controller page"
+          "Add Web control to my access"
         ]
       },
       "acceptanceCriteria": [
-        "When the authenticated user has the ICP Controller role, there is a clearly labeled navigation control (for example, a button or tab) with English text that opens the ICP Operations Console.",
-        "If the authenticated user does not have the ICP Controller role, the ICP Operations navigation control is not shown (or is shown disabled with an English explanation)."
+        "Roles & Access panel text explicitly mentions that \"Web control\" / \"World Wide Web Controller\" is not a supported role name in this app.",
+        "The UI clearly states (in English) that only these roles exist: App Controller, Security, ICP Controller.",
+        "The UI provides a clear next step: instruct the user to share their Principal ID with the App Controller to request either the Security role (for security/audit features) or the ICP Controller role (for ICP operations)."
       ]
     },
     {
-      "id": "REQ-56",
-      "text": "Support users who have both Security/App Controller access and the ICP Controller role by allowing them to switch between the Security Dashboard (AdminDashboard) and the ICP Operations Console (IcpOpsDashboard) without changing roles.",
+      "id": "REQ-65",
+      "text": "Update the Access Denied screen copy for authenticated-but-unauthorized users to include an explicit note that \"Web control\" access cannot be granted because it is not a supported role in this app, and point users to requesting Security or ICP Controller access instead.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-4"
         ],
         "quotes": [
-          "I don't see the icp controller page"
+          "Add Web control to my access"
         ]
       },
       "acceptanceCriteria": [
-        "If a user is both (App Controller or Security) AND ICP Controller, the UI provides a clear view switcher with English labels (e.g., \"Security Dashboard\" and \"ICP Operations\") that changes the main content between AdminDashboard and IcpOpsDashboard.",
-        "Switching views does not log the user out and does not require a page reload.",
-        "The currently selected view is visually indicated in the UI."
-      ]
-    },
-    {
-      "id": "REQ-57",
-      "text": "Persist the selected view (Security Dashboard vs ICP Operations) on the client so that refresh/navigation during the session keeps the user on the last selected view, while still respecting role-based access rules.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-7"
-        ],
-        "quotes": [
-          "I don't see the icp controller page"
-        ]
-      },
-      "acceptanceCriteria": [
-        "After selecting \"ICP Operations\" (or the equivalent), a page refresh keeps the user in the ICP Operations Console for the remainder of the session (unless access rules prevent it).",
-        "If the user loses access to a view (e.g., logs out), the app falls back to the appropriate screen (Access Denied or the permitted dashboard) without errors.",
-        "All user-facing persistence-related copy (if any) is in English."
+        "When an authenticated user sees Access Denied, the page includes a sentence stating that \"Web control\" is not a supported role in this application.",
+        "The page continues to show the user’s Principal ID and one-click copy, and the guidance text recommends requesting Security or ICP Controller from the App Controller."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/components/ui (shadcn components); compose them instead.",
-    "Do not modify frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, or frontend/src/main.tsx (immutable paths).",
-    "Keep the existing role-gating rules: Security Dashboard remains restricted to App Controller or Security users; ICP Operations remains available to ICP Controller users (including those who also have App Controller/Security)."
+    "Do not add any new backend roles beyond the existing roles (App Controller, Security, ICP Controller).",
+    "Keep all user-facing text in English.",
+    "Do not edit any frontend files under frontend/src/components/ui or any other paths listed in frontend immutablePaths."
   ],
   "nonGoals": [
-    "Do not add or change backend Motoko APIs or role definitions for this request.",
-    "Do not add third-party routing frameworks (e.g., Next.js) or external authentication providers.",
-    "Do not expose security/audit/admin panels (audit logs, user management, broadcasting config, security role management, ICP controller role management) inside the ICP Operations Console for ICP Controller-only users."
+    "Implementing a new \"Web control\" role (or any equivalent new role) in the backend canister.",
+    "Changing role authorization rules for existing roles (App Controller, Security, ICP Controller) beyond copy/UX guidance."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

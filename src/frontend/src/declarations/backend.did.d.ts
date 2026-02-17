@@ -10,6 +10,16 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface IcpController {
+  'principal' : Principal,
+  'revokedTimestamp' : [] | [Time],
+  'name' : [] | [string],
+  'createdBy' : [] | [Principal],
+  'description' : [] | [string],
+  'roleAssigned' : boolean,
+  'lastActiveTimestamp' : [] | [Time],
+  'assignedTimestamp' : Time,
+}
 export interface InstanceContext {
   'contextPrincipal' : Principal,
   'contextTimestamp' : Time,
@@ -74,6 +84,7 @@ export interface _SERVICE {
   >,
   'exportAuditLogToJson' : ActorMethod<[], Array<T>>,
   'flagUser' : ActorMethod<[Principal], undefined>,
+  'getAppController' : ActorMethod<[], [] | [Principal]>,
   'getAuditLogs' : ActorMethod<[T__4], Array<T>>,
   'getCallerAppControllerStatus' : ActorMethod<[], boolean>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
@@ -81,7 +92,10 @@ export interface _SERVICE {
   'getExternalBroadcastingSettings' : ActorMethod<[], T__3>,
   'getFlaggedUsers' : ActorMethod<[], Array<Principal>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
-  'grantIcpControllerRole' : ActorMethod<[Principal], undefined>,
+  'grantIcpControllerRole' : ActorMethod<
+    [Principal, [] | [string], [] | [string]],
+    undefined
+  >,
   'grantSecurityRole' : ActorMethod<[Principal], undefined>,
   'hasIcpControllerRole' : ActorMethod<[], boolean>,
   'initialize' : ActorMethod<[InstanceContext], undefined>,
@@ -89,7 +103,7 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isSecurityUser' : ActorMethod<[], boolean>,
   'isUserFlagged' : ActorMethod<[Principal], boolean>,
-  'listIcpControllers' : ActorMethod<[], Array<Principal>>,
+  'listIcpControllers' : ActorMethod<[boolean], Array<IcpController>>,
   'recordAuditEntry' : ActorMethod<[T], undefined>,
   'removeUser' : ActorMethod<[Principal], undefined>,
   'revokeIcpControllerRole' : ActorMethod<[Principal], undefined>,
@@ -97,6 +111,10 @@ export interface _SERVICE {
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'unflagUser' : ActorMethod<[Principal], undefined>,
+  'updateIcpControllerDescription' : ActorMethod<
+    [Principal, string, [] | [string]],
+    undefined
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

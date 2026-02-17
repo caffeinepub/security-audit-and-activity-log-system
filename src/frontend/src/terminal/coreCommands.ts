@@ -2,6 +2,7 @@ import type { TerminalCommand, TerminalOutput } from './types';
 import { Principal } from '@icp-sdk/core/principal';
 import { T__1, T__2 } from '../backend';
 import { tryRecordAuditEntry, appendAuditWarning, classifyError, requiresBackendAndAuth, formatTimestamp, parseSeverity, parseActionType } from './terminalGuards';
+import { icpControllerStatusKey, icpControllersKey, securityStatusKey } from '../queryKeys';
 
 export const coreCommands: TerminalCommand[] = [
   {
@@ -83,6 +84,7 @@ export const coreCommands: TerminalCommand[] = [
           severity: T__2.warning,
         });
 
+        context.queryClient.invalidateQueries({ queryKey: securityStatusKey(args[0]) });
         context.queryClient.invalidateQueries({ queryKey: ['securityStatus'] });
         context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
 
@@ -128,6 +130,7 @@ export const coreCommands: TerminalCommand[] = [
           severity: T__2.warning,
         });
 
+        context.queryClient.invalidateQueries({ queryKey: securityStatusKey(args[0]) });
         context.queryClient.invalidateQueries({ queryKey: ['securityStatus'] });
         context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
 
@@ -203,11 +206,14 @@ export const coreCommands: TerminalCommand[] = [
       }
     },
   },
+
+  // ===== ICP Controller Role Management =====
   {
-    name: 'appcontroller-status',
-    aliases: ['is-appcontroller', 'check-appcontroller'],
-    description: 'Check if current user is the App Controller',
-    category: 'Security',
+    name: 'icp-controller-list',
+    aliases: ['list-icp-controllers'],
+    description: 'List all ICP Controllers (App Controller only)',
+    category: 'ICP Controller',
+    usage: 'icp-controller-list',
     execute: async (args, context) => {
       const authCheck = requiresBackendAndAuth(context);
       if (authCheck) {
@@ -215,32 +221,55 @@ export const coreCommands: TerminalCommand[] = [
       }
 
       try {
-        const isAppController = await context.actor.getCallerAppControllerStatus();
+        const controllers = await context.actor.listIcpControllers(false);
         
         const auditWarning = await tryRecordAuditEntry(context, {
           timestamp: BigInt(Date.now()) * BigInt(1_000_000),
           actionType: T__1.general,
-          details: 'Terminal command: appcontroller-status executed',
+          details: 'Terminal command: icp-controller-list executed',
           success: true,
           severity: T__2.info,
         });
 
-        const status = isAppController ? 'YES - You are the App Controller' : 'NO - You are not the App Controller';
-        return { success: true, message: appendAuditWarning(status, auditWarning) };
+        if (controllers.length === 0) {
+          return { success: true, message: appendAuditWarning('No ICP Controllers have been assigned yet.', auditWarning) };
+        }
+
+        let output = `ICP Controllers (${controllers.length}):\n\n`;
+        controllers.forEach((controller, index) => {
+          output += `${index + 1}. Principal: ${controller.principal.toString()}\n`;
+          if (controller.name) {
+            output += `   Name: ${controller.name}\n`;
+          }
+          if (controller.description) {
+            output += `   Description: ${controller.description}\n`;
+          }
+          output += `   Status: ${controller.roleAssigned ? 'Active' : 'Revoked'}\n`;
+          output += '\n';
+        });
+
+        return { success: true, message: appendAuditWarning(output.trim(), auditWarning) };
       } catch (error: any) {
-        return { success: false, message: `Failed to check App Controller status: ${classifyError(error, context)}` };
+        await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.general,
+          details: `Terminal command failed: icp-controller-list - ${error.message}`,
+          success: false,
+          severity: T__2.warning,
+        });
+        return { success: false, message: `Failed to list ICP Controllers: ${classifyError(error, context)}` };
       }
     },
   },
   {
-    name: 'appcontroller-check',
-    aliases: ['check-appcontroller-user'],
-    description: 'Check if a specific user is the App Controller',
-    category: 'Security',
-    usage: 'appcontroller-check <principal>',
+    name: 'icp-controller-grant',
+    aliases: ['grant-icp-controller'],
+    description: 'Grant ICP Controller role to a user (App Controller only)',
+    category: 'ICP Controller',
+    usage: 'icp-controller-grant <principal> [name] [description]',
     execute: async (args, context) => {
       if (args.length === 0) {
-        return { success: false, message: 'Usage: appcontroller-check <principal>' };
+        return { success: false, message: 'Usage: icp-controller-grant <principal> [name] [description]' };
       }
 
       const authCheck = requiresBackendAndAuth(context);
@@ -250,145 +279,124 @@ export const coreCommands: TerminalCommand[] = [
 
       try {
         const principal = Principal.fromText(args[0]);
-        const isAppController = await context.actor.isAppController(principal);
+        const name = args[1] || null;
+        const description = args.slice(2).join(' ') || null;
+        
+        await context.actor.grantIcpControllerRole(principal, name, description);
+        
+        const auditWarning = await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.superuserPrivilegeChange,
+          details: `Terminal command: icp-controller-grant ${args[0]}${name ? ` (${name})` : ''}`,
+          success: true,
+          severity: T__2.warning,
+        });
+
+        context.queryClient.invalidateQueries({ queryKey: icpControllersKey(false) });
+        context.queryClient.invalidateQueries({ queryKey: icpControllersKey(true) });
+        context.queryClient.invalidateQueries({ queryKey: icpControllerStatusKey(args[0]) });
+        context.queryClient.invalidateQueries({ queryKey: ['icpControllerStatus'] });
+        context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+
+        const message = `ICP Controller role granted successfully to: ${args[0]}${name ? ` (${name})` : ''}`;
+        return { success: true, message: appendAuditWarning(message, auditWarning) };
+      } catch (error: any) {
+        await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.superuserPrivilegeChange,
+          details: `Terminal command failed: icp-controller-grant ${args[0]} - ${error.message}`,
+          success: false,
+          severity: T__2.critical,
+        });
+        return { success: false, message: `Failed to grant ICP Controller role: ${classifyError(error, context)}` };
+      }
+    },
+  },
+  {
+    name: 'icp-controller-revoke',
+    aliases: ['revoke-icp-controller'],
+    description: 'Revoke ICP Controller role from a user (App Controller only)',
+    category: 'ICP Controller',
+    usage: 'icp-controller-revoke <principal>',
+    execute: async (args, context) => {
+      if (args.length === 0) {
+        return { success: false, message: 'Usage: icp-controller-revoke <principal>' };
+      }
+
+      const authCheck = requiresBackendAndAuth(context);
+      if (authCheck) {
+        return { success: false, message: authCheck };
+      }
+
+      try {
+        const principal = Principal.fromText(args[0]);
+        await context.actor.revokeIcpControllerRole(principal);
+        
+        const auditWarning = await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.superuserPrivilegeChange,
+          details: `Terminal command: icp-controller-revoke ${args[0]}`,
+          success: true,
+          severity: T__2.warning,
+        });
+
+        context.queryClient.invalidateQueries({ queryKey: icpControllersKey(false) });
+        context.queryClient.invalidateQueries({ queryKey: icpControllersKey(true) });
+        context.queryClient.invalidateQueries({ queryKey: icpControllerStatusKey(args[0]) });
+        context.queryClient.invalidateQueries({ queryKey: ['icpControllerStatus'] });
+        context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+
+        const message = `ICP Controller role revoked successfully from: ${args[0]}`;
+        return { success: true, message: appendAuditWarning(message, auditWarning) };
+      } catch (error: any) {
+        await tryRecordAuditEntry(context, {
+          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
+          actionType: T__1.superuserPrivilegeChange,
+          details: `Terminal command failed: icp-controller-revoke ${args[0]} - ${error.message}`,
+          success: false,
+          severity: T__2.critical,
+        });
+        return { success: false, message: `Failed to revoke ICP Controller role: ${classifyError(error, context)}` };
+      }
+    },
+  },
+  {
+    name: 'icp-controller-status',
+    aliases: ['is-icp-controller', 'check-icp-controller'],
+    description: 'Check if current user has ICP Controller role',
+    category: 'ICP Controller',
+    execute: async (args, context) => {
+      const authCheck = requiresBackendAndAuth(context);
+      if (authCheck) {
+        return { success: false, message: authCheck };
+      }
+
+      try {
+        const hasRole = await context.actor.hasIcpControllerRole();
         
         const auditWarning = await tryRecordAuditEntry(context, {
           timestamp: BigInt(Date.now()) * BigInt(1_000_000),
           actionType: T__1.general,
-          details: `Terminal command: appcontroller-check ${args[0]}`,
+          details: 'Terminal command: icp-controller-status executed',
           success: true,
           severity: T__2.info,
         });
 
-        const status = isAppController 
-          ? `YES - ${args[0]} is the App Controller` 
-          : `NO - ${args[0]} is not the App Controller`;
+        const status = hasRole ? 'YES - You have ICP Controller role' : 'NO - You do not have ICP Controller role';
         return { success: true, message: appendAuditWarning(status, auditWarning) };
       } catch (error: any) {
-        return { success: false, message: `Failed to check App Controller status: ${classifyError(error, context)}` };
+        return { success: false, message: `Failed to check ICP Controller status: ${classifyError(error, context)}` };
       }
     },
   },
 
   // ===== Audit Log Operations =====
   {
-    name: 'audit-list',
-    aliases: ['list-audit', 'audit-logs'],
-    description: 'List audit log entries with optional filters',
-    category: 'Audit',
-    usage: 'audit-list [--from=<timestamp>] [--to=<timestamp>] [--user=<principal>] [--action=<type>] [--severity=<level>]',
-    execute: async (args, context) => {
-      const authCheck = requiresBackendAndAuth(context);
-      if (authCheck) {
-        return { success: false, message: authCheck };
-      }
-
-      try {
-        const filter: any = {};
-        
-        args.forEach(arg => {
-          if (arg.startsWith('--from=')) {
-            filter.fromDate = BigInt(arg.substring(7));
-          } else if (arg.startsWith('--to=')) {
-            filter.toDate = BigInt(arg.substring(5));
-          } else if (arg.startsWith('--user=')) {
-            filter.user = Principal.fromText(arg.substring(7));
-          } else if (arg.startsWith('--action=')) {
-            filter.actionType = parseActionType(arg.substring(9));
-          } else if (arg.startsWith('--severity=')) {
-            filter.severity = parseSeverity(arg.substring(11));
-          }
-        });
-
-        const logs = await context.actor.getAuditLogs(filter);
-        
-        const auditWarning = await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.general,
-          details: `Terminal command: audit-list executed with ${logs.length} results`,
-          success: true,
-          severity: T__2.info,
-        });
-
-        if (logs.length === 0) {
-          return { success: true, message: appendAuditWarning('No audit log entries found matching the criteria.', auditWarning) };
-        }
-
-        let output = `Found ${logs.length} audit log entries:\n\n`;
-        logs.slice(0, 20).forEach((entry, index) => {
-          output += `[${index + 1}] ${formatTimestamp(entry.timestamp)} | ${entry.user.toString().substring(0, 20)}... | ${entry.actionType} | ${entry.severity}\n`;
-          output += `    ${entry.details}\n`;
-        });
-
-        if (logs.length > 20) {
-          output += `\n... and ${logs.length - 20} more entries (use filters to narrow results)`;
-        }
-
-        return { success: true, message: appendAuditWarning(output, auditWarning) };
-      } catch (error: any) {
-        return { success: false, message: `Failed to list audit logs: ${classifyError(error, context)}` };
-      }
-    },
-  },
-  {
-    name: 'audit-record',
-    aliases: ['record-audit'],
-    description: 'Record a new audit log entry',
-    category: 'Audit',
-    usage: 'audit-record --action=<type> --details="<text>" [--severity=<level>] [--success=<true|false>]',
-    execute: async (args, context) => {
-      const authCheck = requiresBackendAndAuth(context);
-      if (authCheck) {
-        return { success: false, message: authCheck };
-      }
-
-      let actionType: T__1 | undefined;
-      let details: string | undefined;
-      let severity: T__2 = T__2.info;
-      let success: boolean | undefined;
-
-      args.forEach(arg => {
-        if (arg.startsWith('--action=')) {
-          actionType = parseActionType(arg.substring(9));
-        } else if (arg.startsWith('--details=')) {
-          details = arg.substring(10).replace(/^["']|["']$/g, '');
-        } else if (arg.startsWith('--severity=')) {
-          severity = parseSeverity(arg.substring(11));
-        } else if (arg.startsWith('--success=')) {
-          success = arg.substring(10) === 'true';
-        }
-      });
-
-      if (!actionType || !details) {
-        return { success: false, message: 'Usage: audit-record --action=<type> --details="<text>" [--severity=<level>] [--success=<true|false>]' };
-      }
-
-      try {
-        await context.actor.recordAuditEntry({
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          user: context.identity!.getPrincipal(),
-          actionType,
-          details,
-          ipAddress: undefined,
-          deviceInfo: undefined,
-          sessionData: undefined,
-          success,
-          severity,
-        });
-
-        context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
-
-        return { success: true, message: 'Audit entry recorded successfully.' };
-      } catch (error: any) {
-        return { success: false, message: `Failed to record audit entry: ${classifyError(error, context)}` };
-      }
-    },
-  },
-  {
     name: 'audit-export',
     aliases: ['export-audit'],
-    description: 'Export complete audit log to JSON',
+    description: 'Export complete audit log to JSON (Security/App Controller only)',
     category: 'Audit',
+    usage: 'audit-export',
     execute: async (args, context) => {
       const authCheck = requiresBackendAndAuth(context);
       if (authCheck) {
@@ -397,25 +405,73 @@ export const coreCommands: TerminalCommand[] = [
 
       try {
         const logs = await context.actor.exportAuditLogToJson();
-        
+        const json = JSON.stringify(logs, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audit-log-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+
         context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
 
-        return { 
-          success: true, 
-          message: `Audit log exported successfully. Total entries: ${logs.length}\nNote: Full JSON export is available via the Superuser Audit Panel in the dashboard.` 
-        };
+        return { success: true, message: `Audit log exported successfully (${logs.length} entries)` };
       } catch (error: any) {
         return { success: false, message: `Failed to export audit log: ${classifyError(error, context)}` };
+      }
+    },
+  },
+  {
+    name: 'audit-recent',
+    aliases: ['recent-audit'],
+    description: 'Show recent audit log entries',
+    category: 'Audit',
+    usage: 'audit-recent [count]',
+    execute: async (args, context) => {
+      const authCheck = requiresBackendAndAuth(context);
+      if (authCheck) {
+        return { success: false, message: authCheck };
+      }
+
+      try {
+        const count = args[0] ? parseInt(args[0]) : 10;
+        if (isNaN(count) || count < 1) {
+          return { success: false, message: 'Invalid count. Usage: audit-recent [count]' };
+        }
+
+        const logs = await context.actor.getAuditLogs({});
+        const recent = logs.slice(0, count);
+
+        if (recent.length === 0) {
+          return { success: true, message: 'No audit log entries found.' };
+        }
+
+        let output = `Recent Audit Log Entries (${recent.length}):\n\n`;
+        recent.forEach((entry, index) => {
+          output += `${index + 1}. [${formatTimestamp(entry.timestamp)}] ${entry.actionType}\n`;
+          output += `   User: ${entry.user.toString()}\n`;
+          output += `   Details: ${entry.details}\n`;
+          output += `   Severity: ${entry.severity}\n`;
+          if (entry.success !== undefined && entry.success !== null) {
+            output += `   Success: ${entry.success ? 'Yes' : 'No'}\n`;
+          }
+          output += '\n';
+        });
+
+        return { success: true, message: output.trim() };
+      } catch (error: any) {
+        return { success: false, message: `Failed to retrieve audit logs: ${classifyError(error, context)}` };
       }
     },
   },
 
   // ===== User Profile Operations =====
   {
-    name: 'profile-get',
-    aliases: ['get-profile', 'whoami'],
-    description: 'Get current user profile',
-    category: 'User Management',
+    name: 'profile-show',
+    aliases: ['show-profile', 'whoami'],
+    description: 'Show current user profile',
+    category: 'Profile',
     execute: async (args, context) => {
       const authCheck = requiresBackendAndAuth(context);
       if (authCheck) {
@@ -424,76 +480,24 @@ export const coreCommands: TerminalCommand[] = [
 
       try {
         const profile = await context.actor.getCallerUserProfile();
-        
-        const auditWarning = await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.general,
-          details: 'Terminal command: profile-get executed',
-          success: true,
-          severity: T__2.info,
-        });
+        const principal = context.identity?.getPrincipal().toString() || 'Unknown';
 
         if (!profile) {
-          return { success: true, message: appendAuditWarning('No profile found. Use "profile-set-name" to create one.', auditWarning) };
+          return { success: true, message: `Principal: ${principal}\nProfile: Not set up yet` };
         }
 
-        const output = `User Profile:\nName: ${profile.name}\nPrincipal: ${context.identity!.getPrincipal().toString()}`;
-        return { success: true, message: appendAuditWarning(output, auditWarning) };
+        return { success: true, message: `Principal: ${principal}\nName: ${profile.name}` };
       } catch (error: any) {
-        return { success: false, message: `Failed to get profile: ${classifyError(error, context)}` };
-      }
-    },
-  },
-  {
-    name: 'profile-set-name',
-    aliases: ['set-name'],
-    description: 'Set user profile name',
-    category: 'User Management',
-    usage: 'profile-set-name <name>',
-    execute: async (args, context) => {
-      if (args.length === 0) {
-        return { success: false, message: 'Usage: profile-set-name <name>' };
-      }
-
-      const authCheck = requiresBackendAndAuth(context);
-      if (authCheck) {
-        return { success: false, message: authCheck };
-      }
-
-      try {
-        const name = args.join(' ');
-        await context.actor.saveCallerUserProfile({ name });
-        
-        const auditWarning = await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.accountChange,
-          details: `Terminal command: profile-set-name to "${name}"`,
-          success: true,
-          severity: T__2.info,
-        });
-
-        context.queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-
-        const message = `Profile name set successfully to: ${name}`;
-        return { success: true, message: appendAuditWarning(message, auditWarning) };
-      } catch (error: any) {
-        await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.accountChange,
-          details: `Terminal command failed: profile-set-name - ${error.message}`,
-          success: false,
-          severity: T__2.critical,
-        });
-        return { success: false, message: `Failed to set profile name: ${classifyError(error, context)}` };
+        return { success: false, message: `Failed to retrieve profile: ${classifyError(error, context)}` };
       }
     },
   },
 
-  // ===== User Management Operations =====
+  // ===== User Management =====
   {
     name: 'user-flag',
     aliases: ['flag-user'],
-    description: 'Flag a user as suspicious',
+    description: 'Flag a user as suspicious (Security/App Controller only)',
     category: 'User Management',
     usage: 'user-flag <principal>',
     execute: async (args, context) => {
@@ -538,7 +542,7 @@ export const coreCommands: TerminalCommand[] = [
   {
     name: 'user-unflag',
     aliases: ['unflag-user'],
-    description: 'Remove flag from a user',
+    description: 'Remove flag from a user (Security/App Controller only)',
     category: 'User Management',
     usage: 'user-unflag <principal>',
     execute: async (args, context) => {
@@ -564,64 +568,28 @@ export const coreCommands: TerminalCommand[] = [
         });
 
         context.queryClient.invalidateQueries({ queryKey: ['flaggedUsers'] });
-
-        const message = `User unflagged successfully: ${args[0]}`;
-        return { success: true, message: appendAuditWarning(message, auditWarning) };
-      } catch (error: any) {
-        return { success: false, message: `Failed to unflag user: ${classifyError(error, context)}` };
-      }
-    },
-  },
-  {
-    name: 'user-remove',
-    aliases: ['remove-user'],
-    description: 'Remove a user account',
-    category: 'User Management',
-    usage: 'user-remove <principal>',
-    execute: async (args, context) => {
-      if (args.length === 0) {
-        return { success: false, message: 'Usage: user-remove <principal>' };
-      }
-
-      const authCheck = requiresBackendAndAuth(context);
-      if (authCheck) {
-        return { success: false, message: authCheck };
-      }
-
-      try {
-        const principal = Principal.fromText(args[0]);
-        await context.actor.removeUser(principal);
-        
-        const auditWarning = await tryRecordAuditEntry(context, {
-          timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.accountChange,
-          details: `Terminal command: user-remove ${args[0]}`,
-          success: true,
-          severity: T__2.warning,
-        });
-
-        context.queryClient.invalidateQueries({ queryKey: ['flaggedUsers'] });
         context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
 
-        const message = `User removed successfully: ${args[0]}`;
+        const message = `User unflagged successfully: ${args[0]}`;
         return { success: true, message: appendAuditWarning(message, auditWarning) };
       } catch (error: any) {
         await tryRecordAuditEntry(context, {
           timestamp: BigInt(Date.now()) * BigInt(1_000_000),
           actionType: T__1.accountChange,
-          details: `Terminal command failed: user-remove ${args[0]} - ${error.message}`,
+          details: `Terminal command failed: user-unflag ${args[0]} - ${error.message}`,
           success: false,
-          severity: T__2.critical,
+          severity: T__2.warning,
         });
-        return { success: false, message: `Failed to remove user: ${classifyError(error, context)}` };
+        return { success: false, message: `Failed to unflag user: ${classifyError(error, context)}` };
       }
     },
   },
   {
     name: 'user-list-flagged',
-    aliases: ['list-flagged', 'flagged-users'],
-    description: 'List all flagged users',
+    aliases: ['list-flagged-users'],
+    description: 'List all flagged users (Security/App Controller only)',
     category: 'User Management',
+    usage: 'user-list-flagged',
     execute: async (args, context) => {
       const authCheck = requiresBackendAndAuth(context);
       if (authCheck) {
@@ -634,7 +602,7 @@ export const coreCommands: TerminalCommand[] = [
         const auditWarning = await tryRecordAuditEntry(context, {
           timestamp: BigInt(Date.now()) * BigInt(1_000_000),
           actionType: T__1.general,
-          details: `Terminal command: user-list-flagged executed (${flaggedUsers.length} users)`,
+          details: 'Terminal command: user-list-flagged executed',
           success: true,
           severity: T__2.info,
         });
@@ -645,10 +613,10 @@ export const coreCommands: TerminalCommand[] = [
 
         let output = `Flagged Users (${flaggedUsers.length}):\n\n`;
         flaggedUsers.forEach((principal, index) => {
-          output += `[${index + 1}] ${principal.toString()}\n`;
+          output += `${index + 1}. ${principal.toString()}\n`;
         });
 
-        return { success: true, message: appendAuditWarning(output, auditWarning) };
+        return { success: true, message: appendAuditWarning(output.trim(), auditWarning) };
       } catch (error: any) {
         return { success: false, message: `Failed to list flagged users: ${classifyError(error, context)}` };
       }
@@ -659,37 +627,38 @@ export const coreCommands: TerminalCommand[] = [
   {
     name: 'broadcast-config',
     aliases: ['config-broadcast'],
-    description: 'Configure external broadcasting',
-    category: 'Configuration',
-    usage: 'broadcast-config --enabled=<true|false> [--endpoint=<url>]',
+    description: 'Configure external broadcasting (Security/App Controller only)',
+    category: 'Broadcasting',
+    usage: 'broadcast-config <enable|disable> [endpoint-url]',
     execute: async (args, context) => {
+      if (args.length === 0) {
+        return { success: false, message: 'Usage: broadcast-config <enable|disable> [endpoint-url]' };
+      }
+
       const authCheck = requiresBackendAndAuth(context);
       if (authCheck) {
         return { success: false, message: authCheck };
       }
 
-      let enabled: boolean | undefined;
-      let endpoint: string | null = null;
-
-      args.forEach(arg => {
-        if (arg.startsWith('--enabled=')) {
-          enabled = arg.substring(10) === 'true';
-        } else if (arg.startsWith('--endpoint=')) {
-          endpoint = arg.substring(11);
-        }
-      });
-
-      if (enabled === undefined) {
-        return { success: false, message: 'Usage: broadcast-config --enabled=<true|false> [--endpoint=<url>]' };
-      }
-
       try {
-        await context.actor.configureExternalBroadcasting(enabled, endpoint);
+        const action = args[0].toLowerCase();
+        if (action !== 'enable' && action !== 'disable') {
+          return { success: false, message: 'Invalid action. Use "enable" or "disable".' };
+        }
+
+        const enabled = action === 'enable';
+        const endpointUrl = args[1] || null;
+
+        if (enabled && !endpointUrl) {
+          return { success: false, message: 'Endpoint URL is required when enabling broadcasting.' };
+        }
+
+        await context.actor.configureExternalBroadcasting(enabled, endpointUrl);
         
         const auditWarning = await tryRecordAuditEntry(context, {
           timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.permissionChange,
-          details: `Terminal command: broadcast-config enabled=${enabled} endpoint=${endpoint || 'none'}`,
+          actionType: T__1.configUpload,
+          details: `Terminal command: broadcast-config ${action}${endpointUrl ? ` ${endpointUrl}` : ''}`,
           success: true,
           severity: T__2.warning,
         });
@@ -697,13 +666,13 @@ export const coreCommands: TerminalCommand[] = [
         context.queryClient.invalidateQueries({ queryKey: ['externalBroadcastingSettings'] });
         context.queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
 
-        const message = `Broadcasting configuration updated:\nEnabled: ${enabled}\nEndpoint: ${endpoint || 'Not set'}`;
+        const message = `Broadcasting ${enabled ? 'enabled' : 'disabled'} successfully${endpointUrl ? ` with endpoint: ${endpointUrl}` : ''}`;
         return { success: true, message: appendAuditWarning(message, auditWarning) };
       } catch (error: any) {
         await tryRecordAuditEntry(context, {
           timestamp: BigInt(Date.now()) * BigInt(1_000_000),
-          actionType: T__1.permissionChange,
-          details: `Terminal command failed: broadcast-config - ${error.message}`,
+          actionType: T__1.configUpload,
+          details: `Terminal command failed: broadcast-config ${args.join(' ')} - ${error.message}`,
           success: false,
           severity: T__2.critical,
         });
@@ -714,8 +683,9 @@ export const coreCommands: TerminalCommand[] = [
   {
     name: 'broadcast-status',
     aliases: ['status-broadcast'],
-    description: 'Check current broadcasting configuration',
-    category: 'Configuration',
+    description: 'Show current broadcasting configuration (Security/App Controller only)',
+    category: 'Broadcasting',
+    usage: 'broadcast-status',
     execute: async (args, context) => {
       const authCheck = requiresBackendAndAuth(context);
       if (authCheck) {
@@ -733,54 +703,40 @@ export const coreCommands: TerminalCommand[] = [
           severity: T__2.info,
         });
 
-        const output = `Broadcasting Configuration:\nEnabled: ${settings.enabled}\nEndpoint: ${settings.endpointUrl || 'Not set'}`;
+        let output = `Broadcasting Status:\n`;
+        output += `  Enabled: ${settings.enabled ? 'Yes' : 'No'}\n`;
+        if (settings.endpointUrl) {
+          output += `  Endpoint: ${settings.endpointUrl}`;
+        } else {
+          output += `  Endpoint: Not configured`;
+        }
+
         return { success: true, message: appendAuditWarning(output, auditWarning) };
       } catch (error: any) {
-        return { success: false, message: `Failed to get broadcasting status: ${classifyError(error, context)}` };
+        return { success: false, message: `Failed to retrieve broadcasting status: ${classifyError(error, context)}` };
       }
     },
   },
 
-  // ===== Diagnostic Commands =====
+  // ===== Local Diagnostic Commands =====
   {
-    name: 'now',
-    description: 'Display current timestamp',
+    name: 'version',
+    aliases: ['ver'],
+    description: 'Display terminal version information',
     category: 'Diagnostics',
-    execute: async () => {
-      const now = Date.now();
-      const nowNs = BigInt(now) * BigInt(1_000_000);
-      return {
-        success: true,
-        message: `Current time:\nMilliseconds: ${now}\nNanoseconds: ${nowNs}\nDate: ${new Date(now).toISOString()}`,
-      };
-    },
+    execute: async () => ({
+      success: true,
+      message: 'ICP Ops Console Terminal v1.0.0\nSecurity & Operations Management System',
+    }),
   },
   {
     name: 'echo',
-    description: 'Echo back the provided arguments',
+    description: 'Echo the provided text',
     category: 'Diagnostics',
     usage: 'echo <text>',
-    execute: async (args) => {
-      return {
-        success: true,
-        message: args.join(' ') || '(empty)',
-      };
-    },
-  },
-  {
-    name: 'terminal-status',
-    aliases: ['status'],
-    description: 'Display terminal connection status',
-    category: 'Diagnostics',
-    execute: async (args, context) => {
-      const hasActor = !!context.actor;
-      const hasIdentity = !!context.identity;
-      const principal = hasIdentity ? context.identity!.getPrincipal().toString() : 'Not authenticated';
-
-      return {
-        success: true,
-        message: `Terminal Status:\nBackend Connection: ${hasActor ? 'Connected' : 'Not connected'}\nAuthentication: ${hasIdentity ? 'Authenticated' : 'Not authenticated'}\nPrincipal: ${principal}`,
-      };
-    },
+    execute: async (args) => ({
+      success: true,
+      message: args.join(' ') || '',
+    }),
   },
 ];

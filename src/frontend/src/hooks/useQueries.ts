@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
-import type { UserProfile, T__4 as FilterCriteria, T as AuditEntry, InstanceContext, T__1 as ActionType, T__2 as EventSeverity, T__3 as BroadcastSettings } from '../backend';
+import type { UserProfile, T__4 as FilterCriteria, T as AuditEntry, InstanceContext, T__1 as ActionType, T__2 as EventSeverity, T__3 as BroadcastSettings, IcpController } from '../backend';
 import { toast } from 'sonner';
 import { Principal } from '@icp-sdk/core/principal';
+import { icpControllerStatusKey, icpControllersKey, securityStatusKey, appControllerStatusKey, appControllerPrincipalKey } from '../queryKeys';
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -44,12 +45,26 @@ export function useSaveCallerUserProfile() {
   });
 }
 
+export function useGetAppControllerPrincipal() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<Principal | null>({
+    queryKey: appControllerPrincipalKey(),
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getAppController();
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+}
+
 export function useGetCallerAppControllerStatus() {
   const { actor, isFetching: actorFetching } = useActor();
   const { identity } = useInternetIdentity();
 
   return useQuery<boolean>({
-    queryKey: ['appControllerStatus', identity?.getPrincipal().toString()],
+    queryKey: appControllerStatusKey(identity?.getPrincipal().toString()),
     queryFn: async () => {
       if (!actor) return false;
       return actor.getCallerAppControllerStatus();
@@ -64,7 +79,7 @@ export function useGetCallerSecurityStatus() {
   const { identity } = useInternetIdentity();
 
   const query = useQuery<boolean>({
-    queryKey: ['securityStatus', identity?.getPrincipal().toString()],
+    queryKey: securityStatusKey(identity?.getPrincipal().toString()),
     queryFn: async () => {
       if (!actor) return false;
       return actor.isSecurityUser();
@@ -85,7 +100,7 @@ export function useGetCallerIcpControllerStatus() {
   const { identity } = useInternetIdentity();
 
   const query = useQuery<boolean>({
-    queryKey: ['icpControllerStatus', identity?.getPrincipal().toString()],
+    queryKey: icpControllerStatusKey(identity?.getPrincipal().toString()),
     queryFn: async () => {
       if (!actor) return false;
       return actor.hasIcpControllerRole();
@@ -116,11 +131,14 @@ export function useInitializeAppController() {
       return actor.initialize(context);
     },
     onSuccess: () => {
+      // Invalidate all relevant queries
       queryClient.invalidateQueries({ queryKey: ['appControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: appControllerPrincipalKey() });
+      queryClient.invalidateQueries({ queryKey: ['securityStatus'] });
       toast.success('App Controller initialized successfully');
     },
     onError: (error: Error) => {
-      // Silently handle "already initialized" errors
+      // Only show error if not already initialized
       if (!error.message.includes('already initialized')) {
         toast.error(`Failed to initialize App Controller: ${error.message}`);
       }
@@ -287,14 +305,14 @@ export function useExportAuditLog() {
   });
 }
 
-export function useListIcpControllers() {
+export function useListIcpControllers(includeRevoked: boolean = false) {
   const { actor, isFetching: actorFetching } = useActor();
 
-  return useQuery<Principal[]>({
-    queryKey: ['icpControllers'],
+  return useQuery<IcpController[]>({
+    queryKey: icpControllersKey(includeRevoked),
     queryFn: async () => {
       if (!actor) return [];
-      return actor.listIcpControllers();
+      return actor.listIcpControllers(includeRevoked);
     },
     enabled: !!actor && !actorFetching,
   });
@@ -303,16 +321,20 @@ export function useListIcpControllers() {
 export function useGrantIcpControllerRole() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const { identity } = useInternetIdentity();
 
   return useMutation({
-    mutationFn: async (targetPrincipal: string) => {
+    mutationFn: async ({ targetPrincipal, name, description }: { targetPrincipal: string; name?: string; description?: string }) => {
       if (!actor) throw new Error('Actor not available');
       const principal = Principal.fromText(targetPrincipal);
-      return actor.grantIcpControllerRole(principal);
+      return actor.grantIcpControllerRole(principal, name || null, description || null);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['icpControllers'] });
+    onSuccess: (_, variables) => {
+      // Invalidate both active and revoked lists
+      queryClient.invalidateQueries({ queryKey: icpControllersKey(false) });
+      queryClient.invalidateQueries({ queryKey: icpControllersKey(true) });
+      // Invalidate the specific principal's status
+      queryClient.invalidateQueries({ queryKey: icpControllerStatusKey(variables.targetPrincipal) });
+      // Invalidate all status queries to catch any cached queries
       queryClient.invalidateQueries({ queryKey: ['icpControllerStatus'] });
       queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
       toast.success('ICP Controller role granted successfully');
@@ -326,7 +348,6 @@ export function useGrantIcpControllerRole() {
 export function useRevokeIcpControllerRole() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
-  const { identity } = useInternetIdentity();
 
   return useMutation({
     mutationFn: async (targetPrincipal: string) => {
@@ -334,14 +355,63 @@ export function useRevokeIcpControllerRole() {
       const principal = Principal.fromText(targetPrincipal);
       return actor.revokeIcpControllerRole(principal);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['icpControllers'] });
+    onSuccess: (_, targetPrincipal) => {
+      // Invalidate both active and revoked lists
+      queryClient.invalidateQueries({ queryKey: icpControllersKey(false) });
+      queryClient.invalidateQueries({ queryKey: icpControllersKey(true) });
+      // Invalidate the specific principal's status
+      queryClient.invalidateQueries({ queryKey: icpControllerStatusKey(targetPrincipal) });
+      // Invalidate all status queries to catch any cached queries
       queryClient.invalidateQueries({ queryKey: ['icpControllerStatus'] });
       queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
       toast.success('ICP Controller role revoked successfully');
     },
     onError: (error: Error) => {
       toast.error(`Failed to revoke ICP Controller role: ${error.message}`);
+    },
+  });
+}
+
+export function useGrantSecurityRole() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (targetPrincipal: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const principal = Principal.fromText(targetPrincipal);
+      return actor.grantSecurityRole(principal);
+    },
+    onSuccess: (_, targetPrincipal) => {
+      queryClient.invalidateQueries({ queryKey: securityStatusKey(targetPrincipal) });
+      queryClient.invalidateQueries({ queryKey: ['securityStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+      toast.success('Security role granted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to grant Security role: ${error.message}`);
+    },
+  });
+}
+
+export function useRevokeSecurityRole() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (targetPrincipal: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const principal = Principal.fromText(targetPrincipal);
+      return actor.revokeSecurityRole(principal);
+    },
+    onSuccess: (_, targetPrincipal) => {
+      queryClient.invalidateQueries({ queryKey: securityStatusKey(targetPrincipal) });
+      queryClient.invalidateQueries({ queryKey: ['securityStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+      toast.success('Security role revoked successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to revoke Security role: ${error.message}`);
     },
   });
 }

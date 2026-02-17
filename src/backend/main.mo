@@ -95,22 +95,38 @@ actor {
     principal : Principal;
   };
 
+  public type IcpController = {
+    principal : Principal;
+    name : ?Text;
+    description : ?Text;
+    roleAssigned : Bool;
+    assignedTimestamp : Time.Time;
+    lastActiveTimestamp : ?Time.Time;
+    createdBy : ?Principal;
+    revokedTimestamp : ?Time.Time;
+  };
+
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
   var userProfiles = Map.empty<Principal, UserProfile>();
   var flaggedUsers = Map.empty<Principal, Bool>();
+  var securityUsers = Map.empty<Principal, SecurityUser>();
 
-  var auditLogEntries : List.List<AuditEntry.T> = List.empty<AuditEntry.T>();
   var instanceContext : ?InstanceContext = null;
 
   var externalBroadcastingEnabled : Bool = false;
   var externalEndpointUrl : ?Text = null;
 
-  var securityUsers = Map.empty<Principal, SecurityUser>();
+  var icpControllerState = Map.empty<Principal, IcpController>();
+  var auditLogEntries : List.List<AuditEntry.T> = List.empty<AuditEntry.T>();
 
-  // New part: ICP controller state map
-  var icpControllerState = Map.empty<Principal, Bool>();
+  public query ({ caller }) func getAppController() : async ?Principal {
+    switch (instanceContext) {
+      case (?context) { ?context.contextPrincipal };
+      case (null) { null };
+    };
+  };
 
   public shared ({ caller }) func initialize(context : InstanceContext) : async () {
     if (caller != context.contextPrincipal) {
@@ -286,13 +302,11 @@ actor {
     externalEndpointUrl := endpointUrl;
   };
 
-  // Public getter for external broadcasting settings - restricted to security/app controller
   public query ({ caller }) func getExternalBroadcastingSettings() : async BroadcastSettings.T {
     assertSecurityOrAppController(caller);
     { enabled = externalBroadcastingEnabled; endpointUrl = externalEndpointUrl };
   };
 
-  // Role management functions for Security role.
   public shared ({ caller }) func grantSecurityRole(target : Principal) : async () {
     assertAppController(caller);
 
@@ -407,7 +421,6 @@ actor {
     );
   };
 
-  // Superuser controls
   public shared ({ caller }) func exportAuditLogToJson() : async [AuditEntry.T] {
     assertSecurityOrAppController(caller);
     let exportLogEntry : AuditEntry.T = {
@@ -425,57 +438,113 @@ actor {
     auditLogEntries.toArray();
   };
 
-  // ICP Controller Role Management (App controller only)
-  public shared ({ caller }) func grantIcpControllerRole(target : Principal) : async () {
+  public shared ({ caller }) func grantIcpControllerRole(target : Principal, name : ?Text, description : ?Text) : async () {
     assertAppController(caller);
-    doIcpControllerGrantInternal(target, caller);
+    let now = Time.now();
+
+    if (icpControllerState.containsKey(target)) {
+      switch (icpControllerState.get(target)) {
+        case (?icpController) {
+          if (icpController.roleAssigned) {
+            Runtime.trap("Principal already has ICP Controller role. Use updateIcpControllerDescription for updates.");
+          } else {
+            let updatedIcpController = {
+              icpController with
+              name;
+              description;
+              roleAssigned = true;
+              assignedTimestamp = now;
+              lastActiveTimestamp = ?now;
+              createdBy = ?caller;
+              revokedTimestamp = null;
+            };
+            icpControllerState.add(target, updatedIcpController);
+            recordIcpControllerAuditEvent("Reactivated ICP Controller with role", caller, target, true);
+            return;
+          };
+        };
+        case (null) {};
+      };
+    };
+
+    let newIcpController : IcpController = {
+      principal = target;
+      name;
+      description;
+      roleAssigned = true;
+      assignedTimestamp = now;
+      lastActiveTimestamp = ?now;
+      createdBy = ?caller;
+      revokedTimestamp = null;
+    };
+
+    icpControllerState.add(target, newIcpController);
+    recordIcpControllerAuditEvent("Assigned new ICP Controller role", caller, target, true);
+  };
+
+  public shared ({ caller }) func updateIcpControllerDescription(
+    target : Principal,
+    name : Text,
+    description : ?Text,
+  ) : async () {
+    assertAppController(caller);
+
+    switch (icpControllerState.get(target)) {
+      case (?icpController) {
+        let updatedIcpController = {
+          icpController with
+          name = ?name;
+          description;
+        };
+        icpControllerState.add(target, updatedIcpController);
+        recordIcpControllerAuditEvent(
+          "Updated ICP Controller description for " # target.toText(),
+          caller,
+          target,
+          true,
+        );
+      };
+      case (null) {
+        Runtime.trap("ICP Controller not found for principal: " # target.toText());
+      };
+    };
   };
 
   public shared ({ caller }) func revokeIcpControllerRole(target : Principal) : async () {
     assertAppController(caller);
-    doIcpControllerRevokeInternal(target, caller);
-  };
-
-  public shared ({ caller }) func listIcpControllers() : async [Principal] {
-    assertAppController(caller);
-    icpControllerState.keys().toArray();
-  };
-
-  public query ({ caller }) func hasIcpControllerRole() : async Bool {
-    icpControllerState.containsKey(caller);
-  };
-
-  // Internal helper functions
-  func doIcpControllerGrantInternal(target : Principal, caller : Principal) {
-    if (icpControllerState.containsKey(target)) {
-      Runtime.trap("User already has ICP Controller role. Use ICP Controllers for idempotent calls.");
+    switch (icpControllerState.get(target)) {
+      case (?icpController) {
+        if (icpController.roleAssigned) {
+          let updatedIcpController = {
+            icpController with
+            roleAssigned = false;
+            revokedTimestamp = ?Time.now();
+          };
+          icpControllerState.add(target, updatedIcpController);
+          recordIcpControllerAuditEvent("Revoked ICP Controller role", caller, target, false);
+        } else {
+          Runtime.trap("ICP Controller role is already revoked for principal: " # target.toText());
+        };
+      };
+      case (null) {
+        Runtime.trap("ICP Controller not found for principal: " # target.toText());
+      };
     };
+  };
 
-    icpControllerState.add(target, true);
-
-    recordIcpControllerAuditEvent(
-      "ICP Controller privilege granted to " # target.toText() # " by " # caller.toText(),
-      caller,
-      target,
-      true,
+  public query ({ caller }) func listIcpControllers(includeRevoked : Bool) : async [IcpController] {
+    assertAppController(caller);
+    icpControllerState.values().toArray().filter(
+      func(controller) {
+        includeRevoked or controller.roleAssigned == true
+      }
     );
   };
 
-  func doIcpControllerRevokeInternal(target : Principal, caller : Principal) {
-    switch (icpControllerState.get(target)) {
-      case (null) {
-        Runtime.trap("User does not have ICP Controller role - cannot revoke");
-      };
-      case (?_) {
-        icpControllerState.remove(target);
-
-        recordIcpControllerAuditEvent(
-          "ICP Controller privilege revoked from " # target.toText() # " by " # caller.toText(),
-          caller,
-          target,
-          false,
-        );
-      };
+  public query ({ caller }) func hasIcpControllerRole() : async Bool {
+    switch (icpControllerState.get(caller)) {
+      case (?controller) { controller.roleAssigned };
+      case (null) { false };
     };
   };
 

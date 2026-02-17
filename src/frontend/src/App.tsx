@@ -1,73 +1,45 @@
+import { useEffect, useState } from 'react';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
-import { useGetCallerUserProfile, useGetCallerAppControllerStatus, useGetCallerSecurityStatus, useGetCallerIcpControllerStatus, useInitializeAppController } from './hooks/useQueries';
-import { ThemeProvider } from 'next-themes';
-import { Toaster } from '@/components/ui/sonner';
+import { useGetCallerUserProfile, useGetCallerAppControllerStatus, useGetCallerSecurityStatus, useGetCallerIcpControllerStatus } from './hooks/useQueries';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import ProfileSetupModal from './components/ProfileSetupModal';
+import AccessDeniedScreen from './components/AccessDeniedScreen';
 import AdminDashboard from './pages/AdminDashboard';
 import IcpOpsDashboard from './pages/IcpOpsDashboard';
-import AccessDeniedScreen from './components/AccessDeniedScreen';
-import { Loader2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from 'next-themes';
 import { useDashboardView } from './hooks/useDashboardView';
 
 export default function App() {
-  const { identity, loginStatus } = useInternetIdentity();
-  const isAuthenticated = !!identity;
+  const { identity, isInitializing } = useInternetIdentity();
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
   const { data: isAppController, isLoading: appControllerLoading } = useGetCallerAppControllerStatus();
-  const { data: isSecurity, isLoading: securityLoading, isFetched: securityFetched } = useGetCallerSecurityStatus();
-  const { data: isIcpController, isLoading: icpControllerLoading, isFetched: icpControllerFetched } = useGetCallerIcpControllerStatus();
-  const initializeAppController = useInitializeAppController();
-  const [showAccessGranted, setShowAccessGranted] = useState(false);
+  const { data: isSecurityUser, isLoading: securityLoading } = useGetCallerSecurityStatus();
+  const { data: isIcpController, isLoading: icpControllerLoading } = useGetCallerIcpControllerStatus();
 
-  // Determine access level with default false values
-  const hasSecurityAccess = isAppController === true || isSecurity === true;
-  const hasIcpControllerAccess = isIcpController === true;
+  const isAuthenticated = !!identity;
+  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+
+  // Determine access levels
+  const hasSecurityAccess = isAppController || isSecurityUser;
+  const hasIcpControllerAccess = isIcpController;
   const hasAnyAccess = hasSecurityAccess || hasIcpControllerAccess;
 
-  // Use dashboard view hook for session-persisted view switching
   const { selectedView, onSelectView, allowedViews, canSwitchViews } = useDashboardView(
-    hasSecurityAccess,
-    hasIcpControllerAccess,
+    hasSecurityAccess || false,
+    hasIcpControllerAccess || false,
     isAuthenticated
   );
 
-  // Reset access granted message on logout
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setShowAccessGranted(false);
-    }
-  }, [isAuthenticated]);
-
-  // Automatically initialize app controller on first login
-  useEffect(() => {
-    if (isAuthenticated && !appControllerLoading && isAppController === false && !initializeAppController.isPending) {
-      initializeAppController.mutate();
-    }
-  }, [isAuthenticated, appControllerLoading, isAppController, initializeAppController]);
-
-  // Handle app controller, security, or ICP controller access confirmation
-  useEffect(() => {
-    if (isAuthenticated && (isAppController || isSecurity || isIcpController) && !showAccessGranted) {
-      setShowAccessGranted(true);
-      // Hide the confirmation message after 5 seconds
-      const timer = setTimeout(() => {
-        setShowAccessGranted(false);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [isAuthenticated, isAppController, isSecurity, isIcpController, showAccessGranted]);
-
-  // Show loading state while checking authentication, profile, security status, and ICP controller status
-  if (loginStatus === 'initializing' || (isAuthenticated && (profileLoading || appControllerLoading || securityLoading || icpControllerLoading))) {
+  // Show loading state while checking authentication and roles
+  if (isInitializing || (isAuthenticated && (profileLoading || appControllerLoading || securityLoading || icpControllerLoading))) {
     return (
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <div className="flex min-h-screen items-center justify-center bg-background">
-          <div className="flex flex-col items-center gap-4">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="text-sm text-muted-foreground">Loading...</p>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground">Loading...</p>
           </div>
         </div>
         <Toaster />
@@ -75,48 +47,30 @@ export default function App() {
     );
   }
 
-  // Show profile setup modal if user is authenticated but has no profile
-  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
-
-  // Show access denied if not authenticated or no access
-  if (!isAuthenticated || !hasAnyAccess) {
-    return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">
-            <AccessDeniedScreen />
-          </main>
-          <Footer />
-        </div>
-        <Toaster />
-      </ThemeProvider>
-    );
-  }
-
-  // Render the appropriate dashboard based on selected view
-  const renderDashboard = () => {
-    if (selectedView === 'icp-ops') {
-      return <IcpOpsDashboard showAccessGranted={showAccessGranted} />;
-    }
-    return <AdminDashboard showAccessGranted={showAccessGranted} />;
-  };
-
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <div className="flex min-h-screen flex-col">
+      <div className="min-h-screen bg-background flex flex-col">
         <Header
           selectedView={selectedView}
           onSelectView={onSelectView}
           allowedViews={allowedViews}
           canSwitchViews={canSwitchViews}
         />
-        <main className="flex-1">
-          {renderDashboard()}
-        </main>
+
+        {showProfileSetup ? (
+          <ProfileSetupModal />
+        ) : !isAuthenticated || !hasAnyAccess ? (
+          <AccessDeniedScreen />
+        ) : selectedView === 'security' && hasSecurityAccess ? (
+          <AdminDashboard />
+        ) : selectedView === 'icp-ops' && hasIcpControllerAccess ? (
+          <IcpOpsDashboard />
+        ) : (
+          <AccessDeniedScreen />
+        )}
+
         <Footer />
       </div>
-      {showProfileSetup && <ProfileSetupModal />}
       <Toaster />
     </ThemeProvider>
   );

@@ -57,6 +57,16 @@ export const InstanceContext = IDL.Record({
   'contextPrincipal' : IDL.Principal,
   'contextTimestamp' : Time,
 });
+export const IcpController = IDL.Record({
+  'principal' : IDL.Principal,
+  'revokedTimestamp' : IDL.Opt(Time),
+  'name' : IDL.Opt(IDL.Text),
+  'createdBy' : IDL.Opt(IDL.Principal),
+  'description' : IDL.Opt(IDL.Text),
+  'roleAssigned' : IDL.Bool,
+  'lastActiveTimestamp' : IDL.Opt(Time),
+  'assignedTimestamp' : Time,
+});
 export const http_header = IDL.Record({
   'value' : IDL.Text,
   'name' : IDL.Text,
@@ -86,6 +96,7 @@ export const idlService = IDL.Service({
     ),
   'exportAuditLogToJson' : IDL.Func([], [IDL.Vec(T)], []),
   'flagUser' : IDL.Func([IDL.Principal], [], []),
+  'getAppController' : IDL.Func([], [IDL.Opt(IDL.Principal)], ['query']),
   'getAuditLogs' : IDL.Func([T__4], [IDL.Vec(T)], ['query']),
   'getCallerAppControllerStatus' : IDL.Func([], [IDL.Bool], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
@@ -97,7 +108,11 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
-  'grantIcpControllerRole' : IDL.Func([IDL.Principal], [], []),
+  'grantIcpControllerRole' : IDL.Func(
+      [IDL.Principal, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
+      [],
+      [],
+    ),
   'grantSecurityRole' : IDL.Func([IDL.Principal], [], []),
   'hasIcpControllerRole' : IDL.Func([], [IDL.Bool], ['query']),
   'initialize' : IDL.Func([InstanceContext], [], []),
@@ -105,7 +120,11 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isSecurityUser' : IDL.Func([], [IDL.Bool], ['query']),
   'isUserFlagged' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
-  'listIcpControllers' : IDL.Func([], [IDL.Vec(IDL.Principal)], []),
+  'listIcpControllers' : IDL.Func(
+      [IDL.Bool],
+      [IDL.Vec(IcpController)],
+      ['query'],
+    ),
   'recordAuditEntry' : IDL.Func([T], [], []),
   'removeUser' : IDL.Func([IDL.Principal], [], []),
   'revokeIcpControllerRole' : IDL.Func([IDL.Principal], [], []),
@@ -117,6 +136,11 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'unflagUser' : IDL.Func([IDL.Principal], [], []),
+  'updateIcpControllerDescription' : IDL.Func(
+      [IDL.Principal, IDL.Text, IDL.Opt(IDL.Text)],
+      [],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -171,6 +195,16 @@ export const idlFactory = ({ IDL }) => {
     'contextPrincipal' : IDL.Principal,
     'contextTimestamp' : Time,
   });
+  const IcpController = IDL.Record({
+    'principal' : IDL.Principal,
+    'revokedTimestamp' : IDL.Opt(Time),
+    'name' : IDL.Opt(IDL.Text),
+    'createdBy' : IDL.Opt(IDL.Principal),
+    'description' : IDL.Opt(IDL.Text),
+    'roleAssigned' : IDL.Bool,
+    'lastActiveTimestamp' : IDL.Opt(Time),
+    'assignedTimestamp' : Time,
+  });
   const http_header = IDL.Record({ 'value' : IDL.Text, 'name' : IDL.Text });
   const http_request_result = IDL.Record({
     'status' : IDL.Nat,
@@ -197,6 +231,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'exportAuditLogToJson' : IDL.Func([], [IDL.Vec(T)], []),
     'flagUser' : IDL.Func([IDL.Principal], [], []),
+    'getAppController' : IDL.Func([], [IDL.Opt(IDL.Principal)], ['query']),
     'getAuditLogs' : IDL.Func([T__4], [IDL.Vec(T)], ['query']),
     'getCallerAppControllerStatus' : IDL.Func([], [IDL.Bool], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
@@ -208,7 +243,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
-    'grantIcpControllerRole' : IDL.Func([IDL.Principal], [], []),
+    'grantIcpControllerRole' : IDL.Func(
+        [IDL.Principal, IDL.Opt(IDL.Text), IDL.Opt(IDL.Text)],
+        [],
+        [],
+      ),
     'grantSecurityRole' : IDL.Func([IDL.Principal], [], []),
     'hasIcpControllerRole' : IDL.Func([], [IDL.Bool], ['query']),
     'initialize' : IDL.Func([InstanceContext], [], []),
@@ -216,7 +255,11 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isSecurityUser' : IDL.Func([], [IDL.Bool], ['query']),
     'isUserFlagged' : IDL.Func([IDL.Principal], [IDL.Bool], ['query']),
-    'listIcpControllers' : IDL.Func([], [IDL.Vec(IDL.Principal)], []),
+    'listIcpControllers' : IDL.Func(
+        [IDL.Bool],
+        [IDL.Vec(IcpController)],
+        ['query'],
+      ),
     'recordAuditEntry' : IDL.Func([T], [], []),
     'removeUser' : IDL.Func([IDL.Principal], [], []),
     'revokeIcpControllerRole' : IDL.Func([IDL.Principal], [], []),
@@ -228,6 +271,11 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'unflagUser' : IDL.Func([IDL.Principal], [], []),
+    'updateIcpControllerDescription' : IDL.Func(
+        [IDL.Principal, IDL.Text, IDL.Opt(IDL.Text)],
+        [],
+        [],
+      ),
   });
 };
 

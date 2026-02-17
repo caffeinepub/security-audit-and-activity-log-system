@@ -2,12 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-an-explicit-user-visible-way-to-open-the-icp-controller-experience-the-icp-operations-console-so-that-users-with-the-icp-controller-role-can-reliably-find-it-instead-of-relying-on-implicit-role-based-rendering",
-      "featureTitle": "Add an explicit, user-visible way to open the ICP Controller experience (the ICP Operations Console) so that users with the ICP Controller role can reliably find it instead of relying on implicit role-based rendering.",
+      "featureId": "feature-update-user-facing-copy-to-explicitly-clarify-that-a-requested-web-control-world-wide-web-controller-role-is-not-supported-by-this-application-and-guide-the-user-toward-the-supported-roles-app-controller-security-icp-controller-that-can-actually-be-granted",
+      "featureTitle": "Update user-facing copy to explicitly clarify that a requested \"Web control\" / \"World Wide Web Controller\" role is not supported by this application, and guide the user toward the supported roles (App Controller, Security, ICP Controller) that can actually be granted.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/DashboardViewSwitcher.tsx",
-        "frontend/src/components/Header.tsx"
+        "frontend/src/components/RolesAccessPanel.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -19,17 +17,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-55"
+        "REQ-64"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-support-users-who-have-both-security-app-controller-access-and-the-icp-controller-role-by-allowing-them-to-switch-between-the-security-dashboard-admindashboard-and-the-icp-operations-console-icpopsdashboard-without-changing-roles",
-      "featureTitle": "Support users who have both Security/App Controller access and the ICP Controller role by allowing them to switch between the Security Dashboard (AdminDashboard) and the ICP Operations Console (IcpOpsDashboard) without changing roles.",
+      "featureId": "feature-update-the-access-denied-screen-copy-for-authenticated-but-unauthorized-users-to-include-an-explicit-note-that-web-control-access-cannot-be-granted-because-it-is-not-a-supported-role-in-this-app-and-point-users-to-requesting-security-or-icp-controller-access-instead",
+      "featureTitle": "Update the Access Denied screen copy for authenticated-but-unauthorized users to include an explicit note that \"Web control\" access cannot be granted because it is not a supported role in this app, and point users to requesting Security or ICP Controller access instead.",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/DashboardViewSwitcher.tsx",
-        "frontend/src/components/Header.tsx"
+        "frontend/src/components/AccessDeniedScreen.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -41,29 +37,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-56"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-persist-the-selected-view-security-dashboard-vs-icp-operations-on-the-client-so-that-refresh-navigation-during-the-session-keeps-the-user-on-the-last-selected-view-while-still-respecting-role-based-access-rules",
-      "featureTitle": "Persist the selected view (Security Dashboard vs ICP Operations) on the client so that refresh/navigation during the session keeps the user on the last selected view, while still respecting role-based access rules.",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/Header.tsx",
-        "frontend/src/hooks/useDashboardView.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-57"
+        "REQ-65"
       ],
       "confidence": "high"
     }
