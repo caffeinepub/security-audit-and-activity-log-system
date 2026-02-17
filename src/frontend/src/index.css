@@ -3,81 +3,147 @@
 @tailwind utilities;
 
 @layer base {
-    :root {
-        --radius: 0.625rem;
-        --background: 0.99 0 0;
-        --foreground: 0.145 0 0;
-        --card: 1 0 0;
-        --card-foreground: 0.145 0 0;
-        --popover: 1 0 0;
-        --popover-foreground: 0.145 0 0;
-        --primary: 0.488 0.243 264.376;
-        --primary-foreground: 0.985 0 0;
-        --secondary: 0.97 0 0;
-        --secondary-foreground: 0.205 0 0;
-        --muted: 0.97 0 0;
-        --muted-foreground: 0.556 0 0;
-        --accent: 0.97 0 0;
-        --accent-foreground: 0.205 0 0;
-        --destructive: 0.577 0.245 27.325;
-        --destructive-foreground: 0.985 0 0;
-        --border: 0.922 0 0;
-        --input: 0.922 0 0;
-        --ring: 0.488 0.243 264.376;
-        --chart-1: 0.646 0.222 41.116;
-        --chart-2: 0.6 0.118 184.704;
-        --chart-3: 0.398 0.07 227.392;
-        --chart-4: 0.828 0.189 84.429;
-        --chart-5: 0.769 0.188 70.08;
-        --sidebar: 0.985 0 0;
-        --sidebar-foreground: 0.145 0 0;
-        --sidebar-primary: 0.488 0.243 264.376;
-        --sidebar-primary-foreground: 0.985 0 0;
-        --sidebar-accent: 0.97 0 0;
-        --sidebar-accent-foreground: 0.205 0 0;
-        --sidebar-border: 0.922 0 0;
-        --sidebar-ring: 0.488 0.243 264.376;
-    }
+  :root {
+    --background: 98% 0.01 264;
+    --foreground: 20% 0.02 264;
+    --card: 100% 0 0;
+    --card-foreground: 20% 0.02 264;
+    --popover: 100% 0 0;
+    --popover-foreground: 20% 0.02 264;
+    --primary: 55% 0.20 264;
+    --primary-foreground: 98% 0.01 264;
+    --secondary: 96% 0.01 264;
+    --secondary-foreground: 20% 0.02 264;
+    --muted: 96% 0.01 264;
+    --muted-foreground: 50% 0.02 264;
+    --accent: 96% 0.01 264;
+    --accent-foreground: 20% 0.02 264;
+    --destructive: 55% 0.20 25;
+    --destructive-foreground: 98% 0.01 264;
+    --border: 90% 0.01 264;
+    --input: 90% 0.01 264;
+    --ring: 55% 0.20 264;
+    --chart-1: 60% 0.15 12;
+    --chart-2: 65% 0.15 142;
+    --chart-3: 55% 0.15 0;
+    --chart-4: 60% 0.15 60;
+    --chart-5: 65% 0.15 330;
+    --sidebar: 98% 0.01 264;
+    --sidebar-foreground: 20% 0.02 264;
+    --sidebar-primary: 55% 0.20 264;
+    --sidebar-primary-foreground: 98% 0.01 264;
+    --sidebar-accent: 96% 0.01 264;
+    --sidebar-accent-foreground: 20% 0.02 264;
+    --sidebar-border: 90% 0.01 264;
+    --sidebar-ring: 55% 0.20 264;
+    --radius: 0.5rem;
+  }
 
-    .dark {
-        --background: 0.145 0 0;
-        --foreground: 0.985 0 0;
-        --card: 0.205 0 0;
-        --card-foreground: 0.985 0 0;
-        --popover: 0.269 0 0;
-        --popover-foreground: 0.985 0 0;
-        --primary: 0.696 0.17 262.48;
-        --primary-foreground: 0.145 0 0;
-        --secondary: 0.269 0 0;
-        --secondary-foreground: 0.985 0 0;
-        --muted: 0.269 0 0;
-        --muted-foreground: 0.708 0 0;
-        --accent: 0.371 0 0;
-        --accent-foreground: 0.985 0 0;
-        --destructive: 0.704 0.191 22.216;
-        --destructive-foreground: 0.985 0 0;
-        --border: 1 0 0 / 10%;
-        --input: 1 0 0 / 15%;
-        --ring: 0.696 0.17 262.48;
-        --chart-1: 0.488 0.243 264.376;
-        --chart-2: 0.696 0.17 162.48;
-        --chart-3: 0.769 0.188 70.08;
-        --chart-4: 0.627 0.265 303.9;
-        --chart-5: 0.645 0.246 16.439;
-        --sidebar: 0.205 0 0;
-        --sidebar-foreground: 0.985 0 0;
-        --sidebar-primary: 0.696 0.17 262.48;
-        --sidebar-primary-foreground: 0.985 0 0;
-        --sidebar-accent: 0.269 0 0;
-        --sidebar-accent-foreground: 0.985 0 0;
-        --sidebar-border: 1 0 0 / 10%;
-        --sidebar-ring: 0.696 0.17 262.48;
-    }
+  .dark {
+    --background: 20% 0.02 264;
+    --foreground: 98% 0.01 264;
+    --card: 22% 0.02 264;
+    --card-foreground: 98% 0.01 264;
+    --popover: 22% 0.02 264;
+    --popover-foreground: 98% 0.01 264;
+    --primary: 65% 0.20 264;
+    --primary-foreground: 20% 0.02 264;
+    --secondary: 25% 0.02 264;
+    --secondary-foreground: 98% 0.01 264;
+    --muted: 25% 0.02 264;
+    --muted-foreground: 65% 0.02 264;
+    --accent: 25% 0.02 264;
+    --accent-foreground: 98% 0.01 264;
+    --destructive: 55% 0.20 25;
+    --destructive-foreground: 98% 0.01 264;
+    --border: 30% 0.02 264;
+    --input: 30% 0.02 264;
+    --ring: 65% 0.20 264;
+    --chart-1: 70% 0.15 20;
+    --chart-2: 75% 0.15 160;
+    --chart-3: 65% 0.15 30;
+    --chart-4: 70% 0.15 80;
+    --chart-5: 75% 0.15 340;
+    --sidebar: 20% 0.02 264;
+    --sidebar-foreground: 98% 0.01 264;
+    --sidebar-primary: 65% 0.20 264;
+    --sidebar-primary-foreground: 20% 0.02 264;
+    --sidebar-accent: 25% 0.02 264;
+    --sidebar-accent-foreground: 98% 0.01 264;
+    --sidebar-border: 30% 0.02 264;
+    --sidebar-ring: 65% 0.20 264;
+  }
+}
 
-    * {
-        @apply border-border;
-    }
-    body {
-        @apply bg-background text-foreground;
-    }
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Fix for Select dropdown z-index and positioning */
+@layer components {
+  [data-radix-popper-content-wrapper] {
+    z-index: 100 !important;
+  }
+  
+  [role="dialog"],
+  [role="menu"],
+  [role="listbox"] {
+    z-index: 100 !important;
+  }
+
+  /* Ensure Select content is always visible and clickable */
+  [data-radix-select-content] {
+    z-index: 100 !important;
+    pointer-events: auto !important;
+  }
+
+  /* Improve muted text contrast for better readability */
+  .text-muted-foreground {
+    color: oklch(var(--muted-foreground) / 0.85);
+  }
+
+  /* Ensure popover/dropdown backgrounds are distinct */
+  [data-radix-select-viewport],
+  [data-radix-dropdown-menu-content],
+  [data-radix-popover-content] {
+    background: oklch(var(--popover));
+    border: 1px solid oklch(var(--border));
+  }
+
+  /* Fix for tabs overflow on small screens */
+  [role="tablist"] {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  [role="tablist"]::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  [role="tablist"]::-webkit-scrollbar-track {
+    background: oklch(var(--muted) / 0.3);
+  }
+
+  [role="tablist"]::-webkit-scrollbar-thumb {
+    background: oklch(var(--muted-foreground) / 0.3);
+    border-radius: 2px;
+  }
+
+  /* Network canvas theme-aware colors */
+  .network-canvas-light {
+    background: oklch(98% 0.01 264);
+    border-color: oklch(90% 0.01 264);
+  }
+
+  .network-canvas-dark {
+    background: oklch(22% 0.02 264);
+    border-color: oklch(30% 0.02 264);
+  }
 }

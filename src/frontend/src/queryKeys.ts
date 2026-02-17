@@ -31,7 +31,7 @@ export function appControllerStatusKey(principalText?: string) {
 }
 
 /**
- * Query key for the current App Controller principal.
+ * Query key for App Controller principal.
  */
 export function appControllerPrincipalKey() {
   return ['appControllerPrincipal'];
@@ -49,4 +49,11 @@ export function worldWideWebControllerStatusKey(principalText?: string) {
  */
 export function worldWideWebControllersKey() {
   return ['worldWideWebControllers'];
+}
+
+/**
+ * Query key for network graph data.
+ */
+export function networkGraphKey() {
+  return ['networkGraph'];
 }

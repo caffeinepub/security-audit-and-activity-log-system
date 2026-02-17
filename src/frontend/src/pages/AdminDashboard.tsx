@@ -22,7 +22,7 @@ export default function AdminDashboard() {
   const { data: currentLogs = [] } = useGetAuditLogs({});
 
   return (
-    <div className="container py-8 space-y-6">
+    <div className="container py-6 sm:py-8 space-y-6">
       <div className="flex items-center gap-3">
         <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 px-3 py-1 text-white">
           <Crown className="h-4 w-4" />
@@ -30,7 +30,7 @@ export default function AdminDashboard() {
         </Badge>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
         <IcpConnectionPanel />
         <AuthStatusPanel />
       </div>

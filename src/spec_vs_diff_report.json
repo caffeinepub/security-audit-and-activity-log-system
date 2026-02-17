@@ -1,53 +1,21 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T22:15:26.582Z",
-  "summary": "Diff adds a Web Control Quick Tools panel, introduces a shared audit execution wrapper for Web Control terminal commands, and begins a data-driven command catalog used by the World Wide Web Controller command registry (with enhanced help output). Diff summary also indicates unrelated additions around World Wide Web Controller role management hooks/panels that were not requested.",
-  "missing_requirements": [
-    {
-      "id": "REQ-81",
-      "requirement": "Ensure every Web Control terminal command (existing and newly added) attempts best-effort audit recording using the existing helper pattern and never fails solely because audit logging is unavailable.",
-      "reason": "While a shared wrapper (executeWithAudit/executeLocalCommand) was added and is used by at least some commands (e.g., help/clear and web-controller-status), the diff is truncated and does not show that all existing and newly generated Web Control commands are consistently wrapped to attempt audit recording.",
-      "evidence": [
-        "frontend/src/terminal/webControlAudit.ts",
-        "frontend/src/terminal/worldWideWebControllerCommands.ts (truncated)",
-        "frontend/src/terminal/webControlCommandCatalog.ts (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-80",
-      "requirement": "Provide at least 200 distinct Web Control commands discoverable via help, using a data-driven catalog, and keep help readable/responsive via grouping.",
-      "reason": "A data-driven catalog file and help grouping/count output were added, but the diff is truncated before showing the full catalog generation and the final registry size; it is not directly evidenced that 200+ distinct commands are actually produced and registered.",
-      "evidence": [
-        "frontend/src/terminal/webControlCommandCatalog.ts (truncated)",
-        "frontend/src/terminal/worldWideWebControllerCommands.ts (truncated)"
-      ]
-    }
-  ],
-  "hallucinated_features": [
-    {
-      "description": "Added backend query/mutation hooks for listing/granting/revoking World Wide Web Controller roles (role administration functionality).",
-      "reason": "BuildRequest focuses on expanding the safe Web Control terminal and adding a Web Control quick tools section; it explicitly constrains against adding security/app-controller-only capabilities to Web Control and does not request new role management features.",
-      "evidence": [
-        "frontend-file-summaries.txt (entry for \"frontend/src/hooks/useQueries.ts\")"
-      ]
-    },
-    {
-      "description": "Added an App Controller-only UI panel/section for World Wide Web Controller management inside the AdminDashboard.",
-      "reason": "Not requested by REQ-79..REQ-82; this is additional role administration UI beyond the requested safe Web Control terminal expansion and Web Control quick tools section.",
-      "evidence": [
-        "frontend-file-summaries.txt (entry for \"frontend/src/pages/AdminDashboard.tsx\")"
-      ]
-    }
-  ],
-  "confidence": 0.66,
+  "generatedAt": "2026-02-17T23:45:56.108Z",
+  "summary": "Diff appears to address the requested UI repairs: dropdown/select overlay and clickability (z-index + popper positioning + global Radix portal z-index overrides), dashboard/header spacing/contrast improvements, Network Map canvas contrast/legibility with theme-aware colors and initial auto-fit/centering, and tab overflow usability on small screens via scrollable tablists.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.72,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/WebControlQuickToolsPanel.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/IcpControlsCatalog.tsx",
+    "frontend/src/components/IcpControlsCatalogRow.tsx",
+    "frontend/src/components/NetworkMapCanvas.tsx",
+    "frontend/src/components/NetworkMapPanel.tsx",
+    "frontend/src/index.css",
+    "frontend/src/pages/AdminDashboard.tsx",
     "frontend/src/pages/IcpOpsDashboard.tsx",
-    "frontend/src/terminal/webControlAudit.ts",
-    "frontend/src/terminal/webControlCommandCatalog.ts",
-    "frontend/src/terminal/worldWideWebControllerCommands.ts",
     "project_state.json"
   ]
 }

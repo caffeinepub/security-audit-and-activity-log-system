@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 45,
+  "projectStateVersion": 51,
   "summary": "Project to add a \"Security\" role with higher privileges than Administrator for the caffeine website, controlled/authorized by the app controller (user), and expand the app to connect to the Internet Computer (canister API integration), add Internet Identity login, and support deployment to ICP mainnet; also add a working superuser UI control to support security audits.",
   "architectural_notes": [
     "Planned: dashboard will include an App Controller–only standalone in-browser code editor capable of editing both backend (Motoko) and frontend (React/TypeScript) code, with an action to apply changes and trigger deploy.",
@@ -17,9 +17,11 @@
     "Root Terminal is not accepting commands or showing output even when ICP Connection shows \"Connected\" (terminal input/handler may be broken).",
     "ICP Controller page/panel is not visible/accessible in the app UI (user reports they don't see the ICP Controller page).",
     "ICP Controller page/panel still not visible/accessible in the app UI (user reports they still can't see it after latest deploy).",
-    "Privilege escalation risk related to granting the World Wide Web Controller (\"Web control\") role needs to be removed before role granting is safe."
+    "Privilege escalation risk related to granting the World Wide Web Controller (\"Web control\") role needs to be removed before role granting is safe.",
+    "Network Map/graph visuals are not rendering correctly for the user even when ICP Connection shows \"Connected\" (blank/only partial display).",
+    "UI visuals and dropdown menus need repair (dropdowns/visual styling broken or not functioning)."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-update-the-frontend-access-gating-so-that-users-who-are-either-app-controller-or-security-can-access-the-dashboard-all-others-see-access-denied",
@@ -564,6 +566,86 @@
         "REQ-82"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-react-query-hooks-and-query-keys-for-network-graph-read-and-write-operations-including-correct-cache-invalidation-so-the-map-ui-updates-immediately-after-any-remote-edit",
+      "title": "Add React Query hooks and query keys for network graph read and write operations, including correct cache invalidation so the map UI updates immediately after any remote edit.",
+      "reqIds": [
+        "REQ-84"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-an-interactive-network-map-panel-in-the-frontend-with-pan-zoom-and-clickable-nodes-including-an-inspector-editor-ui-that-allows-authorized-users-to-remotely-edit-nodes-edges-and-save-changes-to-the-backend",
+      "title": "Implement an interactive Network Map panel in the frontend with pan/zoom and clickable nodes, including an inspector/editor UI that allows authorized users to remotely edit nodes/edges and save changes to the backend.",
+      "reqIds": [
+        "REQ-85"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-basic-safety-and-conflict-handling-for-remote-edits-so-users-do-not-accidentally-overwrite-each-other-s-changes-without-noticing",
+      "title": "Add basic safety and conflict handling for remote edits so users do not accidentally overwrite each other’s changes without noticing.",
+      "reqIds": [
+        "REQ-86"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-my-nodes-management-section-to-the-network-map-ui-frontend-src-components-networkmappanel-tsx-so-a-user-can-reliably-see-and-manage-the-nodes-they-personally-created-from-the-add-new-node-form",
+      "title": "Add a “My Nodes” management section to the Network Map UI (frontend/src/components/NetworkMapPanel.tsx) so a user can reliably see and manage the nodes they personally created from the “Add New Node” form.",
+      "reqIds": [
+        "REQ-87"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-persist-the-set-of-node-ids-created-by-the-current-user-on-the-client-scoped-by-the-logged-in-principal-so-the-user-can-still-see-my-nodes-after-page-refresh-during-the-same-browser-session",
+      "title": "Persist the set of node IDs created by the current user on the client (scoped by the logged-in principal) so the user can still see “My Nodes” after page refresh during the same browser session.",
+      "reqIds": [
+        "REQ-88"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-post-create-usability-so-newly-created-nodes-are-immediately-easy-to-find-and-edit-by-auto-selecting-the-node-after-creation-and-opening-it-in-the-existing-inspector-panel",
+      "title": "Improve post-create usability so newly created nodes are immediately easy to find and edit by auto-selecting the node after creation and opening it in the existing inspector panel.",
+      "reqIds": [
+        "REQ-89"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-repair-dropdown-select-menus-across-the-app-so-they-reliably-open-render-above-all-panels-including-the-sticky-header-and-remain-clickable-not-visually-clipped-or-hidden-in-both-light-and-dark-themes",
+      "title": "Repair dropdown/select menus across the app so they reliably open, render above all panels (including the sticky header), and remain clickable (not visually clipped or hidden) in both light and dark themes.",
+      "reqIds": [
+        "REQ-90"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-audit-and-repair-visual-styling-regressions-affecting-core-dashboard-layouts-header-cards-panels-spacing-typography-to-ensure-a-consistent-readable-ui-in-both-light-and-dark-themes",
+      "title": "Audit and repair visual styling regressions affecting core dashboard layouts (header, cards, panels, spacing, typography) to ensure a consistent, readable UI in both light and dark themes.",
+      "reqIds": [
+        "REQ-91"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-repair-network-map-visual-presentation-so-the-canvas-is-clearly-visible-and-the-graph-nodes-edges-labels-is-legible-against-the-background-in-both-light-and-dark-themes",
+      "title": "Repair Network Map visual presentation so the canvas is clearly visible and the graph (nodes/edges/labels) is legible against the background in both light and dark themes.",
+      "reqIds": [
+        "REQ-92"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-tab-like-navigation-controls-e-g-the-icp-controls-catalog-category-tabs-remain-visually-consistent-and-usable-with-clear-active-state-styling-and-no-broken-layout-overflow-at-common-viewport-sizes",
+      "title": "Ensure tab-like navigation controls (e.g., the ICP Controls Catalog category tabs) remain visually consistent and usable, with clear active-state styling and no broken layout/overflow at common viewport sizes.",
+      "reqIds": [
+        "REQ-93"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -802,6 +884,26 @@
     {
       "id": "AR-39",
       "summary": "Expand the World Wide Web Controller (Web Control) experience significantly: add read-only ICP diagnostic commands, frontend-side operational tools/controls, self-service role/principal confirmation helpers, and scale the Web Control-safe terminal/controls catalog to hundreds of additional safe functions (excluding security/audit/role-admin capabilities).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Add an interactive network map UI with clickable nodes and support for remote editing of nodes/graph content.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Add backend data models and canister APIs to store, retrieve, and remotely edit a network graph consisting of nodes and edges, so the UI can persist map edits across page refreshes.",
+      "reqIds": [
+        "REQ-83"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-42",
+      "summary": "Update the Network Map UI so users can view and manage the nodes they add (e.g., list/inspect/edit/delete added nodes) rather than losing track of newly created nodes.",
       "reqIds": [],
       "status": "pending"
     }

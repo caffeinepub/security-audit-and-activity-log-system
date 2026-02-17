@@ -7,6 +7,7 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export type NodeId = bigint;
 export interface TransformationOutput {
     status: bigint;
     body: Uint8Array;
@@ -37,6 +38,7 @@ export interface T__3 {
     enabled: boolean;
     endpointUrl?: string;
 }
+export type EdgeId = bigint;
 export interface TransformationInput {
     context: Uint8Array;
     response: http_request_result;
@@ -52,6 +54,26 @@ export interface T {
     severity: T__2;
     ipAddress?: string;
 }
+export interface Node {
+    x: number;
+    y: number;
+    id: NodeId;
+    created: Time;
+    nodeLabel: string;
+    updated: Time;
+}
+export interface Edge {
+    id: EdgeId;
+    weight: number;
+    created: Time;
+    source: NodeId;
+    directed: boolean;
+    target: NodeId;
+    updated: Time;
+}
+export interface UserProfile {
+    name: string;
+}
 export interface IcpController {
     principal: Principal;
     revokedTimestamp?: Time;
@@ -61,9 +83,6 @@ export interface IcpController {
     roleAssigned: boolean;
     lastActiveTimestamp?: Time;
     assignedTimestamp: Time;
-}
-export interface UserProfile {
-    name: string;
 }
 export enum T__1 {
     unauthorizedAttempt = "unauthorizedAttempt",
@@ -90,8 +109,14 @@ export enum UserRole {
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     configureExternalBroadcasting(enabled: boolean, endpointUrl: string | null): Promise<void>;
+    createEdge(source: NodeId, target: NodeId, weight: number, directed: boolean): Promise<EdgeId>;
+    createNode(nodeLabel: string, x: number, y: number): Promise<NodeId>;
+    deleteEdge(id: EdgeId): Promise<void>;
+    deleteNode(id: NodeId): Promise<void>;
     exportAuditLogToJson(): Promise<Array<T>>;
     flagUser(user: Principal): Promise<void>;
+    getAllEdges(): Promise<Array<Edge>>;
+    getAllNodes(): Promise<Array<Node>>;
     getAllWorldWideWebControllers(): Promise<Array<Principal>>;
     getAppController(): Promise<Principal | null>;
     getAuditLogs(filter: T__4): Promise<Array<T>>;
@@ -115,11 +140,14 @@ export interface backendInterface {
     listIcpControllers(includeRevoked: boolean): Promise<Array<IcpController>>;
     recordAuditEntry(entry: T): Promise<void>;
     removeUser(user: Principal): Promise<void>;
+    resetAndSetGraph(newNodes: Array<Node>, newEdges: Array<Edge>): Promise<void>;
     revokeIcpControllerRole(target: Principal): Promise<void>;
     revokeSecurityRole(target: Principal): Promise<void>;
     revokeWorldWideWebControllerRole(target: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unflagUser(user: Principal): Promise<void>;
+    updateEdge(id: EdgeId, source: NodeId, target: NodeId, weight: number, directed: boolean): Promise<void>;
     updateIcpControllerDescription(target: Principal, name: string, description: string | null): Promise<void>;
+    updateNode(id: NodeId, nodeLabel: string, x: number, y: number): Promise<void>;
 }

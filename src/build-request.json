@@ -1,95 +1,105 @@
 {
   "kind": "build_request",
-  "title": "Expand Web Control with Hundreds of Safe Functions",
-  "projectName": "Web Control Console",
+  "title": "Repair UI visuals and dropdown menu behavior",
+  "projectName": "Caffeine Console",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-79",
-      "text": "Expand the World Wide Web Controller (\"Web Control\") terminal command set to include the previously suggested additions: (1) read-only ICP diagnostic commands, (2) frontend-side operational tools, and (3) self-service role/principal confirmation helpers, while keeping the command set safe (no security/audit/role-admin/user-management/broadcasting-config commands).",
+      "id": "REQ-90",
+      "text": "Repair dropdown/select menus across the app so they reliably open, render above all panels (including the sticky header), and remain clickable (not visually clipped or hidden) in both light and dark themes.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "Add them all and hundreds more"
+          "Repair visuals and drop down menus"
         ]
       },
       "acceptanceCriteria": [
-        "When a user has the World Wide Web Controller role, the ICP Operations Console uses the Web Control terminal registry (frontend/src/terminal/worldWideWebControllerCommands.ts) and exposes the new command categories for diagnostics, operational tools, and self-service helpers.",
-        "All new Web Control commands are limited to safe read-only diagnostics and user self-service actions, and do not provide any ability to manage roles, access audit logs, manage users, or edit broadcasting configuration.",
-        "All user-facing command descriptions, usage strings, and outputs are in English."
+        "In the ICP Controls Catalog, any Select-based control opens a visible menu with options and selecting an option updates the control value.",
+        "Dropdown menus are not clipped by surrounding containers (e.g., ScrollArea, Cards) and are not hidden behind the sticky header.",
+        "Dropdown menus remain clickable and close appropriately (click outside or selection) without leaving the UI in a broken state.",
+        "Behavior works in both light and dark themes."
       ]
     },
     {
-      "id": "REQ-80",
-      "text": "Scale the Web Control terminal to \"hundreds more\" functions by implementing a data-driven Web Control command catalog that produces at least 200 distinct Web Control commands available via \"help\", without making the terminal unusable.",
+      "id": "REQ-91",
+      "text": "Audit and repair visual styling regressions affecting core dashboard layouts (header, cards, panels, spacing, typography) to ensure a consistent, readable UI in both light and dark themes.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "Add them all and hundreds more"
+          "Repair visuals and drop down menus"
         ]
       },
       "acceptanceCriteria": [
-        "The Web Control terminal registry provides at least 200 distinct command names discoverable via \"help\" output for World Wide Web Controller users.",
-        "The \"help\" command remains responsive and readable with the expanded command set (grouped by category similar to the existing help behavior in frontend/src/terminal/worldWideWebControllerCommands.ts).",
-        "Each generated command has an English name, description, and (when applicable) usage string."
+        "Header, cards, and panel content have consistent spacing and do not overlap at common viewport sizes (mobile and desktop).",
+        "Text contrast meets basic readability expectations in both themes (no muted text appearing indistinguishable from background).",
+        "No major UI elements appear visually broken (e.g., missing borders/backgrounds, unreadable gradients, misaligned controls)."
       ]
     },
     {
-      "id": "REQ-81",
-      "text": "Ensure every Web Control terminal command (existing and newly added) attempts best-effort audit recording using the existing terminal guard/audit helper pattern and never fails solely because audit logging is unavailable (backend not reachable, user not authenticated, or audit recording fails).",
+      "id": "REQ-92",
+      "text": "Repair Network Map visual presentation so the canvas is clearly visible and the graph (nodes/edges/labels) is legible against the background in both light and dark themes.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-1",
+          "msg-6"
         ],
         "quotes": [
-          "Add them all and hundreds more"
+          "I can't see network map",
+          "Repair visuals and drop down menus"
         ]
       },
       "acceptanceCriteria": [
-        "For every Web Control command that executes, the implementation attempts to record an audit entry using the existing helper pattern (e.g., tryRecordAuditEntry / appendAuditWarning) and continues even if audit recording fails.",
-        "If audit recording fails, the command output remains successful (when the underlying command succeeded) and includes a non-blocking English warning message consistent with the existing appendAuditWarning behavior.",
-        "No Web Control command throws an unhandled exception that breaks terminal execution flow; errors are surfaced as English terminal output using the existing error classification approach."
+        "The Network Map canvas area is visually distinct from the page background (clear boundary and adequate contrast).",
+        "Nodes, edges, and labels are visible and readable in both themes (no 'white on white' / 'black on black' rendering).",
+        "When the counters show Nodes: 1+, the user can visually locate at least one node on the canvas without requiring manual zoom/pan."
       ]
     },
     {
-      "id": "REQ-82",
-      "text": "Add a Web Control-focused “quick tools” UI section within the ICP Operations Console for World Wide Web Controller users that exposes safe frontend-side actions (for example: copy principal, export ICP Controls settings JSON, import ICP Controls settings JSON, reset ICP Controls to defaults, and refresh/retry connection checks) without exposing Security Dashboard-only functionality.",
+      "id": "REQ-93",
+      "text": "Ensure tab-like navigation controls (e.g., the ICP Controls Catalog category tabs) remain visually consistent and usable, with clear active-state styling and no broken layout/overflow at common viewport sizes.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "Add them all and hundreds more"
+          "Repair visuals and drop down menus"
         ]
       },
       "acceptanceCriteria": [
-        "When the authenticated user has the World Wide Web Controller role, the ICP Operations Console displays a clearly labeled Web Control “Quick Tools” section with safe actions that operate on client-side configuration and diagnostics only.",
-        "The quick tools do not render any UI that performs security/audit/admin actions (no audit log export, no user management, no role management, no broadcasting configuration).",
-        "All user-facing labels and helper text in the Web Control quick tools section are in English."
+        "ICP Controls Catalog TabsList/TabsTrigger render without overlapping, and active category is clearly indicated.",
+        "On smaller screens, tab controls remain usable (no off-screen-only active tab with no way to navigate)."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/components/ui (read-only Shadcn components).",
-    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx.",
-    "Keep the Web Control feature set “safe”: do not add commands or UI that provide Security/App Controller-only capabilities (audit logs, user management, role administration, broadcasting configuration, superuser audit tools).",
-    "Keep all user-facing text in English."
+    "Do not edit files under frontend/src/components/ui (Shadcn UI sources); fix dropdown/menu behavior by composition, styling overrides, or usage changes in app components.",
+    "Do not edit immutable frontend paths listed by the platform (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx)."
   ],
   "nonGoals": [
-    "Adding new backend Motoko APIs for Web Control diagnostics or administrative actions.",
-    "Granting Web Control users any Security/App Controller privileges.",
-    "Adding third-party integrations, external databases, or non-Internet-Identity authentication."
+    "Do not add new roles, permissions, or backend APIs as part of this task.",
+    "Do not change the network graph data model or backend storage; focus only on frontend visuals and menu usability.",
+    "Do not redesign product features; only repair and improve current UI behavior and presentation."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

@@ -5,6 +5,7 @@ import Order "mo:core/Order";
 import Int "mo:core/Int";
 import List "mo:core/List";
 import Runtime "mo:core/Runtime";
+import Array "mo:core/Array";
 import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 
@@ -13,6 +14,9 @@ import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
 actor {
+  type NodeId = Nat;
+  type EdgeId = Nat;
+
   module ActionType {
     public type T = {
       #loginAttempt;
@@ -114,6 +118,50 @@ actor {
     grantedBy : ?Principal;
   };
 
+  public type Node = {
+    id : NodeId;
+    nodeLabel : Text;
+    x : Float;
+    y : Float;
+    created : Time.Time;
+    updated : Time.Time;
+  };
+
+  public type Edge = {
+    id : EdgeId;
+    source : NodeId;
+    target : NodeId;
+    weight : Float;
+    directed : Bool;
+    created : Time.Time;
+    updated : Time.Time;
+  };
+
+  public type GraphUpdateResult = {
+    result : ResultType;
+    remoteChanges : ?RemoteEdits;
+  };
+
+  public type ResultType = {
+    #updated;
+    #conflict;
+    #notFound;
+    #invalidData;
+    #unknownError;
+    #updatedWithRemoteChanges;
+  };
+
+  public type RemoteEdits = {
+    addedNodes : [Node];
+    updatedNodes : [Node];
+    deletedNodes : [NodeId];
+    addedEdges : [Edge];
+    updatedEdges : [Edge];
+    deletedEdges : [EdgeId];
+    deletedNodesFromExternal : [NodeId];
+    deletedEdgesFromExternal : [EdgeId];
+  };
+
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
@@ -129,6 +177,11 @@ actor {
   var icpControllerState = Map.empty<Principal, IcpController>();
   var worldWideWebControllerState = Map.empty<Principal, WorldWideWebController>();
   var auditLogEntries : List.List<AuditEntry.T> = List.empty<AuditEntry.T>();
+
+  var nodes = Map.empty<NodeId, Node>();
+  var edges = Map.empty<EdgeId, Edge>();
+  var nodeIdCounter : NodeId = 0;
+  var edgeIdCounter : EdgeId = 0;
 
   public query ({ caller }) func getAppController() : async ?Principal {
     switch (instanceContext) {
@@ -577,16 +630,17 @@ actor {
     auditLogEntries.add(auditEntry);
   };
 
-  // New role: World Wide Web Controller
-
   public shared ({ caller }) func grantWorldWideWebControllerRole(target : Principal) : async () {
     assertAppController(caller);
+
+    let now = Time.now();
     let newController : WorldWideWebController = {
       principal = target;
       roleAssigned = true;
-      assignedTimestamp = Time.now();
+      assignedTimestamp = now;
       grantedBy = ?caller;
     };
+
     worldWideWebControllerState.add(target, newController);
     recordWorldWideWebControllerAuditEvent("Granted World Wide Web Controller role", caller, target, true);
   };
@@ -653,5 +707,183 @@ actor {
       severity = #info;
     };
     auditLogEntries.add(auditEntry);
+  };
+
+  // Network Graph Functions - Authorization Required
+
+  public query ({ caller }) func getAllNodes() : async [Node] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view the network graph");
+    };
+    nodes.values().toArray();
+  };
+
+  public query ({ caller }) func getAllEdges() : async [Edge] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view the network graph");
+    };
+    edges.values().toArray();
+  };
+
+  public shared ({ caller }) func createNode(nodeLabel : Text, x : Float, y : Float) : async NodeId {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create nodes");
+    };
+
+    let now = Time.now();
+    let newNode : Node = {
+      id = nodeIdCounter;
+      nodeLabel;
+      x;
+      y;
+      created = now;
+      updated = now;
+    };
+    nodes.add(nodeIdCounter, newNode);
+    let createdId = nodeIdCounter;
+    nodeIdCounter += 1;
+    createdId;
+  };
+
+  public shared ({ caller }) func createEdge(source : NodeId, target : NodeId, weight : Float, directed : Bool) : async EdgeId {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create edges");
+    };
+
+    if (not nodes.containsKey(source)) {
+      Runtime.trap("Invalid source node ID");
+    };
+    if (not nodes.containsKey(target)) {
+      Runtime.trap("Invalid target node ID");
+    };
+
+    let now = Time.now();
+    let newEdge : Edge = {
+      id = edgeIdCounter;
+      source;
+      target;
+      weight;
+      directed;
+      created = now;
+      updated = now;
+    };
+    edges.add(edgeIdCounter, newEdge);
+    let createdId = edgeIdCounter;
+    edgeIdCounter += 1;
+    createdId;
+  };
+
+  public shared ({ caller }) func updateNode(id : NodeId, nodeLabel : Text, x : Float, y : Float) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update nodes");
+    };
+
+    switch (nodes.get(id)) {
+      case (null) {
+        Runtime.trap("Node not found");
+      };
+      case (?existingNode) {
+        let updatedNode : Node = {
+          existingNode with
+          nodeLabel;
+          x;
+          y;
+          updated = Time.now();
+        };
+        nodes.add(id, updatedNode);
+      };
+    };
+  };
+
+  public shared ({ caller }) func updateEdge(id : EdgeId, source : NodeId, target : NodeId, weight : Float, directed : Bool) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update edges");
+    };
+
+    if (not nodes.containsKey(source)) {
+      Runtime.trap("Invalid source node ID");
+    };
+    if (not nodes.containsKey(target)) {
+      Runtime.trap("Invalid target node ID");
+    };
+
+    switch (edges.get(id)) {
+      case (null) {
+        Runtime.trap("Edge not found");
+      };
+      case (?existingEdge) {
+        let updatedEdge : Edge = {
+          existingEdge with
+          source;
+          target;
+          weight;
+          directed;
+          updated = Time.now();
+        };
+        edges.add(id, updatedEdge);
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteNode(id : NodeId) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete nodes");
+    };
+
+    if (not nodes.containsKey(id)) {
+      Runtime.trap("Node not found");
+    };
+
+    let edgesToRemove = edges.entries().filter(
+      func((_, edge) : (EdgeId, Edge)) : Bool {
+        edge.source == id or edge.target == id
+      }
+    ).map(
+      func((edgeId, _) : (EdgeId, Edge)) : EdgeId { edgeId }
+    ).toArray();
+
+    for (edgeId in edgesToRemove.vals()) {
+      edges.remove(edgeId);
+    };
+
+    nodes.remove(id);
+  };
+
+  public shared ({ caller }) func deleteEdge(id : EdgeId) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete edges");
+    };
+
+    if (not edges.containsKey(id)) {
+      Runtime.trap("Edge not found");
+    };
+
+    edges.remove(id);
+  };
+
+  public shared ({ caller }) func resetAndSetGraph(newNodes : [Node], newEdges : [Edge]) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can reset the entire graph");
+    };
+
+    nodes := Map.empty<NodeId, Node>();
+    edges := Map.empty<EdgeId, Edge>();
+
+    nodeIdCounter := 0;
+    edgeIdCounter := 0;
+
+    for (node in newNodes.vals()) {
+      nodes.add(node.id, node);
+      if (node.id >= nodeIdCounter) {
+        nodeIdCounter := node.id + 1;
+      };
+    };
+
+    for (edge in newEdges.vals()) {
+      edges.add(edge.id, edge);
+      if (edge.id >= edgeIdCounter) {
+        edgeIdCounter := edge.id + 1;
+      };
+    };
   };
 };

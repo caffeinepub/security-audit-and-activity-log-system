@@ -1,89 +1,114 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Web Control: Data-Driven Safe Command Catalog + Quick Tools",
+  "title": "Caffeine Console — UI visual repairs (dropdowns, layouts, tabs, network map)",
   "requirements": [
     {
-      "id": "REQ-79",
-      "summary": "Expand Web Control commands with safe diagnostics, frontend operational tools, and self-service principal/role helpers (no admin/security capabilities).",
+      "id": "REQ-90",
+      "summary": "Fix Select/dropdown menus to open reliably, overlay above sticky header/panels, avoid clipping, and remain clickable in light/dark themes.",
       "acceptanceCriteria": [
-        "When a user has the World Wide Web Controller role, the ICP Operations Console uses the Web Control terminal registry (frontend/src/terminal/worldWideWebControllerCommands.ts) and exposes the new command categories for diagnostics, operational tools, and self-service helpers.",
-        "All new Web Control commands are limited to safe read-only diagnostics and user self-service actions, and do not provide any ability to manage roles, access audit logs, manage users, or edit broadcasting configuration.",
-        "All user-facing command descriptions, usage strings, and outputs are in English."
+        "In the ICP Controls Catalog, any Select-based control opens a visible menu with options and selecting an option updates the control value.",
+        "Dropdown menus are not clipped by surrounding containers (e.g., ScrollArea, Cards) and are not hidden behind the sticky header.",
+        "Dropdown menus remain clickable and close appropriately (click outside or selection) without leaving the UI in a broken state.",
+        "Behavior works in both light and dark themes."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/terminal/webControlCommandCatalog.ts",
-          "operation": "create",
-          "description": "Create a data-driven catalog that defines safe Web Control command metadata and generators for: (1) read-only ICP diagnostics (client-side/environment/connectivity summaries), (2) frontend-side operational tools (local config/export/import/reset helpers), and (3) self-service helpers (principal display/copy guidance and role confirmation helpers). Ensure the catalog explicitly excludes any security/audit/user-management/role-admin/broadcasting-config capabilities and keeps all text in English."
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add global CSS overrides (outside shadcn sources) to ensure Radix/shadcn Select dropdown portals/poppers render with a z-index above the sticky header and panels, and to prevent pointer-event/clickability issues and visual clipping artifacts in both themes."
         },
         {
-          "path": "frontend/src/terminal/worldWideWebControllerCommands.ts",
+          "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Replace the static Web Control registry with catalog-driven command generation and updated category grouping for diagnostics/operational tools/self-service. Keep commands safe/read-only and ensure English descriptions/usage/output. Ensure the exported registry remains the single source for Web Control terminal usage in the ICP Operations Console."
+          "description": "Adjust header stacking context/z-index and any styles that may create unintended stacking contexts (e.g., backdrop/positioning) so dropdown popovers can reliably overlay the sticky header while remaining clickable."
+        },
+        {
+          "path": "frontend/src/components/IcpControlsCatalogRow.tsx",
+          "operation": "modify",
+          "description": "Update Select composition/props at the usage site (without editing frontend/src/components/ui) to ensure SelectContent is portaled/positioned correctly and receives an explicit high z-index class so the menu is never hidden/clipped inside ScrollArea/Cards. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/IcpControlsCatalog.tsx",
+          "operation": "modify",
+          "description": "Audit and adjust ScrollArea/Tabs layout composition around rows so Select triggers and the dropdown menu interaction are not hindered by container overflow settings; ensure catalog interactions remain stable after dropdown selection/close. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-80",
-      "summary": "Scale Web Control to 200+ safe commands via a data-driven command catalog while keeping help responsive and readable.",
+      "id": "REQ-91",
+      "summary": "Audit and repair core dashboard visual regressions (header, cards, panels, spacing, typography) for consistent readability in light/dark themes.",
       "acceptanceCriteria": [
-        "The Web Control terminal registry provides at least 200 distinct command names discoverable via \"help\" output for World Wide Web Controller users.",
-        "The \"help\" command remains responsive and readable with the expanded command set (grouped by category similar to the existing help behavior in frontend/src/terminal/worldWideWebControllerCommands.ts).",
-        "Each generated command has an English name, description, and (when applicable) usage string."
+        "Header, cards, and panel content have consistent spacing and do not overlap at common viewport sizes (mobile and desktop).",
+        "Text contrast meets basic readability expectations in both themes (no muted text appearing indistinguishable from background).",
+        "No major UI elements appear visually broken (e.g., missing borders/backgrounds, unreadable gradients, misaligned controls)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/terminal/webControlCommandCatalog.ts",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Implement command catalog generation to produce at least 200 distinct, safe command names across categories (including structured naming for large sets). Provide enough metadata (name/description/usage/category) for readable help output without runtime-heavy computation."
+          "description": "Tune theme tokens and add small global style safeguards (e.g., muted text contrast, popover/card readability, focus/outline visibility) to eliminate light/dark regressions without modifying shadcn UI source files."
         },
         {
-          "path": "frontend/src/terminal/worldWideWebControllerCommands.ts",
+          "path": "frontend/src/components/Header.tsx",
           "operation": "modify",
-          "description": "Enhance Web Control help behavior to stay readable with hundreds of commands: group by category and support targeted help (e.g., help <command>, and a category/search-focused mode) so help output remains responsive and not excessively long. Keep all help text in English."
-        }
-      ]
-    },
-    {
-      "id": "REQ-81",
-      "summary": "Ensure every Web Control command uses best-effort audit recording and never fails solely due to audit unavailability.",
-      "acceptanceCriteria": [
-        "For every Web Control command that executes, the implementation attempts to record an audit entry using the existing helper pattern (e.g., tryRecordAuditEntry / appendAuditWarning) and continues even if audit recording fails.",
-        "If audit recording fails, the command output remains successful (when the underlying command succeeded) and includes a non-blocking English warning message consistent with the existing appendAuditWarning behavior.",
-        "No Web Control command throws an unhandled exception that breaks terminal execution flow; errors are surfaced as English terminal output using the existing error classification approach."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/terminal/webControlAudit.ts",
-          "operation": "create",
-          "description": "Add a small helper to standardize Web Control command execution: wrap command logic with try/catch, classifyError usage, and best-effort audit recording via tryRecordAuditEntry + appendAuditWarning (non-blocking). This should be reusable by all generated commands, including local-only commands like help/clear."
+          "description": "Improve header layout responsiveness (spacing/wrapping/alignment) so controls and text do not overlap on mobile and common desktop widths while preserving existing behavior."
         },
         {
-          "path": "frontend/src/terminal/worldWideWebControllerCommands.ts",
+          "path": "frontend/src/pages/AdminDashboard.tsx",
           "operation": "modify",
-          "description": "Refactor all existing and newly generated Web Control commands to use the shared best-effort audit wrapper pattern so every command attempts audit recording and never throws unhandled exceptions. Ensure warnings and error outputs remain English and consistent with appendAuditWarning/classifyError."
-        }
-      ]
-    },
-    {
-      "id": "REQ-82",
-      "summary": "Add a Web Control “Quick Tools” section in ICP Operations Console for safe frontend-side actions only.",
-      "acceptanceCriteria": [
-        "When the authenticated user has the World Wide Web Controller role, the ICP Operations Console displays a clearly labeled Web Control “Quick Tools” section with safe actions that operate on client-side configuration and diagnostics only.",
-        "The quick tools do not render any UI that performs security/audit/admin actions (no audit log export, no user management, no role management, no broadcasting configuration).",
-        "All user-facing labels and helper text in the Web Control quick tools section are in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/WebControlQuickToolsPanel.tsx",
-          "operation": "create",
-          "description": "Create a Web Control-focused Quick Tools panel for World Wide Web Controller users containing only safe frontend-side actions: copy principal (if available), export ICP Controls settings JSON, import ICP Controls settings JSON, reset ICP Controls to defaults, and refresh/retry connection checks. Ensure no Security Dashboard-only functionality is present and all labels/help text are in English."
+          "description": "Adjust dashboard container spacing/grid behavior for mobile/desktop to reduce crowding and prevent panel overlap while keeping the same set/order of panels."
         },
         {
           "path": "frontend/src/pages/IcpOpsDashboard.tsx",
           "operation": "modify",
-          "description": "Wire the new Web Control Quick Tools panel into the ICP Operations Console UI so it renders only for World Wide Web Controller users (and does not appear for users without the role). Keep existing role precedence behavior intact and avoid introducing any admin/security-only panels into the Web Control view."
+          "description": "Adjust dashboard container spacing/grid behavior for mobile/desktop to ensure consistent layout, readable typography, and no panel overlap across themes."
+        }
+      ]
+    },
+    {
+      "id": "REQ-92",
+      "summary": "Fix Network Map canvas visibility and ensure nodes/edges/labels are legible with correct contrast in light/dark themes.",
+      "acceptanceCriteria": [
+        "The Network Map canvas area is visually distinct from the page background (clear boundary and adequate contrast).",
+        "Nodes, edges, and labels are visible and readable in both themes (no 'white on white' / 'black on black' rendering).",
+        "When the counters show Nodes: 1+, the user can visually locate at least one node on the canvas without requiring manual zoom/pan."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/NetworkMapCanvas.tsx",
+          "operation": "modify",
+          "description": "Make canvas rendering theme-aware by deriving node/edge/label colors from CSS theme variables (light/dark), improve background/border contrast, and adjust label drawing to avoid low-contrast text; add a safe initial auto-center/fit behavior when nodes exist so at least one node is visible without manual pan/zoom."
+        },
+        {
+          "path": "frontend/src/components/NetworkMapPanel.tsx",
+          "operation": "modify",
+          "description": "Ensure the Network Map card/panel presentation clearly frames the canvas area (consistent padding/border/contrast) in both themes and does not visually blend into surrounding background."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add/adjust any needed theme tokens/utility styles to support readable canvas overlays (e.g., hint badge background/foreground contrast) and consistent light/dark rendering."
+        }
+      ]
+    },
+    {
+      "id": "REQ-93",
+      "summary": "Repair tab-like navigation controls (ICP Controls Catalog category tabs) to keep active-state clear and prevent overflow/broken layouts on common viewport sizes.",
+      "acceptanceCriteria": [
+        "ICP Controls Catalog TabsList/TabsTrigger render without overlapping, and active category is clearly indicated.",
+        "On smaller screens, tab controls remain usable (no off-screen-only active tab with no way to navigate)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/IcpControlsCatalog.tsx",
+          "operation": "modify",
+          "description": "Refactor the TabsList/TabsTrigger layout at the usage site to avoid grid overflow (e.g., use a horizontally scrollable tabs row with non-wrapping triggers and clear active-state styling) while keeping existing categories and content mapping. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add minimal CSS overrides (non-ui-source) if necessary to ensure Tabs active/hover/focus states are readable and consistent in both themes, especially when tabs are scrollable."
         }
       ]
     }

@@ -13,6 +13,8 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const NodeId = IDL.Nat;
+export const EdgeId = IDL.Nat;
 export const T__1 = IDL.Variant({
   'unauthorizedAttempt' : IDL.Null,
   'loginAttempt' : IDL.Null,
@@ -41,6 +43,23 @@ export const T = IDL.Record({
   'success' : IDL.Opt(IDL.Bool),
   'severity' : T__2,
   'ipAddress' : IDL.Opt(IDL.Text),
+});
+export const Edge = IDL.Record({
+  'id' : EdgeId,
+  'weight' : IDL.Float64,
+  'created' : Time,
+  'source' : NodeId,
+  'directed' : IDL.Bool,
+  'target' : NodeId,
+  'updated' : Time,
+});
+export const Node = IDL.Record({
+  'x' : IDL.Float64,
+  'y' : IDL.Float64,
+  'id' : NodeId,
+  'created' : Time,
+  'nodeLabel' : IDL.Text,
+  'updated' : Time,
 });
 export const T__4 = IDL.Record({
   'user' : IDL.Opt(IDL.Principal),
@@ -95,8 +114,18 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'createEdge' : IDL.Func(
+      [NodeId, NodeId, IDL.Float64, IDL.Bool],
+      [EdgeId],
+      [],
+    ),
+  'createNode' : IDL.Func([IDL.Text, IDL.Float64, IDL.Float64], [NodeId], []),
+  'deleteEdge' : IDL.Func([EdgeId], [], []),
+  'deleteNode' : IDL.Func([NodeId], [], []),
   'exportAuditLogToJson' : IDL.Func([], [IDL.Vec(T)], []),
   'flagUser' : IDL.Func([IDL.Principal], [], []),
+  'getAllEdges' : IDL.Func([], [IDL.Vec(Edge)], ['query']),
+  'getAllNodes' : IDL.Func([], [IDL.Vec(Node)], ['query']),
   'getAllWorldWideWebControllers' : IDL.Func(
       [],
       [IDL.Vec(IDL.Principal)],
@@ -136,6 +165,7 @@ export const idlService = IDL.Service({
     ),
   'recordAuditEntry' : IDL.Func([T], [], []),
   'removeUser' : IDL.Func([IDL.Principal], [], []),
+  'resetAndSetGraph' : IDL.Func([IDL.Vec(Node), IDL.Vec(Edge)], [], []),
   'revokeIcpControllerRole' : IDL.Func([IDL.Principal], [], []),
   'revokeSecurityRole' : IDL.Func([IDL.Principal], [], []),
   'revokeWorldWideWebControllerRole' : IDL.Func([IDL.Principal], [], []),
@@ -146,11 +176,17 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'unflagUser' : IDL.Func([IDL.Principal], [], []),
+  'updateEdge' : IDL.Func(
+      [EdgeId, NodeId, NodeId, IDL.Float64, IDL.Bool],
+      [],
+      [],
+    ),
   'updateIcpControllerDescription' : IDL.Func(
       [IDL.Principal, IDL.Text, IDL.Opt(IDL.Text)],
       [],
       [],
     ),
+  'updateNode' : IDL.Func([NodeId, IDL.Text, IDL.Float64, IDL.Float64], [], []),
 });
 
 export const idlInitArgs = [];
@@ -161,6 +197,8 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
+  const NodeId = IDL.Nat;
+  const EdgeId = IDL.Nat;
   const T__1 = IDL.Variant({
     'unauthorizedAttempt' : IDL.Null,
     'loginAttempt' : IDL.Null,
@@ -189,6 +227,23 @@ export const idlFactory = ({ IDL }) => {
     'success' : IDL.Opt(IDL.Bool),
     'severity' : T__2,
     'ipAddress' : IDL.Opt(IDL.Text),
+  });
+  const Edge = IDL.Record({
+    'id' : EdgeId,
+    'weight' : IDL.Float64,
+    'created' : Time,
+    'source' : NodeId,
+    'directed' : IDL.Bool,
+    'target' : NodeId,
+    'updated' : Time,
+  });
+  const Node = IDL.Record({
+    'x' : IDL.Float64,
+    'y' : IDL.Float64,
+    'id' : NodeId,
+    'created' : Time,
+    'nodeLabel' : IDL.Text,
+    'updated' : Time,
   });
   const T__4 = IDL.Record({
     'user' : IDL.Opt(IDL.Principal),
@@ -240,8 +295,18 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'createEdge' : IDL.Func(
+        [NodeId, NodeId, IDL.Float64, IDL.Bool],
+        [EdgeId],
+        [],
+      ),
+    'createNode' : IDL.Func([IDL.Text, IDL.Float64, IDL.Float64], [NodeId], []),
+    'deleteEdge' : IDL.Func([EdgeId], [], []),
+    'deleteNode' : IDL.Func([NodeId], [], []),
     'exportAuditLogToJson' : IDL.Func([], [IDL.Vec(T)], []),
     'flagUser' : IDL.Func([IDL.Principal], [], []),
+    'getAllEdges' : IDL.Func([], [IDL.Vec(Edge)], ['query']),
+    'getAllNodes' : IDL.Func([], [IDL.Vec(Node)], ['query']),
     'getAllWorldWideWebControllers' : IDL.Func(
         [],
         [IDL.Vec(IDL.Principal)],
@@ -285,6 +350,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'recordAuditEntry' : IDL.Func([T], [], []),
     'removeUser' : IDL.Func([IDL.Principal], [], []),
+    'resetAndSetGraph' : IDL.Func([IDL.Vec(Node), IDL.Vec(Edge)], [], []),
     'revokeIcpControllerRole' : IDL.Func([IDL.Principal], [], []),
     'revokeSecurityRole' : IDL.Func([IDL.Principal], [], []),
     'revokeWorldWideWebControllerRole' : IDL.Func([IDL.Principal], [], []),
@@ -295,8 +361,18 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'unflagUser' : IDL.Func([IDL.Principal], [], []),
+    'updateEdge' : IDL.Func(
+        [EdgeId, NodeId, NodeId, IDL.Float64, IDL.Bool],
+        [],
+        [],
+      ),
     'updateIcpControllerDescription' : IDL.Func(
         [IDL.Principal, IDL.Text, IDL.Opt(IDL.Text)],
+        [],
+        [],
+      ),
+    'updateNode' : IDL.Func(
+        [NodeId, IDL.Text, IDL.Float64, IDL.Float64],
         [],
         [],
       ),

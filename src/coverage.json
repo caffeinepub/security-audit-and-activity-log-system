@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T22:15:26.587Z",
+  "generatedAt": "2026-02-17T23:45:56.115Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,55 +11,65 @@
     "implemented": 4,
     "items": [
       {
-        "id": "REQ-79",
-        "summary": "Expand the World Wide Web Controller (\"Web Control\") terminal command set to include the previously suggested additions: (1) read-only ICP diagnostic commands, (2) frontend-side operational tools, and (3) self-service role/principal confirmation helpers, while keeping the command set safe (no security/audit/role-admin/user-management/broadcasting-config commands).",
+        "id": "REQ-90",
+        "summary": "Repair dropdown/select menus across the app so they reliably open, render above all panels (including the sticky header), and remain clickable (not visually clipped or hidden) in both light and dark themes.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/terminal/webControlCommandCatalog.ts",
-          "frontend/src/terminal/worldWideWebControllerCommands.ts"
+          "frontend/src/index.css",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/IcpControlsCatalogRow.tsx",
+          "frontend/src/components/IcpControlsCatalog.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/terminal/webControlCommandCatalog.ts",
-          "frontend/src/terminal/worldWideWebControllerCommands.ts"
+          "frontend/src/index.css",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/components/IcpControlsCatalogRow.tsx",
+          "frontend/src/components/IcpControlsCatalog.tsx"
         ]
       },
       {
-        "id": "REQ-80",
-        "summary": "Scale the Web Control terminal to \"hundreds more\" functions by implementing a data-driven Web Control command catalog that produces at least 200 distinct Web Control commands available via \"help\", without making the terminal unusable.",
+        "id": "REQ-91",
+        "summary": "Audit and repair visual styling regressions affecting core dashboard layouts (header, cards, panels, spacing, typography) to ensure a consistent, readable UI in both light and dark themes.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/terminal/webControlCommandCatalog.ts",
-          "frontend/src/terminal/worldWideWebControllerCommands.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/terminal/webControlCommandCatalog.ts",
-          "frontend/src/terminal/worldWideWebControllerCommands.ts"
-        ]
-      },
-      {
-        "id": "REQ-81",
-        "summary": "Ensure every Web Control terminal command (existing and newly added) attempts best-effort audit recording using the existing terminal guard/audit helper pattern and never fails solely because audit logging is unavailable (backend not reachable, user not authenticated, or audit recording fails).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/terminal/webControlAudit.ts",
-          "frontend/src/terminal/worldWideWebControllerCommands.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/terminal/webControlAudit.ts",
-          "frontend/src/terminal/worldWideWebControllerCommands.ts"
-        ]
-      },
-      {
-        "id": "REQ-82",
-        "summary": "Add a Web Control-focused “quick tools” UI section within the ICP Operations Console for World Wide Web Controller users that exposes safe frontend-side actions (for example: copy principal, export ICP Controls settings JSON, import ICP Controls settings JSON, reset ICP Controls to defaults, and refresh/retry connection checks) without exposing Security Dashboard-only functionality.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/WebControlQuickToolsPanel.tsx",
+          "frontend/src/index.css",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/pages/AdminDashboard.tsx",
           "frontend/src/pages/IcpOpsDashboard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/WebControlQuickToolsPanel.tsx",
+          "frontend/src/index.css",
+          "frontend/src/components/Header.tsx",
+          "frontend/src/pages/AdminDashboard.tsx",
           "frontend/src/pages/IcpOpsDashboard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-92",
+        "summary": "Repair Network Map visual presentation so the canvas is clearly visible and the graph (nodes/edges/labels) is legible against the background in both light and dark themes.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/NetworkMapCanvas.tsx",
+          "frontend/src/components/NetworkMapPanel.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/NetworkMapCanvas.tsx",
+          "frontend/src/components/NetworkMapPanel.tsx",
+          "frontend/src/index.css"
+        ]
+      },
+      {
+        "id": "REQ-93",
+        "summary": "Ensure tab-like navigation controls (e.g., the ICP Controls Catalog category tabs) remain visually consistent and usable, with clear active-state styling and no broken layout/overflow at common viewport sizes.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/IcpControlsCatalog.tsx",
+          "frontend/src/index.css"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/IcpControlsCatalog.tsx",
+          "frontend/src/index.css"
         ]
       }
     ]
@@ -69,11 +79,14 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/WebControlQuickToolsPanel.tsx",
+    "frontend/src/components/Header.tsx",
+    "frontend/src/components/IcpControlsCatalog.tsx",
+    "frontend/src/components/IcpControlsCatalogRow.tsx",
+    "frontend/src/components/NetworkMapCanvas.tsx",
+    "frontend/src/components/NetworkMapPanel.tsx",
+    "frontend/src/index.css",
+    "frontend/src/pages/AdminDashboard.tsx",
     "frontend/src/pages/IcpOpsDashboard.tsx",
-    "frontend/src/terminal/webControlAudit.ts",
-    "frontend/src/terminal/webControlCommandCatalog.ts",
-    "frontend/src/terminal/worldWideWebControllerCommands.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

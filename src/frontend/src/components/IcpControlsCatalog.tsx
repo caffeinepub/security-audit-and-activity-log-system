@@ -118,7 +118,7 @@ export default function IcpControlsCatalog() {
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <CardTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
@@ -128,7 +128,7 @@ export default function IcpControlsCatalog() {
               Configure {CONTROLS.length}+ operational settings for Internet Computer connections
             </CardDescription>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button onClick={handleExport} variant="outline" size="sm">
               <Download className="mr-2 h-4 w-4" />
               Export
@@ -179,45 +179,53 @@ export default function IcpControlsCatalog() {
         </div>
         
         <Tabs value={activeCategory} onValueChange={(val) => setActiveCategory(val as any)}>
-          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-            {CATEGORIES.map(category => {
-              const Icon = CATEGORY_ICONS[category.id];
-              return (
-                <TabsTrigger key={category.id} value={category.id} className="gap-2">
-                  <Icon className="h-4 w-4" />
-                  <span className="hidden sm:inline">{category.label.split(' ')[0]}</span>
-                </TabsTrigger>
-              );
-            })}
-          </TabsList>
+          <div className="relative">
+            <TabsList className="inline-flex w-full overflow-x-auto overflow-y-hidden whitespace-nowrap">
+              {CATEGORIES.map(category => {
+                const Icon = CATEGORY_ICONS[category.id];
+                return (
+                  <TabsTrigger 
+                    key={category.id} 
+                    value={category.id} 
+                    className="gap-2 flex-shrink-0"
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="hidden sm:inline">{category.label.split(' ')[0]}</span>
+                  </TabsTrigger>
+                );
+              })}
+            </TabsList>
+          </div>
           
           {CATEGORIES.map(category => (
-            <TabsContent key={category.id} value={category.id} className="space-y-4">
+            <TabsContent key={category.id} value={category.id} className="space-y-4 mt-4">
               <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
-                <CategoryIcon className="h-5 w-5 mt-0.5 text-primary" />
+                <CategoryIcon className="h-5 w-5 mt-0.5 text-primary flex-shrink-0" />
                 <div>
                   <h3 className="font-semibold">{category.label}</h3>
                   <p className="text-sm text-muted-foreground">{category.description}</p>
                 </div>
               </div>
               
-              <ScrollArea className="h-[500px] rounded-md border p-4">
-                {filteredControls.length > 0 ? (
-                  <div className="space-y-0">
-                    {filteredControls.map(control => (
-                      <IcpControlsCatalogRow
-                        key={control.id}
-                        control={control}
-                        value={config[control.id]}
-                        onChange={(value) => handleControlChange(control.id, value)}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No controls found matching "{searchQuery}"
-                  </div>
-                )}
+              <ScrollArea className="h-[500px] rounded-md border">
+                <div className="p-4">
+                  {filteredControls.length > 0 ? (
+                    <div className="space-y-0">
+                      {filteredControls.map(control => (
+                        <IcpControlsCatalogRow
+                          key={control.id}
+                          control={control}
+                          value={config[control.id]}
+                          onChange={(value) => handleControlChange(control.id, value)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No controls found matching "{searchQuery}"
+                    </div>
+                  )}
+                </div>
               </ScrollArea>
               
               <div className="text-sm text-muted-foreground">

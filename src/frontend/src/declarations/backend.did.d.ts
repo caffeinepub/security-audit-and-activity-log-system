@@ -10,6 +10,16 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface Edge {
+  'id' : EdgeId,
+  'weight' : number,
+  'created' : Time,
+  'source' : NodeId,
+  'directed' : boolean,
+  'target' : NodeId,
+  'updated' : Time,
+}
+export type EdgeId = bigint;
 export interface IcpController {
   'principal' : Principal,
   'revokedTimestamp' : [] | [Time],
@@ -24,6 +34,15 @@ export interface InstanceContext {
   'contextPrincipal' : Principal,
   'contextTimestamp' : Time,
 }
+export interface Node {
+  'x' : number,
+  'y' : number,
+  'id' : NodeId,
+  'created' : Time,
+  'nodeLabel' : string,
+  'updated' : Time,
+}
+export type NodeId = bigint;
 export interface T {
   'sessionData' : [] | [string],
   'user' : Principal,
@@ -83,8 +102,14 @@ export interface _SERVICE {
     [boolean, [] | [string]],
     undefined
   >,
+  'createEdge' : ActorMethod<[NodeId, NodeId, number, boolean], EdgeId>,
+  'createNode' : ActorMethod<[string, number, number], NodeId>,
+  'deleteEdge' : ActorMethod<[EdgeId], undefined>,
+  'deleteNode' : ActorMethod<[NodeId], undefined>,
   'exportAuditLogToJson' : ActorMethod<[], Array<T>>,
   'flagUser' : ActorMethod<[Principal], undefined>,
+  'getAllEdges' : ActorMethod<[], Array<Edge>>,
+  'getAllNodes' : ActorMethod<[], Array<Node>>,
   'getAllWorldWideWebControllers' : ActorMethod<[], Array<Principal>>,
   'getAppController' : ActorMethod<[], [] | [Principal]>,
   'getAuditLogs' : ActorMethod<[T__4], Array<T>>,
@@ -111,16 +136,22 @@ export interface _SERVICE {
   'listIcpControllers' : ActorMethod<[boolean], Array<IcpController>>,
   'recordAuditEntry' : ActorMethod<[T], undefined>,
   'removeUser' : ActorMethod<[Principal], undefined>,
+  'resetAndSetGraph' : ActorMethod<[Array<Node>, Array<Edge>], undefined>,
   'revokeIcpControllerRole' : ActorMethod<[Principal], undefined>,
   'revokeSecurityRole' : ActorMethod<[Principal], undefined>,
   'revokeWorldWideWebControllerRole' : ActorMethod<[Principal], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'unflagUser' : ActorMethod<[Principal], undefined>,
+  'updateEdge' : ActorMethod<
+    [EdgeId, NodeId, NodeId, number, boolean],
+    undefined
+  >,
   'updateIcpControllerDescription' : ActorMethod<
     [Principal, string, [] | [string]],
     undefined
   >,
+  'updateNode' : ActorMethod<[NodeId, string, number, number], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

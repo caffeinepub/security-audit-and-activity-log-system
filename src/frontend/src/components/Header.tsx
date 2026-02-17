@@ -75,15 +75,15 @@ export default function Header({ selectedView, onSelectView, allowedViews, canSw
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between gap-4">
+        <div className="flex items-center gap-3 min-w-0">
+          <h1 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent truncate">
             {getHeaderTitle()}
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           {/* View switcher for users with multiple access levels */}
           {canSwitchViews && selectedView && onSelectView && allowedViews && (
             <DashboardViewSwitcher
@@ -96,43 +96,43 @@ export default function Header({ selectedView, onSelectView, allowedViews, canSw
 
           {isAuthenticated && userProfile && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground hidden sm:inline">
+              <span className="text-sm text-muted-foreground hidden md:inline truncate max-w-[120px]">
                 {userProfile.name}
               </span>
               {isAppController && (
-                <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 px-2 py-0.5 text-white">
+                <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-amber-500 to-orange-600 px-2 py-0.5 text-white flex-shrink-0">
                   <Crown className="h-3 w-3" />
-                  <span className="hidden sm:inline">App Controller</span>
+                  <span className="hidden lg:inline">App Controller</span>
                 </Badge>
               )}
               {isSecurity && !isAppController && (
-                <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-blue-500 to-cyan-600 px-2 py-0.5 text-white">
+                <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-blue-500 to-cyan-600 px-2 py-0.5 text-white flex-shrink-0">
                   <ShieldCheck className="h-3 w-3" />
-                  <span className="hidden sm:inline">Security</span>
+                  <span className="hidden lg:inline">Security</span>
                 </Badge>
               )}
               {isIcpController && !isAppController && !isSecurity && (
-                <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-purple-500 to-indigo-600 px-2 py-0.5 text-white">
+                <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-purple-500 to-indigo-600 px-2 py-0.5 text-white flex-shrink-0">
                   <Server className="h-3 w-3" />
-                  <span className="hidden sm:inline">ICP Controller</span>
+                  <span className="hidden lg:inline">ICP Controller</span>
                 </Badge>
               )}
               {isWorldWideWebController && !isAppController && !isSecurity && !isIcpController && (
-                <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-green-500 to-emerald-600 px-2 py-0.5 text-white">
+                <Badge variant="default" className="gap-1.5 bg-gradient-to-r from-green-500 to-emerald-600 px-2 py-0.5 text-white flex-shrink-0">
                   <Globe className="h-3 w-3" />
-                  <span className="hidden sm:inline">Web Control</span>
+                  <span className="hidden lg:inline">Web Control</span>
                 </Badge>
               )}
             </div>
           )}
 
-          <Button variant="ghost" size="icon" onClick={toggleTheme}>
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="flex-shrink-0">
             <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
             <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
             <span className="sr-only">Toggle theme</span>
           </Button>
 
-          <Button onClick={handleAuth} disabled={disabled} variant={isAuthenticated ? 'outline' : 'default'}>
+          <Button onClick={handleAuth} disabled={disabled} variant={isAuthenticated ? 'outline' : 'default'} size="sm" className="flex-shrink-0">
             {buttonText}
           </Button>
         </div>

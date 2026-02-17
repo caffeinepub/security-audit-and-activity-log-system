@@ -89,6 +89,7 @@ export class ExternalBlob {
         return this;
     }
 }
+export type NodeId = bigint;
 export interface TransformationOutput {
     status: bigint;
     body: Uint8Array;
@@ -119,6 +120,7 @@ export interface T__3 {
     enabled: boolean;
     endpointUrl?: string;
 }
+export type EdgeId = bigint;
 export interface TransformationInput {
     context: Uint8Array;
     response: http_request_result;
@@ -134,6 +136,26 @@ export interface T {
     severity: T__2;
     ipAddress?: string;
 }
+export interface Node {
+    x: number;
+    y: number;
+    id: NodeId;
+    created: Time;
+    nodeLabel: string;
+    updated: Time;
+}
+export interface Edge {
+    id: EdgeId;
+    weight: number;
+    created: Time;
+    source: NodeId;
+    directed: boolean;
+    target: NodeId;
+    updated: Time;
+}
+export interface UserProfile {
+    name: string;
+}
 export interface IcpController {
     principal: Principal;
     revokedTimestamp?: Time;
@@ -143,9 +165,6 @@ export interface IcpController {
     roleAssigned: boolean;
     lastActiveTimestamp?: Time;
     assignedTimestamp: Time;
-}
-export interface UserProfile {
-    name: string;
 }
 export enum T__1 {
     unauthorizedAttempt = "unauthorizedAttempt",
@@ -173,8 +192,14 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     configureExternalBroadcasting(enabled: boolean, endpointUrl: string | null): Promise<void>;
+    createEdge(source: NodeId, target: NodeId, weight: number, directed: boolean): Promise<EdgeId>;
+    createNode(nodeLabel: string, x: number, y: number): Promise<NodeId>;
+    deleteEdge(id: EdgeId): Promise<void>;
+    deleteNode(id: NodeId): Promise<void>;
     exportAuditLogToJson(): Promise<Array<T>>;
     flagUser(user: Principal): Promise<void>;
+    getAllEdges(): Promise<Array<Edge>>;
+    getAllNodes(): Promise<Array<Node>>;
     getAllWorldWideWebControllers(): Promise<Array<Principal>>;
     getAppController(): Promise<Principal | null>;
     getAuditLogs(filter: T__4): Promise<Array<T>>;
@@ -198,13 +223,16 @@ export interface backendInterface {
     listIcpControllers(includeRevoked: boolean): Promise<Array<IcpController>>;
     recordAuditEntry(entry: T): Promise<void>;
     removeUser(user: Principal): Promise<void>;
+    resetAndSetGraph(newNodes: Array<Node>, newEdges: Array<Edge>): Promise<void>;
     revokeIcpControllerRole(target: Principal): Promise<void>;
     revokeSecurityRole(target: Principal): Promise<void>;
     revokeWorldWideWebControllerRole(target: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unflagUser(user: Principal): Promise<void>;
+    updateEdge(id: EdgeId, source: NodeId, target: NodeId, weight: number, directed: boolean): Promise<void>;
     updateIcpControllerDescription(target: Principal, name: string, description: string | null): Promise<void>;
+    updateNode(id: NodeId, nodeLabel: string, x: number, y: number): Promise<void>;
 }
 import type { IcpController as _IcpController, T as _T, T__1 as _T__1, T__2 as _T__2, T__3 as _T__3, T__4 as _T__4, Time as _Time, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -251,6 +279,62 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async createEdge(arg0: NodeId, arg1: NodeId, arg2: number, arg3: boolean): Promise<EdgeId> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createEdge(arg0, arg1, arg2, arg3);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createEdge(arg0, arg1, arg2, arg3);
+            return result;
+        }
+    }
+    async createNode(arg0: string, arg1: number, arg2: number): Promise<NodeId> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createNode(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createNode(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async deleteEdge(arg0: EdgeId): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteEdge(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteEdge(arg0);
+            return result;
+        }
+    }
+    async deleteNode(arg0: NodeId): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteNode(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteNode(arg0);
+            return result;
+        }
+    }
     async exportAuditLogToJson(): Promise<Array<T>> {
         if (this.processError) {
             try {
@@ -276,6 +360,34 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.flagUser(arg0);
+            return result;
+        }
+    }
+    async getAllEdges(): Promise<Array<Edge>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllEdges();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllEdges();
+            return result;
+        }
+    }
+    async getAllNodes(): Promise<Array<Node>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllNodes();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllNodes();
             return result;
         }
     }
@@ -601,6 +713,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async resetAndSetGraph(arg0: Array<Node>, arg1: Array<Edge>): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.resetAndSetGraph(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.resetAndSetGraph(arg0, arg1);
+            return result;
+        }
+    }
     async revokeIcpControllerRole(arg0: Principal): Promise<void> {
         if (this.processError) {
             try {
@@ -685,6 +811,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async updateEdge(arg0: EdgeId, arg1: NodeId, arg2: NodeId, arg3: number, arg4: boolean): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateEdge(arg0, arg1, arg2, arg3, arg4);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateEdge(arg0, arg1, arg2, arg3, arg4);
+            return result;
+        }
+    }
     async updateIcpControllerDescription(arg0: Principal, arg1: string, arg2: string | null): Promise<void> {
         if (this.processError) {
             try {
@@ -696,6 +836,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateIcpControllerDescription(arg0, arg1, to_candid_opt_n3(this._uploadFile, this._downloadFile, arg2));
+            return result;
+        }
+    }
+    async updateNode(arg0: NodeId, arg1: string, arg2: number, arg3: number): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateNode(arg0, arg1, arg2, arg3);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateNode(arg0, arg1, arg2, arg3);
             return result;
         }
     }

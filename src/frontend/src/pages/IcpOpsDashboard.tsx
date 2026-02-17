@@ -6,6 +6,7 @@ import RolesAccessPanel from '../components/RolesAccessPanel';
 import IcpControlsPanel from '../components/IcpControlsPanel';
 import RootTerminalPanel from '../components/RootTerminalPanel';
 import WebControlQuickToolsPanel from '../components/WebControlQuickToolsPanel';
+import NetworkMapPanel from '../components/NetworkMapPanel';
 import { icpControllerCommandRegistry } from '../terminal/icpControllerCommands';
 import { worldWideWebControllerCommandRegistry } from '../terminal/worldWideWebControllerCommands';
 import { useGetCallerIcpControllerStatus, useGetCallerWorldWideWebControllerStatus } from '../hooks/useQueries';
@@ -69,12 +70,12 @@ export default function IcpOpsDashboard() {
   const terminalConfig = getTerminalConfig();
 
   return (
-    <div className="container py-8 space-y-6">
+    <div className="container py-6 sm:py-8 space-y-6">
       <div className="flex items-center gap-3">
         {getRoleBadge()}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
         <IcpConnectionPanel />
         <AuthStatusPanel />
       </div>
@@ -84,6 +85,8 @@ export default function IcpOpsDashboard() {
       <IcpControlsPanel />
 
       {isUsingWebControlTerminal && <WebControlQuickToolsPanel />}
+
+      <NetworkMapPanel />
 
       <RootTerminalPanel
         commandRegistry={terminalConfig.commandRegistry}

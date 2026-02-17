@@ -2,11 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-expand-the-world-wide-web-controller-web-control-terminal-command-set-to-include-the-previously-suggested-additions-1-read-only-icp-diagnostic-commands-2-frontend-side-operational-tools-and-3-self-service-role-principal-confirmation-helpers-while-keeping-the-command-set-safe-no-security-audit-role-admin-user-management-broadcasting-config-commands",
-      "featureTitle": "Expand the World Wide Web Controller (\"Web Control\") terminal command set to include the previously suggested additions: (1) read-only ICP diagnostic commands, (2) frontend-side operational tools, and (3) self-service role/principal confirmation helpers, while keeping the command set safe (no security/audit/role-admin/user-management/broadcasting-config commands).",
+      "featureId": "feature-repair-dropdown-select-menus-across-the-app-so-they-reliably-open-render-above-all-panels-including-the-sticky-header-and-remain-clickable-not-visually-clipped-or-hidden-in-both-light-and-dark-themes",
+      "featureTitle": "Repair dropdown/select menus across the app so they reliably open, render above all panels (including the sticky header), and remain clickable (not visually clipped or hidden) in both light and dark themes.",
       "files": [
-        "frontend/src/terminal/webControlCommandCatalog.ts",
-        "frontend/src/terminal/worldWideWebControllerCommands.ts"
+        "frontend/src/components/Header.tsx",
+        "frontend/src/components/IcpControlsCatalog.tsx",
+        "frontend/src/components/IcpControlsCatalogRow.tsx",
+        "frontend/src/index.css"
       ],
       "components": [
         "authorization@4.0.0",
@@ -18,57 +20,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-79"
+        "REQ-90"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-scale-the-web-control-terminal-to-hundreds-more-functions-by-implementing-a-data-driven-web-control-command-catalog-that-produces-at-least-200-distinct-web-control-commands-available-via-help-without-making-the-terminal-unusable",
-      "featureTitle": "Scale the Web Control terminal to \"hundreds more\" functions by implementing a data-driven Web Control command catalog that produces at least 200 distinct Web Control commands available via \"help\", without making the terminal unusable.",
+      "featureId": "feature-audit-and-repair-visual-styling-regressions-affecting-core-dashboard-layouts-header-cards-panels-spacing-typography-to-ensure-a-consistent-readable-ui-in-both-light-and-dark-themes",
+      "featureTitle": "Audit and repair visual styling regressions affecting core dashboard layouts (header, cards, panels, spacing, typography) to ensure a consistent, readable UI in both light and dark themes.",
       "files": [
-        "frontend/src/terminal/webControlCommandCatalog.ts",
-        "frontend/src/terminal/worldWideWebControllerCommands.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-80"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-every-web-control-terminal-command-existing-and-newly-added-attempts-best-effort-audit-recording-using-the-existing-terminal-guard-audit-helper-pattern-and-never-fails-solely-because-audit-logging-is-unavailable-backend-not-reachable-user-not-authenticated-or-audit-recording-fails",
-      "featureTitle": "Ensure every Web Control terminal command (existing and newly added) attempts best-effort audit recording using the existing terminal guard/audit helper pattern and never fails solely because audit logging is unavailable (backend not reachable, user not authenticated, or audit recording fails).",
-      "files": [
-        "frontend/src/terminal/webControlAudit.ts",
-        "frontend/src/terminal/worldWideWebControllerCommands.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-81"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-web-control-focused-quick-tools-ui-section-within-the-icp-operations-console-for-world-wide-web-controller-users-that-exposes-safe-frontend-side-actions-for-example-copy-principal-export-icp-controls-settings-json-import-icp-controls-settings-json-reset-icp-controls-to-defaults-and-refresh-retry-connection-checks-without-exposing-security-dashboard-only-functionality",
-      "featureTitle": "Add a Web Control-focused “quick tools” UI section within the ICP Operations Console for World Wide Web Controller users that exposes safe frontend-side actions (for example: copy principal, export ICP Controls settings JSON, import ICP Controls settings JSON, reset ICP Controls to defaults, and refresh/retry connection checks) without exposing Security Dashboard-only functionality.",
-      "files": [
-        "frontend/src/components/WebControlQuickToolsPanel.tsx",
+        "frontend/src/components/Header.tsx",
+        "frontend/src/index.css",
+        "frontend/src/pages/AdminDashboard.tsx",
         "frontend/src/pages/IcpOpsDashboard.tsx"
       ],
       "components": [
@@ -81,7 +43,50 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-82"
+        "REQ-91"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-repair-network-map-visual-presentation-so-the-canvas-is-clearly-visible-and-the-graph-nodes-edges-labels-is-legible-against-the-background-in-both-light-and-dark-themes",
+      "featureTitle": "Repair Network Map visual presentation so the canvas is clearly visible and the graph (nodes/edges/labels) is legible against the background in both light and dark themes.",
+      "files": [
+        "frontend/src/components/NetworkMapCanvas.tsx",
+        "frontend/src/components/NetworkMapPanel.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-92"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-tab-like-navigation-controls-e-g-the-icp-controls-catalog-category-tabs-remain-visually-consistent-and-usable-with-clear-active-state-styling-and-no-broken-layout-overflow-at-common-viewport-sizes",
+      "featureTitle": "Ensure tab-like navigation controls (e.g., the ICP Controls Catalog category tabs) remain visually consistent and usable, with clear active-state styling and no broken layout/overflow at common viewport sizes.",
+      "files": [
+        "frontend/src/components/IcpControlsCatalog.tsx",
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-93"
       ],
       "confidence": "high"
     }

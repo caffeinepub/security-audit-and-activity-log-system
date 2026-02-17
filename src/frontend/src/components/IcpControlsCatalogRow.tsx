@@ -21,7 +21,7 @@ export default function IcpControlsCatalogRow({ control, value, onChange }: IcpC
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[100]" position="popper" sideOffset={4}>
               {control.options?.map(option => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
