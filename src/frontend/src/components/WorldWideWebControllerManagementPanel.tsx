@@ -7,14 +7,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Globe, Loader2, AlertCircle, Trash2, UserPlus } from 'lucide-react';
-import { useListWorldWideWebControllers, useGrantWorldWideWebControllerRole, useRevokeWorldWideWebControllerRole } from '../hooks/useQueries';
+import { useGetAllWorldWideWebControllers, useGrantWorldWideWebControllerRole, useRevokeWorldWideWebControllerRole } from '../hooks/useQueries';
 import { Principal } from '@icp-sdk/core/principal';
 
 export default function WorldWideWebControllerManagementPanel() {
   const [principalInput, setPrincipalInput] = useState('');
   const [validationError, setValidationError] = useState('');
 
-  const { data: controllers, isLoading: controllersLoading } = useListWorldWideWebControllers();
+  const { data: controllers, isLoading: controllersLoading } = useGetAllWorldWideWebControllers();
   const grantMutation = useGrantWorldWideWebControllerRole();
   const revokeMutation = useRevokeWorldWideWebControllerRole();
 

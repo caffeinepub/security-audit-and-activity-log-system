@@ -1,37 +1,79 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T00:10:42.685Z",
-  "summary": "Implemented a new target-aware backend actor hook and updated React Query keys for the actor and network graph to include ICP target settings (network + canisterId). Network graph fetching is gated on canisterId validity via validation utilities and React Query `enabled`. However, the diff evidence is insufficient to confirm the required Network Map error-state UX (effective target display + retry) is fully implemented.",
+  "generatedAt": "2026-02-18T01:14:48.331Z",
+  "summary": "REQ-100 is only partially addressed: audit log polling appears removed and a manual refresh control was added, but there is no evidence that React Query’s implicit refetch-on-focus/reconnect defaults were disabled in frontend/src/main.tsx. REQ-99 is partially addressed: the specific full-screen \"Loading...\" screen is removed, and the Header renders immediately, but the app still shows a centered spinner takeover in the main area (\"Checking access...\") while role queries are loading, which conflicts with the requirement to avoid global/takeover loading UI and keep loading states inline.",
   "missing_requirements": [
     {
-      "id": "REQ-96",
-      "requirement": "Improve the Network Map load-failure UX so that when the network graph cannot be fetched due to ICP connectivity/target issues, the UI clearly explains that the canister target is unreachable, shows the effective network + canister ID, and provides a one-click retry that re-runs the fetch after the actor/connection is re-established.",
-      "reason": "While `NetworkMapPanel` adds a `handleRetry` function and imports utilities like `getNetworkLabel`, the provided diff snippet is truncated before showing any concrete error UI that (a) displays the effective network label and canister ID, and (b) distinguishes target/connectivity errors from other errors. The acceptance-criteria UI elements are not verifiable from the diff summary evidence.",
+      "id": "REQ-99",
+      "requirement": "Remove the full-screen \"Loading...\" screen in frontend/src/App.tsx so the app never blocks the entire UI behind a global loading spinner while authentication/role/profile queries are in-flight; loading states should be inline within relevant panels/areas.",
+      "reason": "Although the literal \"Loading...\" screen is gone and the Header renders, the App still renders a centered spinner and message (\"Checking access...\") that takes over the main content area while role checks are in-flight, rather than using inline loading states within the relevant panels.",
       "evidence": [
-        "frontend/src/components/NetworkMapPanel.tsx (truncated)"
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "REQ-100",
+      "requirement": "Configure the QueryClient in frontend/src/main.tsx to disable implicit React Query auto-refetches (e.g., refetchOnWindowFocus/refetchOnReconnect) so data updates only occur on explicit user action or mutation invalidation.",
+      "reason": "The diff summary shows no modification to frontend/src/main.tsx, so there is no evidence that QueryClient default options were changed to disable refetch-on-focus/reconnect behavior.",
+      "evidence": [
+        "<file-diff>: Modified files list does not include frontend/src/main.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added a backend connectivity/health-check React Query hook (`useBackendHealthCheck`).",
-      "reason": "Not requested by REQ-94 through REQ-97; the BuildRequest focuses on actor recreation, target-aware caching, and Network Map error/validation UX, not a separate health-check hook.",
+      "description": "Added/changed extensive Access Denied screen content (principal copy, guidance for multiple roles, embedded ICP Connection Status and ICP Controls panels).",
+      "reason": "Not requested by REQ-99/REQ-100, which only target removal of full-screen loading UI and disabling automatic polling/refetch behavior.",
       "evidence": [
-        "frontend/src/hooks/useBackendHealthCheck.ts"
+        "frontend-file-summaries.txt (frontend/src/components/AccessDeniedScreen.tsx summary)"
+      ]
+    },
+    {
+      "description": "Header layout and z-index/responsive behavior changes.",
+      "reason": "Not requested by REQ-99/REQ-100.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/components/Header.tsx summary)"
+      ]
+    },
+    {
+      "description": "Introduced/updated a \"RealTimeAlertPanel\" with live status/auto-updating messaging.",
+      "reason": "Conflicts with the intent of REQ-100 (avoid automatic/background updates) and is not requested in the BuildRequest.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/components/RealTimeAlertPanel.tsx summary)",
+        "frontend/src/pages/AdminDashboard.tsx (imports RealTimeAlertPanel)"
+      ]
+    },
+    {
+      "description": "Added/expanded World Wide Web Controller role management UI (grant/revoke/validation).",
+      "reason": "Not requested by REQ-99/REQ-100.",
+      "evidence": [
+        "frontend/src/components/WorldWideWebControllerManagementPanel.tsx"
+      ]
+    },
+    {
+      "description": "Added/expanded audit log detail dialog and expanded test actions panel metadata handling.",
+      "reason": "Not requested by REQ-99/REQ-100.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/components/AuditLogDetailDialog.tsx summary)",
+        "frontend-file-summaries.txt (frontend/src/components/TestActionsPanel.tsx summary)"
+      ]
+    },
+    {
+      "description": "Global CSS/theming/z-index adjustments (OKLCH color system, dropdown portal z-index fixes, etc.).",
+      "reason": "Not requested by REQ-99/REQ-100.",
+      "evidence": [
+        "frontend-file-summaries.txt (frontend/src/index.css summary)"
       ]
     }
   ],
-  "confidence": 0.63,
+  "confidence": 0.62,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/NetworkMapPanel.tsx",
-    "frontend/src/hooks/useBackendHealthCheck.ts",
-    "frontend/src/hooks/useNetworkGraph.ts",
+    "frontend/src/App.tsx",
+    "frontend/src/components/WorldWideWebControllerManagementPanel.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useTargetActor.ts",
-    "frontend/src/queryKeys.ts",
-    "frontend/src/utils/icpControls.ts",
+    "frontend/src/pages/AdminDashboard.tsx",
     "project_state.json"
   ]
 }

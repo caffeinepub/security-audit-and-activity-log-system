@@ -1,105 +1,52 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Repair target-aware ICP actor + Network Graph caching and error UX",
+  "title": "Remove global loading takeover and disable automatic React Query polling/refresh",
   "requirements": [
     {
-      "id": "REQ-94",
-      "summary": "Make backend actor creation target-aware (network + canisterId) and ensure it is re-created when ICP Controls target changes.",
+      "id": "REQ-99",
+      "summary": "Remove the full-screen global Loading UI and render the app shell immediately while auth/role/profile queries load inline",
       "acceptanceCriteria": [
-        "When the user changes ICP Controls values that affect the target (at minimum: network and canisterId), subsequent backend calls use the new target without requiring a page refresh.",
-        "The backend actor query key includes the effective target settings (at minimum: network and canisterId) so React Query does not reuse an actor created for a different target.",
-        "The app does not silently keep using a stale actor after ICP Controls changes."
+        "On first load and after refresh, the app does not render a full-screen loading page with a centered spinner and the text \"Loading...\".",
+        "The Header and overall page shell still render immediately, and any loading states are shown inline within the relevant panels/areas (not as a global takeover).",
+        "Unauthenticated users can still reach the Access Denied experience without waiting on role queries to finish."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useTargetActor.ts",
-          "operation": "create",
-          "description": "Add a new React Query-backed hook that creates/caches the backend actor keyed by the effective ICP target (at minimum: network + canisterId) and identity principal, using the existing createActorWithConfig helper. This avoids modifying the immutable frontend/src/hooks/useActor.ts."
-        },
-        {
-          "path": "frontend/src/queryKeys.ts",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Add a shared query key helper for the target-aware actor (e.g., actorKey(principalText, network, canisterId)) so other hooks can consistently reference/invalidate the correct actor instance."
-        },
-        {
-          "path": "frontend/src/hooks/useBackendHealthCheck.ts",
-          "operation": "modify",
-          "description": "Switch health check to use the new target-aware actor hook so connectivity checks always reflect the currently effective ICP Controls target settings."
+          "description": "Remove the early-return full-screen loading takeover; keep Header/Footer always rendered. Adjust main content selection to (1) show AccessDeniedScreen immediately when unauthenticated, (2) show a non-blocking inline \"checking access\"/skeleton state while authenticated role/profile queries are still loading, and (3) only decide between ProfileSetupModal / dashboards / AccessDenied once role checks are resolved."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update shared backend-query hooks to use the new target-aware actor hook (instead of the immutable useActor) so all backend calls follow the effective ICP Controls target without refresh."
+          "description": "Prevent unauthenticated users from being blocked by profile fetching: gate useGetCallerUserProfile with identity-aware enabled logic so it does not run for guests/anonymous, and ensure returned isLoading/isFetched semantics still support avoiding profile-setup modal flash."
         }
       ]
     },
     {
-      "id": "REQ-95",
-      "summary": "Scope Network Graph React Query caching to the effective ICP target so switching targets does not reuse stale cached data/errors.",
+      "id": "REQ-100",
+      "summary": "Disable automatic polling and implicit React Query refetch; provide explicit manual refresh for audit logs",
       "acceptanceCriteria": [
-        "The network graph query key is scoped to the effective ICP target (at minimum: network and canisterId).",
-        "Switching ICP Controls to a new target triggers a fresh network graph fetch (no stale cached error from the previous target).",
-        "Returning to a previous target reuses the correct cached graph for that target (if available) rather than mixing targets."
+        "The audit log query in frontend/src/hooks/useQueries.ts no longer auto-refreshes every 10 seconds (remove/refactor the current refetchInterval: 10000 behavior).",
+        "React Query does not automatically refetch queries just because the window regains focus or reconnects (configure the QueryClient in frontend/src/main.tsx to disable these implicit refetches).",
+        "A user can still manually refresh relevant live data (at minimum audit logs) via an explicit UI control, and the refresh visibly updates the displayed data when the backend is reachable."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/queryKeys.ts",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Change networkGraphKey to accept target inputs (at minimum: network + canisterId) and return a target-scoped query key (e.g., ['networkGraph', network, canisterId])."
+          "description": "Remove the audit log automatic polling by deleting refetchInterval from useGetAuditLogs (and ensure no other interval-based refresh is introduced). Keep query invalidation-driven refresh behavior for user-initiated mutations."
         },
         {
-          "path": "frontend/src/hooks/useNetworkGraph.ts",
+          "path": "frontend/src/main.tsx",
           "operation": "modify",
-          "description": "Update useGetNetworkGraph (and any related invalidations in mutations) to use the target-scoped networkGraphKey(network, canisterId), and to depend on the target-aware actor hook so caching and fetching are consistent per target."
-        }
-      ]
-    },
-    {
-      "id": "REQ-96",
-      "summary": "Improve Network Map load-failure UX to explain target reachability issues, display effective network + canisterId, and provide a one-click retry that re-establishes connection then refetches.",
-      "acceptanceCriteria": [
-        "On network graph load error, the Network Map panel shows an English error message that distinguishes \"backend not reachable / wrong target\" from other errors when possible (e.g., when the actor is unavailable).",
-        "The error UI displays the effective network label and the effective canister ID that the app is currently configured to use.",
-        "A visible \"Retry\" action is provided and successfully re-attempts loading the network graph.",
-        "User-facing text remains in English."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/NetworkMapPanel.tsx",
-          "operation": "modify",
-          "description": "Enhance the error state UI to: (1) clearly indicate when the canister target appears unreachable vs other errors (e.g., special-case \"Actor not available\" / connection messages), (2) display effective network label and effective canister ID from useIcpControls, and (3) provide a visible Retry button that invalidates/refetches the target-aware actor query and then re-runs the network graph fetch, all with English copy."
+          "description": "Update QueryClient construction with safe, necessary defaultOptions to disable implicit refetches (e.g., refetchOnWindowFocus and refetchOnReconnect; optionally refetchOnMount) while preserving explicit refetch() and invalidateQueries behavior."
         },
         {
-          "path": "frontend/src/hooks/useNetworkGraph.ts",
+          "path": "frontend/src/pages/AdminDashboard.tsx",
           "operation": "modify",
-          "description": "Expose/refine error classification for graph fetch failures (e.g., actor unavailable vs general fetch failure) so the NetworkMapPanel can present a clearer reachability message and support retry behavior without relying on a page refresh."
-        }
-      ]
-    },
-    {
-      "id": "REQ-97",
-      "summary": "Disable network graph fetching when canister ID is missing/invalid/placeholder and show English guidance prompting the user to set a valid canister ID in ICP Controls.",
-      "acceptanceCriteria": [
-        "If the effective canister ID is missing/invalid, the network graph query does not run and does not show a misleading backend error.",
-        "The Network Map panel shows a clear English message indicating the canister ID is not configured/invalid and instructs the user to update it in ICP Controls.",
-        "After entering a valid canister ID, the network graph query becomes enabled and loads normally (without requiring refresh)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useNetworkGraph.ts",
-          "operation": "modify",
-          "description": "Use existing canister ID validation (from frontend/src/utils/icpControls.ts) to gate the network graph query: set enabled=false when the effective canisterId is missing/invalid/placeholder so the fetch never runs in that state."
-        },
-        {
-          "path": "frontend/src/components/NetworkMapPanel.tsx",
-          "operation": "modify",
-          "description": "When network graph fetching is disabled due to invalid/missing canisterId, render an English guidance message (instead of an error) that tells the user to set a valid canister ID in ICP Controls, and allow retry once a valid canisterId is entered (no refresh required)."
-        },
-        {
-          "path": "frontend/src/utils/icpControls.ts",
-          "operation": "modify",
-          "description": "If needed, tighten/clarify validateCanisterId behavior so it reliably treats placeholder/unset values as invalid for the Network Map gating logic (without changing the ICP Controls feature set)."
+          "description": "Add an explicit \"Refresh\" control for audit logs using the existing audit logs query's refetch() (and show a visible fetching state). Wire the query object (not just data) so the button reliably refreshes the displayed logs."
         }
       ]
     }

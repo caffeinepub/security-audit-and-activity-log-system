@@ -1,105 +1,57 @@
 {
   "kind": "build_request",
-  "title": "Repair ICP connection wiring so Network Graph loads reliably",
-  "projectName": "ICP Ops Console",
-  "priority": "high",
+  "title": "Remove full-screen loading UI and disable automatic data polling/refresh",
+  "projectName": "Caffeine Security Console",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-94",
-      "text": "Fix backend actor creation so it is keyed by (and connects using) the effective ICP Controls target settings, ensuring the actor is re-created whenever the operator changes ICP network and/or canister ID settings.",
+      "id": "REQ-99",
+      "text": "Remove the full-screen \"Loading...\" screen in frontend/src/App.tsx so the app never blocks the entire UI behind a global loading spinner while authentication/role/profile queries are in-flight.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-4"
         ],
         "quotes": [
-          "It says failed to load network graph you must repair my icp connection"
+          "Remove loading screen and automatic updates"
         ]
       },
       "acceptanceCriteria": [
-        "When the user changes ICP Controls values that affect the target (at minimum: network and canisterId), subsequent backend calls use the new target without requiring a page refresh.",
-        "The backend actor query key includes the effective target settings (at minimum: network and canisterId) so React Query does not reuse an actor created for a different target.",
-        "The app does not silently keep using a stale actor after ICP Controls changes."
+        "On first load and after refresh, the app does not render a full-screen loading page with a centered spinner and the text \"Loading...\".",
+        "The Header and overall page shell still render immediately, and any loading states are shown inline within the relevant panels/areas (not as a global takeover).",
+        "Unauthenticated users can still reach the Access Denied experience without waiting on role queries to finish."
       ]
     },
     {
-      "id": "REQ-95",
-      "text": "Make Network Graph React Query caching target-aware so a failed load (or successful load) for one ICP target does not incorrectly persist when switching to a different target.",
+      "id": "REQ-100",
+      "text": "Disable automatic updates/polling behavior in the frontend so data does not refresh on an interval or due to implicit React Query auto-refetch defaults; updates must occur only on explicit user action (e.g., button click) or after a user-initiated mutation invalidates queries.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-5"
+          "msg-4"
         ],
         "quotes": [
-          "failed to load network graph"
+          "Remove loading screen and automatic updates"
         ]
       },
       "acceptanceCriteria": [
-        "The network graph query key is scoped to the effective ICP target (at minimum: network and canisterId).",
-        "Switching ICP Controls to a new target triggers a fresh network graph fetch (no stale cached error from the previous target).",
-        "Returning to a previous target reuses the correct cached graph for that target (if available) rather than mixing targets."
-      ]
-    },
-    {
-      "id": "REQ-96",
-      "text": "Improve the Network Map load-failure UX so that when the network graph cannot be fetched due to ICP connectivity/target issues, the UI clearly explains that the canister target is unreachable, shows the effective network + canister ID, and provides a one-click retry that re-runs the fetch after the actor/connection is re-established.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "It says failed to load network graph you must repair my icp connection"
-        ]
-      },
-      "acceptanceCriteria": [
-        "On network graph load error, the Network Map panel shows an English error message that distinguishes \"backend not reachable / wrong target\" from other errors when possible (e.g., when the actor is unavailable).",
-        "The error UI displays the effective network label and the effective canister ID that the app is currently configured to use.",
-        "A visible \"Retry\" action is provided and successfully re-attempts loading the network graph.",
-        "User-facing text remains in English."
-      ]
-    },
-    {
-      "id": "REQ-97",
-      "text": "Prevent network graph fetching when the effective canister ID is not a valid principal text (or is a placeholder value), and instead present an English guidance message prompting the user to set a valid canister ID in ICP Controls before retrying.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-5"
-        ],
-        "quotes": [
-          "failed to load network graph"
-        ]
-      },
-      "acceptanceCriteria": [
-        "If the effective canister ID is missing/invalid, the network graph query does not run and does not show a misleading backend error.",
-        "The Network Map panel shows a clear English message indicating the canister ID is not configured/invalid and instructs the user to update it in ICP Controls.",
-        "After entering a valid canister ID, the network graph query becomes enabled and loads normally (without requiring refresh)."
+        "The audit log query in frontend/src/hooks/useQueries.ts no longer auto-refreshes every 10 seconds (remove/refactor the current refetchInterval: 10000 behavior).",
+        "React Query does not automatically refetch queries just because the window regains focus or reconnects (configure the QueryClient in frontend/src/main.tsx to disable these implicit refetches).",
+        "A user can still manually refresh relevant live data (at minimum audit logs) via an explicit UI control, and the refresh visibly updates the displayed data when the backend is reachable."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain single-actor (all Motoko logic in backend/main.mo).",
-    "Do not edit files under frontend/src/components/ui (compose existing UI components instead).",
-    "Do not edit immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui."
+    "Do not edit any files under frontend/src/components/ui (Shadcn components are read-only).",
+    "Do not modify frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/hooks/useInternetIdentity.ts, or frontend/src/main.tsx outside of safe, necessary configuration changes (e.g., QueryClient default options)."
   ],
   "nonGoals": [
-    "Do not add new roles/permissions or change authorization rules as part of this fix.",
-    "Do not redesign the Network Map feature set (only repair connectivity/targeting and related error handling).",
-    "Do not add external databases, third-party auth providers, or non-IC hosting/deployment mechanisms."
+    "Do not change backend (Motoko) APIs or authorization rules.",
+    "Do not add real-time features (WebSockets, push, etc.).",
+    "Do not remove user-initiated refresh/retry buttons (e.g., existing connection retry actions); only remove automatic/background updates."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

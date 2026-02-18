@@ -8,6 +8,7 @@ import { icpControllerStatusKey, icpControllersKey, securityStatusKey, appContro
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useTargetActor();
+  const { identity } = useInternetIdentity();
 
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
@@ -15,7 +16,7 @@ export function useGetCallerUserProfile() {
       if (!actor) throw new Error('Actor not available');
       return actor.getCallerUserProfile();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && !!identity,
     retry: false,
   });
 
@@ -177,7 +178,6 @@ export function useGetAuditLogs(filter: FilterCriteria) {
       return actor.getAuditLogs(filter);
     },
     enabled: !!actor && !actorFetching,
-    refetchInterval: 10000, // Auto-refresh every 10 seconds
   });
 }
 
@@ -437,19 +437,6 @@ export function useRevokeSecurityRole() {
   });
 }
 
-export function useListWorldWideWebControllers() {
-  const { actor, isFetching: actorFetching } = useTargetActor();
-
-  return useQuery<Principal[]>({
-    queryKey: worldWideWebControllersKey(),
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllWorldWideWebControllers();
-    },
-    enabled: !!actor && !actorFetching,
-  });
-}
-
 export function useGrantWorldWideWebControllerRole() {
   const { actor } = useTargetActor();
   const queryClient = useQueryClient();
@@ -461,9 +448,9 @@ export function useGrantWorldWideWebControllerRole() {
       return actor.grantWorldWideWebControllerRole(principal);
     },
     onSuccess: (_, targetPrincipal) => {
-      queryClient.invalidateQueries({ queryKey: worldWideWebControllersKey() });
       queryClient.invalidateQueries({ queryKey: worldWideWebControllerStatusKey(targetPrincipal) });
       queryClient.invalidateQueries({ queryKey: ['worldWideWebControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: worldWideWebControllersKey() });
       queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
       toast.success('World Wide Web Controller role granted successfully');
     },
@@ -484,14 +471,27 @@ export function useRevokeWorldWideWebControllerRole() {
       return actor.revokeWorldWideWebControllerRole(principal);
     },
     onSuccess: (_, targetPrincipal) => {
-      queryClient.invalidateQueries({ queryKey: worldWideWebControllersKey() });
       queryClient.invalidateQueries({ queryKey: worldWideWebControllerStatusKey(targetPrincipal) });
       queryClient.invalidateQueries({ queryKey: ['worldWideWebControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: worldWideWebControllersKey() });
       queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
       toast.success('World Wide Web Controller role revoked successfully');
     },
     onError: (error: Error) => {
       toast.error(`Failed to revoke World Wide Web Controller role: ${error.message}`);
     },
+  });
+}
+
+export function useGetAllWorldWideWebControllers() {
+  const { actor, isFetching: actorFetching } = useTargetActor();
+
+  return useQuery<Principal[]>({
+    queryKey: worldWideWebControllersKey(),
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllWorldWideWebControllers();
+    },
+    enabled: !!actor && !actorFetching,
   });
 }

@@ -5,7 +5,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useIcpControls } from '../hooks/useIcpControls';
 import { downloadConfiguration, readConfigurationFile } from '../utils/icpControlsImportExport';
-import { Copy, Download, Upload, RotateCcw, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
+import { worldWideWebControllerCommandRegistry } from '../terminal/worldWideWebControllerCommands';
+import { Copy, Download, Upload, RotateCcw, RefreshCw, Wrench, AlertCircle, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function WebControlQuickToolsPanel() {
@@ -85,18 +86,19 @@ export default function WebControlQuickToolsPanel() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <CheckCircle2 className="h-5 w-5 text-green-600" />
-          Web Control Quick Tools
+          <Wrench className="h-5 w-5 text-emerald-600" />
+          Web Controller Tools
         </CardTitle>
         <CardDescription>
-          Safe frontend-side actions for World Wide Web Controller users
+          Client-side utilities for World Wide Web Controller users
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            These tools operate on client-side configuration and diagnostics only. No security or administrative actions are available.
+            <strong>Client-side tools only.</strong> These actions operate on your browser's local configuration and diagnostics. 
+            No security, audit, administrative, or privileged backend access is provided through this panel.
           </AlertDescription>
         </Alert>
 
@@ -168,6 +170,7 @@ export default function WebControlQuickToolsPanel() {
         </div>
 
         <Alert>
+          <Info className="h-4 w-4" />
           <AlertDescription className="text-xs">
             For advanced operations, use the Web Control Terminal below. Type "help" to see all {worldWideWebControllerCommandRegistry.length}+ available commands.
           </AlertDescription>
@@ -176,6 +179,3 @@ export default function WebControlQuickToolsPanel() {
     </Card>
   );
 }
-
-// Import the registry to show command count
-import { worldWideWebControllerCommandRegistry } from '../terminal/worldWideWebControllerCommands';

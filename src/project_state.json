@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 53,
+  "projectStateVersion": 57,
   "summary": "Project to add a \"Security\" role with higher privileges than Administrator for the caffeine website, controlled/authorized by the app controller (user), and expand the app to connect to the Internet Computer (canister API integration), add Internet Identity login, and support deployment to ICP mainnet; also add a working superuser UI control to support security audits.",
   "architectural_notes": [
     "Planned: dashboard will include an App Controller–only standalone in-browser code editor capable of editing both backend (Motoko) and frontend (React/TypeScript) code, with an action to apply changes and trigger deploy.",
@@ -22,7 +22,7 @@
     "UI visuals and dropdown menus need repair (dropdowns/visual styling broken or not functioning).",
     "Network graph fails to load with error message \"failed to load network graph\" (user requests ICP connection repair)."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-update-the-frontend-access-gating-so-that-users-who-are-either-app-controller-or-security-can-access-the-dashboard-all-others-see-access-denied",
@@ -679,6 +679,30 @@
         "REQ-97"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-clearly-labeled-web-controller-tools-section-in-the-icp-operations-console-that-is-visible-only-when-the-authenticated-user-has-the-world-wide-web-controller-web-control-role-and-is-not-using-the-icp-controller-terminal-mode-and-ensure-it-provides-only-safe-client-side-operational-tools-no-security-audit-admin-actions",
+      "title": "Add a clearly labeled “Web Controller Tools” section in the ICP Operations Console that is visible only when the authenticated user has the World Wide Web Controller (“Web Control”) role (and is not using the ICP Controller terminal mode), and ensure it provides only safe, client-side operational tools (no security/audit/admin actions).",
+      "reqIds": [
+        "REQ-98"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-full-screen-loading-screen-in-frontend-src-app-tsx-so-the-app-never-blocks-the-entire-ui-behind-a-global-loading-spinner-while-authentication-role-profile-queries-are-in-flight",
+      "title": "Remove the full-screen \"Loading...\" screen in frontend/src/App.tsx so the app never blocks the entire UI behind a global loading spinner while authentication/role/profile queries are in-flight.",
+      "reqIds": [
+        "REQ-99"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-disable-automatic-updates-polling-behavior-in-the-frontend-so-data-does-not-refresh-on-an-interval-or-due-to-implicit-react-query-auto-refetch-defaults-updates-must-occur-only-on-explicit-user-action-e-g-button-click-or-after-a-user-initiated-mutation-invalidates-queries",
+      "title": "Disable automatic updates/polling behavior in the frontend so data does not refresh on an interval or due to implicit React Query auto-refetch defaults; updates must occur only on explicit user action (e.g., button click) or after a user-initiated mutation invalidates queries.",
+      "reqIds": [
+        "REQ-100"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -937,6 +961,12 @@
     {
       "id": "AR-42",
       "summary": "Update the Network Map UI so users can view and manage the nodes they add (e.g., list/inspect/edit/delete added nodes) rather than losing track of newly created nodes.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Remove the app loading screen and disable automatic updates (no auto-refresh/auto-update behavior).",
       "reqIds": [],
       "status": "pending"
     }

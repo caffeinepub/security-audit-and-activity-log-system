@@ -1,71 +1,40 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T00:10:42.690Z",
+  "generatedAt": "2026-02-18T01:14:48.337Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 4,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-94",
-        "summary": "Fix backend actor creation so it is keyed by (and connects using) the effective ICP Controls target settings, ensuring the actor is re-created whenever the operator changes ICP network and/or canister ID settings.",
+        "id": "REQ-100",
+        "summary": "Disable automatic updates/polling behavior in the frontend so data does not refresh on an interval or due to implicit React Query auto-refetch defaults; updates must occur only on explicit user action (e.g., button click) or after a user-initiated mutation invalidates queries.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useTargetActor.ts",
-          "frontend/src/queryKeys.ts",
-          "frontend/src/hooks/useBackendHealthCheck.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/main.tsx",
+          "frontend/src/pages/AdminDashboard.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/AdminDashboard.tsx"
+        ]
+      },
+      {
+        "id": "REQ-99",
+        "summary": "Remove the full-screen \"Loading...\" screen in frontend/src/App.tsx so the app never blocks the entire UI behind a global loading spinner while authentication/role/profile queries are in-flight.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx",
           "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useTargetActor.ts",
-          "frontend/src/queryKeys.ts",
-          "frontend/src/hooks/useBackendHealthCheck.ts",
+          "frontend/src/App.tsx",
           "frontend/src/hooks/useQueries.ts"
-        ]
-      },
-      {
-        "id": "REQ-95",
-        "summary": "Make Network Graph React Query caching target-aware so a failed load (or successful load) for one ICP target does not incorrectly persist when switching to a different target.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/queryKeys.ts",
-          "frontend/src/hooks/useNetworkGraph.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/queryKeys.ts",
-          "frontend/src/hooks/useNetworkGraph.ts"
-        ]
-      },
-      {
-        "id": "REQ-96",
-        "summary": "Improve the Network Map load-failure UX so that when the network graph cannot be fetched due to ICP connectivity/target issues, the UI clearly explains that the canister target is unreachable, shows the effective network + canister ID, and provides a one-click retry that re-runs the fetch after the actor/connection is re-established.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/NetworkMapPanel.tsx",
-          "frontend/src/hooks/useNetworkGraph.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/NetworkMapPanel.tsx",
-          "frontend/src/hooks/useNetworkGraph.ts"
-        ]
-      },
-      {
-        "id": "REQ-97",
-        "summary": "Prevent network graph fetching when the effective canister ID is not a valid principal text (or is a placeholder value), and instead present an English guidance message prompting the user to set a valid canister ID in ICP Controls before retrying.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useNetworkGraph.ts",
-          "frontend/src/components/NetworkMapPanel.tsx",
-          "frontend/src/utils/icpControls.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useNetworkGraph.ts",
-          "frontend/src/components/NetworkMapPanel.tsx",
-          "frontend/src/utils/icpControls.ts"
         ]
       }
     ]
@@ -75,13 +44,10 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/NetworkMapPanel.tsx",
-    "frontend/src/hooks/useBackendHealthCheck.ts",
-    "frontend/src/hooks/useNetworkGraph.ts",
+    "frontend/src/App.tsx",
+    "frontend/src/components/WorldWideWebControllerManagementPanel.tsx",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useTargetActor.ts",
-    "frontend/src/queryKeys.ts",
-    "frontend/src/utils/icpControls.ts",
+    "frontend/src/pages/AdminDashboard.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

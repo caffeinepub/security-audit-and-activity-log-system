@@ -2,13 +2,32 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-backend-actor-creation-so-it-is-keyed-by-and-connects-using-the-effective-icp-controls-target-settings-ensuring-the-actor-is-re-created-whenever-the-operator-changes-icp-network-and-or-canister-id-settings",
-      "featureTitle": "Fix backend actor creation so it is keyed by (and connects using) the effective ICP Controls target settings, ensuring the actor is re-created whenever the operator changes ICP network and/or canister ID settings.",
+      "featureId": "feature-remove-the-full-screen-loading-screen-in-frontend-src-app-tsx-so-the-app-never-blocks-the-entire-ui-behind-a-global-loading-spinner-while-authentication-role-profile-queries-are-in-flight",
+      "featureTitle": "Remove the full-screen \"Loading...\" screen in frontend/src/App.tsx so the app never blocks the entire UI behind a global loading spinner while authentication/role/profile queries are in-flight.",
       "files": [
-        "frontend/src/hooks/useBackendHealthCheck.ts",
+        "frontend/src/App.tsx",
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-99"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-disable-automatic-updates-polling-behavior-in-the-frontend-so-data-does-not-refresh-on-an-interval-or-due-to-implicit-react-query-auto-refetch-defaults-updates-must-occur-only-on-explicit-user-action-e-g-button-click-or-after-a-user-initiated-mutation-invalidates-queries",
+      "featureTitle": "Disable automatic updates/polling behavior in the frontend so data does not refresh on an interval or due to implicit React Query auto-refetch defaults; updates must occur only on explicit user action (e.g., button click) or after a user-initiated mutation invalidates queries.",
+      "files": [
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/hooks/useTargetActor.ts",
-        "frontend/src/queryKeys.ts"
+        "frontend/src/pages/AdminDashboard.tsx"
       ],
       "components": [
         "authorization@4.0.0",
@@ -20,71 +39,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-94"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-make-network-graph-react-query-caching-target-aware-so-a-failed-load-or-successful-load-for-one-icp-target-does-not-incorrectly-persist-when-switching-to-a-different-target",
-      "featureTitle": "Make Network Graph React Query caching target-aware so a failed load (or successful load) for one ICP target does not incorrectly persist when switching to a different target.",
-      "files": [
-        "frontend/src/hooks/useNetworkGraph.ts",
-        "frontend/src/queryKeys.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-95"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-improve-the-network-map-load-failure-ux-so-that-when-the-network-graph-cannot-be-fetched-due-to-icp-connectivity-target-issues-the-ui-clearly-explains-that-the-canister-target-is-unreachable-shows-the-effective-network-canister-id-and-provides-a-one-click-retry-that-re-runs-the-fetch-after-the-actor-connection-is-re-established",
-      "featureTitle": "Improve the Network Map load-failure UX so that when the network graph cannot be fetched due to ICP connectivity/target issues, the UI clearly explains that the canister target is unreachable, shows the effective network + canister ID, and provides a one-click retry that re-runs the fetch after the actor/connection is re-established.",
-      "files": [
-        "frontend/src/components/NetworkMapPanel.tsx",
-        "frontend/src/hooks/useNetworkGraph.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-96"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-prevent-network-graph-fetching-when-the-effective-canister-id-is-not-a-valid-principal-text-or-is-a-placeholder-value-and-instead-present-an-english-guidance-message-prompting-the-user-to-set-a-valid-canister-id-in-icp-controls-before-retrying",
-      "featureTitle": "Prevent network graph fetching when the effective canister ID is not a valid principal text (or is a placeholder value), and instead present an English guidance message prompting the user to set a valid canister ID in ICP Controls before retrying.",
-      "files": [
-        "frontend/src/components/NetworkMapPanel.tsx",
-        "frontend/src/hooks/useNetworkGraph.ts",
-        "frontend/src/utils/icpControls.ts"
-      ],
-      "components": [
-        "authorization@4.0.0",
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "http-outcalls@3.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-97"
+        "REQ-100"
       ],
       "confidence": "high"
     }

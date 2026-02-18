@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile, useGetCallerAppControllerStatus, useGetCallerSecurityStatus, useGetCallerIcpControllerStatus, useGetCallerWorldWideWebControllerStatus } from './hooks/useQueries';
 import Header from './components/Header';
@@ -33,20 +32,8 @@ export default function App() {
     isAuthenticated
   );
 
-  // Show loading state while checking authentication and roles
-  if (isInitializing || (isAuthenticated && (profileLoading || appControllerLoading || securityLoading || icpControllerLoading || wwwControllerLoading))) {
-    return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <div className="min-h-screen bg-background flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground">Loading...</p>
-          </div>
-        </div>
-        <Toaster />
-      </ThemeProvider>
-    );
-  }
+  // Check if we're still loading role information for authenticated users
+  const isLoadingRoles = isAuthenticated && (appControllerLoading || securityLoading || icpControllerLoading || wwwControllerLoading);
 
   return (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
@@ -60,7 +47,16 @@ export default function App() {
 
         {showProfileSetup ? (
           <ProfileSetupModal />
-        ) : !isAuthenticated || !hasAnyAccess ? (
+        ) : !isAuthenticated ? (
+          <AccessDeniedScreen />
+        ) : isLoadingRoles ? (
+          <main className="flex-1 flex items-center justify-center">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-sm text-muted-foreground">Checking access...</p>
+            </div>
+          </main>
+        ) : !hasAnyAccess ? (
           <AccessDeniedScreen />
         ) : (
           <main className="flex-1">
