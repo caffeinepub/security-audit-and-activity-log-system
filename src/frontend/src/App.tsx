@@ -6,6 +6,7 @@ import ProfileSetupModal from './components/ProfileSetupModal';
 import AccessDeniedScreen from './components/AccessDeniedScreen';
 import AdminDashboard from './pages/AdminDashboard';
 import IcpOpsDashboard from './pages/IcpOpsDashboard';
+import InlineLoadingState from './components/InlineLoadingState';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
 import { useDashboardView } from './hooks/useDashboardView';
@@ -49,19 +50,20 @@ export default function App() {
           <ProfileSetupModal />
         ) : !isAuthenticated ? (
           <AccessDeniedScreen />
-        ) : isLoadingRoles ? (
-          <main className="flex-1 flex items-center justify-center">
-            <div className="text-center space-y-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-sm text-muted-foreground">Checking access...</p>
-            </div>
-          </main>
-        ) : !hasAnyAccess ? (
-          <AccessDeniedScreen />
         ) : (
           <main className="flex-1">
-            {selectedView === 'security' && hasSecurityAccess && <AdminDashboard />}
-            {selectedView === 'icp-ops' && hasIcpOpsAccess && <IcpOpsDashboard />}
+            {isLoadingRoles ? (
+              <div className="container mx-auto px-4 py-6 sm:py-8">
+                <InlineLoadingState message="Checking access..." />
+              </div>
+            ) : !hasAnyAccess ? (
+              <AccessDeniedScreen />
+            ) : (
+              <>
+                {selectedView === 'security' && hasSecurityAccess && <AdminDashboard />}
+                {selectedView === 'icp-ops' && hasIcpOpsAccess && <IcpOpsDashboard />}
+              </>
+            )}
           </main>
         )}
 

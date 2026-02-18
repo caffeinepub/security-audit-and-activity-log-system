@@ -1,54 +1,72 @@
 {
   "kind": "build_request",
-  "title": "Remove full-screen loading UI and disable automatic data polling/refresh",
-  "projectName": "Caffeine Security Console",
+  "title": "Remove refresh behavior (no auto-refetch and no page reload refresh)",
+  "projectName": "ICP Ops Console",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-99",
-      "text": "Remove the full-screen \"Loading...\" screen in frontend/src/App.tsx so the app never blocks the entire UI behind a global loading spinner while authentication/role/profile queries are in-flight.",
+      "id": "REQ-111",
+      "text": "Remove the full page-refresh behavior from the Web Controller Tools panel by eliminating the \"Refresh Connection\" action that calls window.location.reload(), and replace it with a non-refresh action that re-runs backend connectivity checks (e.g., React Query refetch) without reloading the page.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "Remove loading screen and automatic updates"
+          "Remove the refresh"
         ]
       },
       "acceptanceCriteria": [
-        "On first load and after refresh, the app does not render a full-screen loading page with a centered spinner and the text \"Loading...\".",
-        "The Header and overall page shell still render immediately, and any loading states are shown inline within the relevant panels/areas (not as a global takeover).",
-        "Unauthenticated users can still reach the Access Denied experience without waiting on role queries to finish."
+        "The \"Refresh Connection\" button in frontend/src/components/WebControlQuickToolsPanel.tsx no longer triggers a browser reload.",
+        "Users can still manually trigger a connection re-check from the Web Controller Tools UI without any page reload.",
+        "All user-facing text remains in English."
       ]
     },
     {
-      "id": "REQ-100",
-      "text": "Disable automatic updates/polling behavior in the frontend so data does not refresh on an interval or due to implicit React Query auto-refetch defaults; updates must occur only on explicit user action (e.g., button click) or after a user-initiated mutation invalidates queries.",
+      "id": "REQ-112",
+      "text": "Disable React Query automatic refetch behavior that can feel like an implicit \"refresh\" (including refetch-on-window-focus and refetch-on-reconnect), so data updates happen only via explicit user actions (buttons) or via deliberate cache invalidation after a user-initiated mutation.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-4"
         ],
         "quotes": [
-          "Remove loading screen and automatic updates"
+          "Remove the refresh"
         ]
       },
       "acceptanceCriteria": [
-        "The audit log query in frontend/src/hooks/useQueries.ts no longer auto-refreshes every 10 seconds (remove/refactor the current refetchInterval: 10000 behavior).",
-        "React Query does not automatically refetch queries just because the window regains focus or reconnects (configure the QueryClient in frontend/src/main.tsx to disable these implicit refetches).",
-        "A user can still manually refresh relevant live data (at minimum audit logs) via an explicit UI control, and the refresh visibly updates the displayed data when the backend is reachable."
+        "React Query does not automatically refetch queries when the tab/window regains focus.",
+        "React Query does not automatically refetch queries when the browser reconnects to the network.",
+        "Queries still update when the user clicks explicit retry/refetch UI controls (e.g., retry buttons) or after a mutation invalidates relevant queries."
+      ]
+    },
+    {
+      "id": "REQ-113",
+      "text": "Remove any code that force-refetches large portions of the React Query cache as a side-effect of actor creation/changes (i.e., avoid global refetchQueries patterns that behave like an app-wide refresh), while keeping correctness when identity or ICP target changes.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "Remove the refresh"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The app no longer performs a broad, automatic refetch of most queries solely because the backend actor instance changed.",
+        "Role/status and other backend-driven UI still updates correctly after explicit user actions (e.g., login/logout, role grant/revoke, retry connection).",
+        "No new loading screens or full-page refresh behavior is introduced."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui (Shadcn components are read-only).",
-    "Do not modify frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/hooks/useInternetIdentity.ts, or frontend/src/main.tsx outside of safe, necessary configuration changes (e.g., QueryClient default options)."
+    "Frontend immutable paths must not be edited: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui/*.",
+    "Keep all user-facing text in English."
   ],
   "nonGoals": [
-    "Do not change backend (Motoko) APIs or authorization rules.",
-    "Do not add real-time features (WebSockets, push, etc.).",
-    "Do not remove user-initiated refresh/retry buttons (e.g., existing connection retry actions); only remove automatic/background updates."
+    "Do not add new backend APIs or change backend authorization logic.",
+    "Do not add new features unrelated to removing refresh/auto-refresh behavior (e.g., new dashboards, new roles, new panels).",
+    "Do not change routing or role-based access rules beyond what is necessary to remove refresh behavior."
   ],
   "imageRequirements": {
     "required": [],

@@ -41,9 +41,9 @@ export default function IcpControllerManagementPanel() {
 
     try {
       await grantMutation.mutateAsync({
-        targetPrincipal: principalInput.trim(),
-        name: nameInput.trim() || undefined,
-        description: descriptionInput.trim() || undefined,
+        target: principalInput.trim(),
+        name: nameInput.trim() || null,
+        description: descriptionInput.trim() || null,
       });
       setPrincipalInput('');
       setNameInput('');
@@ -75,9 +75,9 @@ export default function IcpControllerManagementPanel() {
 
     try {
       await grantMutation.mutateAsync({
-        targetPrincipal: callerPrincipal,
-        name: nameInput.trim() || undefined,
-        description: descriptionInput.trim() || undefined,
+        target: callerPrincipal,
+        name: nameInput.trim() || null,
+        description: descriptionInput.trim() || null,
       });
       setNameInput('');
       setDescriptionInput('');

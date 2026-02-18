@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useIcpControls } from '../hooks/useIcpControls';
+import { useBackendHealthCheck } from '../hooks/useBackendHealthCheck';
 import { downloadConfiguration, readConfigurationFile } from '../utils/icpControlsImportExport';
 import { worldWideWebControllerCommandRegistry } from '../terminal/worldWideWebControllerCommands';
 import { Copy, Download, Upload, RotateCcw, RefreshCw, Wrench, AlertCircle, Info } from 'lucide-react';
@@ -12,7 +13,9 @@ import { toast } from 'sonner';
 export default function WebControlQuickToolsPanel() {
   const { identity } = useInternetIdentity();
   const { getEffectiveSnapshot, applyImportedConfig, resetToDefaults } = useIcpControls();
+  const { refetch: refetchHealth } = useBackendHealthCheck();
   const [isResetting, setIsResetting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleCopyPrincipal = () => {
     if (!identity) {
@@ -78,8 +81,20 @@ export default function WebControlQuickToolsPanel() {
     }
   };
 
-  const handleRefreshConnection = () => {
-    window.location.reload();
+  const handleRefreshConnection = async () => {
+    setIsRefreshing(true);
+    try {
+      const result = await refetchHealth();
+      if (result.isSuccess) {
+        toast.success('Connection verified successfully');
+      } else if (result.isError) {
+        toast.error(`Connection check failed: ${result.error?.message || 'Unknown error'}`);
+      }
+    } catch (error: any) {
+      toast.error(`Connection check failed: ${error.message}`);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   return (
@@ -160,10 +175,11 @@ export default function WebControlQuickToolsPanel() {
                 variant="outline"
                 size="sm"
                 onClick={handleRefreshConnection}
+                disabled={isRefreshing}
                 className="gap-2"
               >
                 <RefreshCw className="h-4 w-4" />
-                Refresh Connection
+                {isRefreshing ? 'Checking...' : 'Check Connection'}
               </Button>
             </div>
           </div>

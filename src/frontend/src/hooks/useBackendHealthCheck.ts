@@ -23,6 +23,8 @@ export function useBackendHealthCheck() {
     enabled: !!actor && !actorFetching,
     retry: 2,
     retryDelay: 1000,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return {

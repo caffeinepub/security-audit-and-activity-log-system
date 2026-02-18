@@ -17,6 +17,7 @@ export const NodeId = IDL.Nat;
 export const EdgeId = IDL.Nat;
 export const T__1 = IDL.Variant({
   'unauthorizedAttempt' : IDL.Null,
+  'appControllerTransfer' : IDL.Null,
   'loginAttempt' : IDL.Null,
   'permissionChange' : IDL.Null,
   'superuserPrivilegeChange' : IDL.Null,
@@ -170,6 +171,7 @@ export const idlService = IDL.Service({
   'revokeSecurityRole' : IDL.Func([IDL.Principal], [], []),
   'revokeWorldWideWebControllerRole' : IDL.Func([IDL.Principal], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'transferAppController' : IDL.Func([IDL.Principal], [], []),
   'transform' : IDL.Func(
       [TransformationInput],
       [TransformationOutput],
@@ -201,6 +203,7 @@ export const idlFactory = ({ IDL }) => {
   const EdgeId = IDL.Nat;
   const T__1 = IDL.Variant({
     'unauthorizedAttempt' : IDL.Null,
+    'appControllerTransfer' : IDL.Null,
     'loginAttempt' : IDL.Null,
     'permissionChange' : IDL.Null,
     'superuserPrivilegeChange' : IDL.Null,
@@ -355,6 +358,7 @@ export const idlFactory = ({ IDL }) => {
     'revokeSecurityRole' : IDL.Func([IDL.Principal], [], []),
     'revokeWorldWideWebControllerRole' : IDL.Func([IDL.Principal], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'transferAppController' : IDL.Func([IDL.Principal], [], []),
     'transform' : IDL.Func(
         [TransformationInput],
         [TransformationOutput],

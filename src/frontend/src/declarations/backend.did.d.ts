@@ -55,6 +55,7 @@ export interface T {
   'ipAddress' : [] | [string],
 }
 export type T__1 = { 'unauthorizedAttempt' : null } |
+  { 'appControllerTransfer' : null } |
   { 'loginAttempt' : null } |
   { 'permissionChange' : null } |
   { 'superuserPrivilegeChange' : null } |
@@ -141,6 +142,7 @@ export interface _SERVICE {
   'revokeSecurityRole' : ActorMethod<[Principal], undefined>,
   'revokeWorldWideWebControllerRole' : ActorMethod<[Principal], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'transferAppController' : ActorMethod<[Principal], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'unflagUser' : ActorMethod<[Principal], undefined>,
   'updateEdge' : ActorMethod<

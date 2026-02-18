@@ -1,79 +1,69 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T01:14:48.331Z",
-  "summary": "REQ-100 is only partially addressed: audit log polling appears removed and a manual refresh control was added, but there is no evidence that React Query’s implicit refetch-on-focus/reconnect defaults were disabled in frontend/src/main.tsx. REQ-99 is partially addressed: the specific full-screen \"Loading...\" screen is removed, and the Header renders immediately, but the app still shows a centered spinner takeover in the main area (\"Checking access...\") while role queries are loading, which conflicts with the requirement to avoid global/takeover loading UI and keep loading states inline.",
+  "generatedAt": "2026-02-18T02:05:49.633Z",
+  "summary": "REQ-111 appears implemented by replacing the prior page reload with a React Query refetch-based health check in WebControlQuickToolsPanel. The diff also shows multiple queries explicitly disabling React Query refetch-on-window-focus and refetch-on-reconnect, but it’s unclear from the truncated diff whether this was applied comprehensively across the app. There is no clear evidence that broad, actor-change-triggered global refetching was removed (REQ-113). Several unrelated UI/feature changes were also introduced beyond the stated scope.",
   "missing_requirements": [
     {
-      "id": "REQ-99",
-      "requirement": "Remove the full-screen \"Loading...\" screen in frontend/src/App.tsx so the app never blocks the entire UI behind a global loading spinner while authentication/role/profile queries are in-flight; loading states should be inline within relevant panels/areas.",
-      "reason": "Although the literal \"Loading...\" screen is gone and the Header renders, the App still renders a centered spinner and message (\"Checking access...\") that takes over the main content area while role checks are in-flight, rather than using inline loading states within the relevant panels.",
+      "id": "REQ-112",
+      "requirement": "Disable React Query automatic refetch behavior (including refetch-on-window-focus and refetch-on-reconnect) so updates happen only via explicit user actions or mutation invalidation.",
+      "reason": "The diff shows refetchOnWindowFocus/refetchOnReconnect disabled in several individual queries, but due to truncation and limited file coverage, there is not enough evidence that this behavior is disabled for all queries across the app (no global defaults shown, and only some hooks are visible).",
       "evidence": [
-        "frontend/src/App.tsx"
+        "frontend/src/hooks/useBackendHealthCheck.ts",
+        "frontend/src/hooks/useNetworkGraph.ts (truncated)",
+        "frontend/src/hooks/useQueries.ts (truncated)"
       ]
     },
     {
-      "id": "REQ-100",
-      "requirement": "Configure the QueryClient in frontend/src/main.tsx to disable implicit React Query auto-refetches (e.g., refetchOnWindowFocus/refetchOnReconnect) so data updates only occur on explicit user action or mutation invalidation.",
-      "reason": "The diff summary shows no modification to frontend/src/main.tsx, so there is no evidence that QueryClient default options were changed to disable refetch-on-focus/reconnect behavior.",
+      "id": "REQ-113",
+      "requirement": "Remove code that force-refetches large portions of the React Query cache as a side-effect of actor creation/changes (avoid broad global refetchQueries patterns on actor change), while keeping correctness when identity/ICP target changes.",
+      "reason": "No diff evidence shows removal or alteration of any actor-change side effects (e.g., removing a broad queryClient.refetchQueries triggered by actor changes). The immutable actor/identity hook paths mentioned in the request are not shown as modified, and no other shown changes clearly address actor-change-driven global refetching.",
       "evidence": [
-        "<file-diff>: Modified files list does not include frontend/src/main.tsx"
+        "frontend/src/hooks/useQueries.ts (truncated)",
+        "frontend-file-summaries.txt (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Added/changed extensive Access Denied screen content (principal copy, guidance for multiple roles, embedded ICP Connection Status and ICP Controls panels).",
-      "reason": "Not requested by REQ-99/REQ-100, which only target removal of full-screen loading UI and disabling automatic polling/refetch behavior.",
+      "description": "Added/modified ICP Controller Management panel functionality and UI (grant/revoke role flows, dialogs, etc.).",
+      "reason": "Not requested by the BuildRequest, which is narrowly scoped to removing refresh/auto-refresh behavior.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/AccessDeniedScreen.tsx summary)"
+        "frontend/src/components/IcpControllerManagementPanel.tsx (truncated)"
       ]
     },
     {
-      "description": "Header layout and z-index/responsive behavior changes.",
-      "reason": "Not requested by REQ-99/REQ-100.",
+      "description": "Expanded Superuser audit export/processing behaviors (export filtered logs, export all logs, export flagged users, and audit recording/toasts).",
+      "reason": "Not requested; unrelated to removing refresh/auto-refresh behavior.",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/Header.tsx summary)"
+        "frontend/src/components/SuperuserAuditPanel.tsx (truncated)"
       ]
     },
     {
-      "description": "Introduced/updated a \"RealTimeAlertPanel\" with live status/auto-updating messaging.",
-      "reason": "Conflicts with the intent of REQ-100 (avoid automatic/background updates) and is not requested in the BuildRequest.",
+      "description": "Introduced/modified Network Graph query+mutation hooks and related UX/error messaging.",
+      "reason": "Not requested; unrelated to removing refresh/auto-refresh behavior (beyond adding refetch flags).",
       "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/RealTimeAlertPanel.tsx summary)",
-        "frontend/src/pages/AdminDashboard.tsx (imports RealTimeAlertPanel)"
+        "frontend/src/hooks/useNetworkGraph.ts (truncated)"
       ]
     },
     {
-      "description": "Added/expanded World Wide Web Controller role management UI (grant/revoke/validation).",
-      "reason": "Not requested by REQ-99/REQ-100.",
+      "description": "New backend connectivity health-check hook based on calling getCallerAppControllerStatus, exposed as useBackendHealthCheck.",
+      "reason": "REQ-111 only required replacing the reload with a non-refresh connection re-check from the UI; adding a new dedicated hook is an implementation choice and may be considered additional functionality beyond the minimal change.",
       "evidence": [
-        "frontend/src/components/WorldWideWebControllerManagementPanel.tsx"
-      ]
-    },
-    {
-      "description": "Added/expanded audit log detail dialog and expanded test actions panel metadata handling.",
-      "reason": "Not requested by REQ-99/REQ-100.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/components/AuditLogDetailDialog.tsx summary)",
-        "frontend-file-summaries.txt (frontend/src/components/TestActionsPanel.tsx summary)"
-      ]
-    },
-    {
-      "description": "Global CSS/theming/z-index adjustments (OKLCH color system, dropdown portal z-index fixes, etc.).",
-      "reason": "Not requested by REQ-99/REQ-100.",
-      "evidence": [
-        "frontend-file-summaries.txt (frontend/src/index.css summary)"
+        "frontend/src/hooks/useBackendHealthCheck.ts",
+        "frontend/src/components/WebControlQuickToolsPanel.tsx (truncated)"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.64,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/WorldWideWebControllerManagementPanel.tsx",
+    "frontend/src/components/IcpControllerManagementPanel.tsx",
+    "frontend/src/components/SuperuserAuditPanel.tsx",
+    "frontend/src/components/WebControlQuickToolsPanel.tsx",
+    "frontend/src/hooks/useBackendHealthCheck.ts",
+    "frontend/src/hooks/useNetworkGraph.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/AdminDashboard.tsx",
     "project_state.json"
   ]
 }

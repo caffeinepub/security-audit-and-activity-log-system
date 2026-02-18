@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 57,
+  "projectStateVersion": 67,
   "summary": "Project to add a \"Security\" role with higher privileges than Administrator for the caffeine website, controlled/authorized by the app controller (user), and expand the app to connect to the Internet Computer (canister API integration), add Internet Identity login, and support deployment to ICP mainnet; also add a working superuser UI control to support security audits.",
   "architectural_notes": [
     "Planned: dashboard will include an App Controller–only standalone in-browser code editor capable of editing both backend (Motoko) and frontend (React/TypeScript) code, with an action to apply changes and trigger deploy.",
@@ -22,7 +22,7 @@
     "UI visuals and dropdown menus need repair (dropdowns/visual styling broken or not functioning).",
     "Network graph fails to load with error message \"failed to load network graph\" (user requests ICP connection repair)."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-update-the-frontend-access-gating-so-that-users-who-are-either-app-controller-or-security-can-access-the-dashboard-all-others-see-access-denied",
@@ -703,6 +703,102 @@
         "REQ-100"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-remove-the-blocking-checking-access-screen-from-the-main-app-flow-so-authenticated-users-are-never-stopped-on-a-dedicated-access-check-gate-while-role-queries-are-in-flight-keep-the-header-footer-visible-and-render-the-appropriate-content-without-showing-the-centered-spinner-page",
+      "title": "Remove the blocking \"Checking access...\" screen from the main app flow so authenticated users are never stopped on a dedicated access-check gate while role queries are in-flight; keep the header/footer visible and render the appropriate content without showing the centered spinner page.",
+      "reqIds": [
+        "REQ-101"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-preserve-existing-role-based-access-rules-while-removing-the-access-check-gate-security-dashboard-remains-accessible-only-to-app-controller-or-security-users-icp-operations-console-remains-accessible-only-to-icp-controller-or-world-wide-web-controller-users-unauthorized-authenticated-users-continue-to-see-the-existing-access-denied-experience-once-role-status-is-known",
+      "title": "Preserve existing role-based access rules while removing the access-check gate: Security Dashboard remains accessible only to App Controller or Security users; ICP Operations Console remains accessible only to ICP Controller or World Wide Web Controller users; unauthorized authenticated users continue to see the existing Access Denied experience once role status is known.",
+      "reqIds": [
+        "REQ-102"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-remaining-centered-loading-spinner-shown-while-authenticated-role-queries-are-in-flight-in-frontend-src-app-tsx-and-replace-it-with-a-non-spinner-non-animated-inline-loading-state-that-keeps-the-rest-of-the-ui-visible-header-footer-and-uses-clear-english-text",
+      "title": "Remove the remaining centered loading spinner shown while authenticated role queries are in-flight in frontend/src/App.tsx, and replace it with a non-spinner, non-animated inline loading state that keeps the rest of the UI visible (header/footer) and uses clear English text.",
+      "reqIds": [
+        "REQ-103"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-or-replace-all-spinner-rotating-loading-indicators-across-dashboard-panels-and-status-components-including-but-not-limited-to-rolesaccesspanel-authstatuspanel-icpconnectionpanel-and-networkmappanel-so-that-no-ui-state-uses-a-spinning-rotating-icon-or-css-based-spinner-animation-use-non-animated-icons-and-or-english-text-to-indicate-loading-instead",
+      "title": "Remove or replace all spinner/rotating loading indicators across dashboard panels and status components (including but not limited to RolesAccessPanel, AuthStatusPanel, IcpConnectionPanel, and NetworkMapPanel) so that no UI state uses a spinning/rotating icon or CSS-based spinner animation; use non-animated icons and/or English text to indicate loading instead.",
+      "reqIds": [
+        "REQ-104"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-dedicated-role-loading-access-loading-screen-in-frontend-src-app-tsx-so-the-app-never-switches-to-a-standalone-loading-view-e-g-the-centered-loading-access-information-state-while-authenticated-role-queries-are-in-flight-instead-keep-the-normal-page-content-visible-and-show-only-non-blocking-inline-status-hints-where-needed-english-text-only",
+      "title": "Remove the dedicated role-loading / access-loading screen in frontend/src/App.tsx so the app never switches to a standalone loading view (e.g., the centered \"Loading access information...\" state) while authenticated role queries are in-flight; instead, keep the normal page content visible and show only non-blocking inline status hints where needed (English text only).",
+      "reqIds": [
+        "REQ-105"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-loading-screen-style-placeholders-inside-feature-panels-e-g-large-centered-loading-states-in-panels-and-replace-them-with-non-blocking-inline-status-text-that-does-not-visually-behave-like-a-separate-loading-screen-no-full-height-framed-loading-canvases-at-minimum-update-frontend-src-components-networkmappanel-tsx-to-avoid-rendering-the-600px-centered-loading-placeholder-when-the-graph-query-is-loading",
+      "title": "Remove loading-screen style placeholders inside feature panels (e.g., large centered loading states in panels) and replace them with non-blocking inline status text that does not visually behave like a separate loading screen (no full-height framed loading canvases). At minimum, update frontend/src/components/NetworkMapPanel.tsx to avoid rendering the 600px centered loading placeholder when the graph query is loading.",
+      "reqIds": [
+        "REQ-106"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-eliminate-any-remaining-modal-screen-level-loading-indicators-that-visually-present-as-a-blocking-loading-experience-including-removing-animated-spinner-icons-used-during-mutations-at-minimum-update-frontend-src-components-profilesetupmodal-tsx-to-remove-the-animated-spinning-icon-and-use-an-english-text-only-pending-state-e-g-change-button-label-to-saving-while-pending",
+      "title": "Eliminate any remaining modal/screen-level loading indicators that visually present as a blocking loading experience, including removing animated spinner icons used during mutations. At minimum, update frontend/src/components/ProfileSetupModal.tsx to remove the animated spinning icon and use an English text-only pending state (e.g., change button label to \"Saving...\" while pending).",
+      "reqIds": [
+        "REQ-107"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-ui-controls-in-the-existing-roles-access-panel-to-allow-an-authorized-operator-current-app-controller-or-security-user-to-transfer-app-controller-to-themselves-or-to-a-specified-principal-with-clear-english-user-facing-messaging",
+      "title": "Add frontend UI controls in the existing “Roles & Access” panel to allow an authorized operator (current App Controller or Security user) to transfer App Controller to themselves or to a specified Principal, with clear English user-facing messaging.",
+      "reqIds": [
+        "REQ-109"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-react-query-mutation-hook-s-and-cache-invalidation-for-the-new-app-controller-transfer-api-so-role-dependent-ui-updates-immediately-after-transfer",
+      "title": "Add React Query mutation hook(s) and cache invalidation for the new App Controller transfer API so role-dependent UI updates immediately after transfer.",
+      "reqIds": [
+        "REQ-110"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-full-page-refresh-behavior-from-the-web-controller-tools-panel-by-eliminating-the-refresh-connection-action-that-calls-window-location-reload-and-replace-it-with-a-non-refresh-action-that-re-runs-backend-connectivity-checks-e-g-react-query-refetch-without-reloading-the-page",
+      "title": "Remove the full page-refresh behavior from the Web Controller Tools panel by eliminating the \"Refresh Connection\" action that calls window.location.reload(), and replace it with a non-refresh action that re-runs backend connectivity checks (e.g., React Query refetch) without reloading the page.",
+      "reqIds": [
+        "REQ-111"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-disable-react-query-automatic-refetch-behavior-that-can-feel-like-an-implicit-refresh-including-refetch-on-window-focus-and-refetch-on-reconnect-so-data-updates-happen-only-via-explicit-user-actions-buttons-or-via-deliberate-cache-invalidation-after-a-user-initiated-mutation",
+      "title": "Disable React Query automatic refetch behavior that can feel like an implicit \"refresh\" (including refetch-on-window-focus and refetch-on-reconnect), so data updates happen only via explicit user actions (buttons) or via deliberate cache invalidation after a user-initiated mutation.",
+      "reqIds": [
+        "REQ-112"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-any-code-that-force-refetches-large-portions-of-the-react-query-cache-as-a-side-effect-of-actor-creation-changes-i-e-avoid-global-refetchqueries-patterns-that-behave-like-an-app-wide-refresh-while-keeping-correctness-when-identity-or-icp-target-changes",
+      "title": "Remove any code that force-refetches large portions of the React Query cache as a side-effect of actor creation/changes (i.e., avoid global refetchQueries patterns that behave like an app-wide refresh), while keeping correctness when identity or ICP target changes.",
+      "reqIds": [
+        "REQ-113"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -968,6 +1064,32 @@
       "id": "AR-43",
       "summary": "Remove the app loading screen and disable automatic updates (no auto-refresh/auto-update behavior).",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Remove the \"Checking access\" screen (access-check/loading gate) so the app does not block the UI behind an access-check screen during authentication/role checks.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Remove all loading spinners throughout the app UI (eliminate remaining spinner indicators beyond the already-removed global loading/access-check screens).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Provide an App Controller recovery/transfer workflow so a previously-authorized user can become App Controller again (or allow an existing App Controller/Security user to re-assign App Controller) when the user is locked out.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Add a backend API to transfer the App Controller role to a specified target Principal when the system is already initialized, and record an audit entry for the transfer.",
+      "reqIds": [
+        "REQ-108"
+      ],
       "status": "pending"
     }
   ],

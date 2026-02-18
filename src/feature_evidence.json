@@ -2,10 +2,32 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-the-full-screen-loading-screen-in-frontend-src-app-tsx-so-the-app-never-blocks-the-entire-ui-behind-a-global-loading-spinner-while-authentication-role-profile-queries-are-in-flight",
-      "featureTitle": "Remove the full-screen \"Loading...\" screen in frontend/src/App.tsx so the app never blocks the entire UI behind a global loading spinner while authentication/role/profile queries are in-flight.",
+      "featureId": "feature-remove-the-full-page-refresh-behavior-from-the-web-controller-tools-panel-by-eliminating-the-refresh-connection-action-that-calls-window-location-reload-and-replace-it-with-a-non-refresh-action-that-re-runs-backend-connectivity-checks-e-g-react-query-refetch-without-reloading-the-page",
+      "featureTitle": "Remove the full page-refresh behavior from the Web Controller Tools panel by eliminating the \"Refresh Connection\" action that calls window.location.reload(), and replace it with a non-refresh action that re-runs backend connectivity checks (e.g., React Query refetch) without reloading the page.",
       "files": [
-        "frontend/src/App.tsx",
+        "frontend/src/components/WebControlQuickToolsPanel.tsx",
+        "frontend/src/hooks/useBackendHealthCheck.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "http-outcalls@3.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-111"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-disable-react-query-automatic-refetch-behavior-that-can-feel-like-an-implicit-refresh-including-refetch-on-window-focus-and-refetch-on-reconnect-so-data-updates-happen-only-via-explicit-user-actions-buttons-or-via-deliberate-cache-invalidation-after-a-user-initiated-mutation",
+      "featureTitle": "Disable React Query automatic refetch behavior that can feel like an implicit \"refresh\" (including refetch-on-window-focus and refetch-on-reconnect), so data updates happen only via explicit user actions (buttons) or via deliberate cache invalidation after a user-initiated mutation.",
+      "files": [
+        "frontend/src/hooks/useBackendHealthCheck.ts",
+        "frontend/src/hooks/useNetworkGraph.ts",
         "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
@@ -18,16 +40,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-99"
+        "REQ-112"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-disable-automatic-updates-polling-behavior-in-the-frontend-so-data-does-not-refresh-on-an-interval-or-due-to-implicit-react-query-auto-refetch-defaults-updates-must-occur-only-on-explicit-user-action-e-g-button-click-or-after-a-user-initiated-mutation-invalidates-queries",
-      "featureTitle": "Disable automatic updates/polling behavior in the frontend so data does not refresh on an interval or due to implicit React Query auto-refetch defaults; updates must occur only on explicit user action (e.g., button click) or after a user-initiated mutation invalidates queries.",
+      "featureId": "feature-remove-any-code-that-force-refetches-large-portions-of-the-react-query-cache-as-a-side-effect-of-actor-creation-changes-i-e-avoid-global-refetchqueries-patterns-that-behave-like-an-app-wide-refresh-while-keeping-correctness-when-identity-or-icp-target-changes",
+      "featureTitle": "Remove any code that force-refetches large portions of the React Query cache as a side-effect of actor creation/changes (i.e., avoid global refetchQueries patterns that behave like an app-wide refresh), while keeping correctness when identity or ICP target changes.",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/AdminDashboard.tsx"
+        "frontend/src/hooks/useBackendHealthCheck.ts",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -39,7 +61,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-100"
+        "REQ-113"
       ],
       "confidence": "high"
     }

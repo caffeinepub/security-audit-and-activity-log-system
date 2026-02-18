@@ -86,6 +86,7 @@ export interface IcpController {
 }
 export enum T__1 {
     unauthorizedAttempt = "unauthorizedAttempt",
+    appControllerTransfer = "appControllerTransfer",
     loginAttempt = "loginAttempt",
     permissionChange = "permissionChange",
     superuserPrivilegeChange = "superuserPrivilegeChange",
@@ -145,6 +146,7 @@ export interface backendInterface {
     revokeSecurityRole(target: Principal): Promise<void>;
     revokeWorldWideWebControllerRole(target: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    transferAppController(targetPrincipal: Principal): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unflagUser(user: Principal): Promise<void>;
     updateEdge(id: EdgeId, source: NodeId, target: NodeId, weight: number, directed: boolean): Promise<void>;

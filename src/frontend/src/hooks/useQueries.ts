@@ -18,6 +18,8 @@ export function useGetCallerUserProfile() {
     },
     enabled: !!actor && !actorFetching && !!identity,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return {
@@ -57,6 +59,8 @@ export function useGetAppControllerPrincipal() {
     },
     enabled: !!actor && !actorFetching,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -72,6 +76,8 @@ export function useGetCallerAppControllerStatus() {
     },
     enabled: !!actor && !actorFetching && !!identity,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -87,6 +93,8 @@ export function useGetCallerSecurityStatus() {
     },
     enabled: !!actor && !actorFetching && !!identity,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return {
@@ -108,6 +116,8 @@ export function useGetCallerIcpControllerStatus() {
     },
     enabled: !!actor && !actorFetching && !!identity,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return {
@@ -129,6 +139,8 @@ export function useGetCallerWorldWideWebControllerStatus() {
     },
     enabled: !!actor && !actorFetching && !!identity,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 
   return {
@@ -168,6 +180,32 @@ export function useInitializeAppController() {
   });
 }
 
+export function useTransferAppController() {
+  const { actor } = useTargetActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (targetPrincipalText: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const targetPrincipal = Principal.fromText(targetPrincipalText);
+      return actor.transferAppController(targetPrincipal);
+    },
+    onSuccess: () => {
+      // Invalidate all role/status queries so UI updates immediately
+      queryClient.invalidateQueries({ queryKey: appControllerPrincipalKey() });
+      queryClient.invalidateQueries({ queryKey: ['appControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['securityStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['icpControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['worldWideWebControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+      toast.success('App Controller transferred successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to transfer App Controller: ${error.message}`);
+    },
+  });
+}
+
 export function useGetAuditLogs(filter: FilterCriteria) {
   const { actor, isFetching: actorFetching } = useTargetActor();
 
@@ -178,6 +216,8 @@ export function useGetAuditLogs(filter: FilterCriteria) {
       return actor.getAuditLogs(filter);
     },
     enabled: !!actor && !actorFetching,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -255,6 +295,8 @@ export function useGetFlaggedUsers() {
       return actor.getFlaggedUsers();
     },
     enabled: !!actor && !actorFetching,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -289,6 +331,8 @@ export function useGetExternalBroadcastingSettings() {
       return actor.getExternalBroadcastingSettings();
     },
     enabled: !!actor && !actorFetching,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -303,92 +347,10 @@ export function useConfigureExternalBroadcasting() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['externalBroadcastingSettings'] });
-      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
-      toast.success('Broadcasting configuration updated');
+      toast.success('Broadcasting settings updated successfully');
     },
     onError: (error: Error) => {
-      toast.error(`Failed to update broadcasting: ${error.message}`);
-    },
-  });
-}
-
-export function useExportAuditLog() {
-  const { actor } = useTargetActor();
-
-  return useMutation({
-    mutationFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.exportAuditLogToJson();
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to export audit log: ${error.message}`);
-    },
-  });
-}
-
-export function useListIcpControllers(includeRevoked: boolean = false) {
-  const { actor, isFetching: actorFetching } = useTargetActor();
-
-  return useQuery<IcpController[]>({
-    queryKey: icpControllersKey(includeRevoked),
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.listIcpControllers(includeRevoked);
-    },
-    enabled: !!actor && !actorFetching,
-  });
-}
-
-export function useGrantIcpControllerRole() {
-  const { actor } = useTargetActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ targetPrincipal, name, description }: { targetPrincipal: string; name?: string; description?: string }) => {
-      if (!actor) throw new Error('Actor not available');
-      const principal = Principal.fromText(targetPrincipal);
-      return actor.grantIcpControllerRole(principal, name || null, description || null);
-    },
-    onSuccess: (_, variables) => {
-      // Invalidate both active and revoked lists
-      queryClient.invalidateQueries({ queryKey: icpControllersKey(false) });
-      queryClient.invalidateQueries({ queryKey: icpControllersKey(true) });
-      // Invalidate the specific principal's status
-      queryClient.invalidateQueries({ queryKey: icpControllerStatusKey(variables.targetPrincipal) });
-      // Invalidate all status queries to catch any cached queries
-      queryClient.invalidateQueries({ queryKey: ['icpControllerStatus'] });
-      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
-      toast.success('ICP Controller role granted successfully');
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to grant ICP Controller role: ${error.message}`);
-    },
-  });
-}
-
-export function useRevokeIcpControllerRole() {
-  const { actor } = useTargetActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (targetPrincipal: string) => {
-      if (!actor) throw new Error('Actor not available');
-      const principal = Principal.fromText(targetPrincipal);
-      return actor.revokeIcpControllerRole(principal);
-    },
-    onSuccess: (_, targetPrincipal) => {
-      // Invalidate both active and revoked lists
-      queryClient.invalidateQueries({ queryKey: icpControllersKey(false) });
-      queryClient.invalidateQueries({ queryKey: icpControllersKey(true) });
-      // Invalidate the specific principal's status
-      queryClient.invalidateQueries({ queryKey: icpControllerStatusKey(targetPrincipal) });
-      // Invalidate all status queries to catch any cached queries
-      queryClient.invalidateQueries({ queryKey: ['icpControllerStatus'] });
-      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
-      toast.success('ICP Controller role revoked successfully');
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to revoke ICP Controller role: ${error.message}`);
+      toast.error(`Failed to update broadcasting settings: ${error.message}`);
     },
   });
 }
@@ -403,8 +365,7 @@ export function useGrantSecurityRole() {
       const principal = Principal.fromText(targetPrincipal);
       return actor.grantSecurityRole(principal);
     },
-    onSuccess: (_, targetPrincipal) => {
-      queryClient.invalidateQueries({ queryKey: securityStatusKey(targetPrincipal) });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['securityStatus'] });
       queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
       toast.success('Security role granted successfully');
@@ -425,8 +386,7 @@ export function useRevokeSecurityRole() {
       const principal = Principal.fromText(targetPrincipal);
       return actor.revokeSecurityRole(principal);
     },
-    onSuccess: (_, targetPrincipal) => {
-      queryClient.invalidateQueries({ queryKey: securityStatusKey(targetPrincipal) });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['securityStatus'] });
       queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
       toast.success('Security role revoked successfully');
@@ -434,6 +394,65 @@ export function useRevokeSecurityRole() {
     onError: (error: Error) => {
       toast.error(`Failed to revoke Security role: ${error.message}`);
     },
+  });
+}
+
+export function useGrantIcpControllerRole() {
+  const { actor } = useTargetActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ target, name, description }: { target: string; name: string | null; description: string | null }) => {
+      if (!actor) throw new Error('Actor not available');
+      const principal = Principal.fromText(target);
+      return actor.grantIcpControllerRole(principal, name, description);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: icpControllersKey() });
+      queryClient.invalidateQueries({ queryKey: ['icpControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+      toast.success('ICP Controller role granted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to grant ICP Controller role: ${error.message}`);
+    },
+  });
+}
+
+export function useRevokeIcpControllerRole() {
+  const { actor } = useTargetActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (target: string) => {
+      if (!actor) throw new Error('Actor not available');
+      const principal = Principal.fromText(target);
+      return actor.revokeIcpControllerRole(principal);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: icpControllersKey() });
+      queryClient.invalidateQueries({ queryKey: ['icpControllerStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+      toast.success('ICP Controller role revoked successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to revoke ICP Controller role: ${error.message}`);
+    },
+  });
+}
+
+export function useListIcpControllers(includeRevoked: boolean = false) {
+  const { actor, isFetching: actorFetching } = useTargetActor();
+
+  return useQuery<IcpController[]>({
+    queryKey: icpControllersKey(includeRevoked),
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.listIcpControllers(includeRevoked);
+    },
+    enabled: !!actor && !actorFetching,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -447,10 +466,9 @@ export function useGrantWorldWideWebControllerRole() {
       const principal = Principal.fromText(targetPrincipal);
       return actor.grantWorldWideWebControllerRole(principal);
     },
-    onSuccess: (_, targetPrincipal) => {
-      queryClient.invalidateQueries({ queryKey: worldWideWebControllerStatusKey(targetPrincipal) });
-      queryClient.invalidateQueries({ queryKey: ['worldWideWebControllerStatus'] });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: worldWideWebControllersKey() });
+      queryClient.invalidateQueries({ queryKey: ['worldWideWebControllerStatus'] });
       queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
       toast.success('World Wide Web Controller role granted successfully');
     },
@@ -470,10 +488,9 @@ export function useRevokeWorldWideWebControllerRole() {
       const principal = Principal.fromText(targetPrincipal);
       return actor.revokeWorldWideWebControllerRole(principal);
     },
-    onSuccess: (_, targetPrincipal) => {
-      queryClient.invalidateQueries({ queryKey: worldWideWebControllerStatusKey(targetPrincipal) });
-      queryClient.invalidateQueries({ queryKey: ['worldWideWebControllerStatus'] });
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: worldWideWebControllersKey() });
+      queryClient.invalidateQueries({ queryKey: ['worldWideWebControllerStatus'] });
       queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
       toast.success('World Wide Web Controller role revoked successfully');
     },
@@ -493,5 +510,26 @@ export function useGetAllWorldWideWebControllers() {
       return actor.getAllWorldWideWebControllers();
     },
     enabled: !!actor && !actorFetching,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+}
+
+export function useExportAuditLogToJson() {
+  const { actor } = useTargetActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.exportAuditLogToJson();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['auditLogs'] });
+      toast.success('Audit log exported successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to export audit log: ${error.message}`);
+    },
   });
 }

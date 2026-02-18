@@ -11,7 +11,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
 
 export default function ProfileSetupModal() {
   const [name, setName] = useState('');
@@ -47,8 +46,7 @@ export default function ProfileSetupModal() {
           </div>
           <DialogFooter>
             <Button type="submit" disabled={!name.trim() || saveProfile.isPending}>
-              {saveProfile.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Profile
+              {saveProfile.isPending ? 'Saving...' : 'Save Profile'}
             </Button>
           </DialogFooter>
         </form>

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw, Plus, Trash2, AlertCircle, Settings } from 'lucide-react';
+import { RefreshCw, Plus, Trash2, AlertCircle, Settings, Info } from 'lucide-react';
 import { useGetNetworkGraph, useCreateNode, useUpdateNode, useDeleteNode } from '../hooks/useNetworkGraph';
 import { useMyNodes } from '../hooks/useMyNodes';
 import { useIcpControls } from '../hooks/useIcpControls';
@@ -14,6 +14,7 @@ import { validateCanisterId, getNetworkLabel } from '../utils/icpControls';
 import { actorKey } from '../queryKeys';
 import NetworkMapCanvas from './NetworkMapCanvas';
 import NetworkMapInspector from './NetworkMapInspector';
+import InlineLoadingState from './InlineLoadingState';
 import { toast } from 'sonner';
 
 interface NetworkMapPanelProps {
@@ -188,8 +189,17 @@ export default function NetworkMapPanel({ canEdit = true }: NetworkMapPanelProps
             </AlertDescription>
           </Alert>
           <Button onClick={handleRetry} variant="outline" disabled={actorFetching}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${actorFetching ? 'animate-spin' : ''}`} />
-            {actorFetching ? 'Reconnecting...' : 'Retry Connection'}
+            {actorFetching ? (
+              <>
+                <Info className="mr-2 h-4 w-4" />
+                Reconnecting...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Retry Connection
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -205,18 +215,15 @@ export default function NetworkMapPanel({ canEdit = true }: NetworkMapPanelProps
             <CardDescription>Interactive network visualization and management</CardDescription>
           </div>
           <Button onClick={handleRefresh} variant="outline" size="sm" disabled={isLoading}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw className="mr-2 h-4 w-4" />
             Refresh
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {isLoading ? (
-          <div className="flex items-center justify-center h-[600px] border rounded-lg bg-muted/20">
-            <div className="text-center space-y-2">
-              <RefreshCw className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Loading network map...</p>
-            </div>
+          <div className="py-4">
+            <InlineLoadingState message="Loading network map..." />
           </div>
         ) : (
           <>

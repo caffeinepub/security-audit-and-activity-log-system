@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Download, Shield, Loader2, CheckCircle2, AlertTriangle, FileText, Users, Database } from 'lucide-react';
-import { useExportAuditLog, useRecordAuditEntry, useGetFlaggedUsers } from '../hooks/useQueries';
+import { useExportAuditLogToJson, useRecordAuditEntry, useGetFlaggedUsers } from '../hooks/useQueries';
 import type { T as AuditEntry } from '../backend';
 import { T__1, T__2 } from '../backend';
 import { toast } from 'sonner';
@@ -15,7 +15,7 @@ interface SuperuserAuditPanelProps {
 export default function SuperuserAuditPanel({ currentLogs }: SuperuserAuditPanelProps) {
   const [isExporting, setIsExporting] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const exportAuditLog = useExportAuditLog();
+  const exportAuditLog = useExportAuditLogToJson();
   const recordAuditEntry = useRecordAuditEntry();
   const { data: flaggedUsers } = useGetFlaggedUsers();
 
@@ -211,175 +211,122 @@ export default function SuperuserAuditPanel({ currentLogs }: SuperuserAuditPanel
   };
 
   return (
-    <Card className="border-amber-500/30">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-amber-500" />
-          Superuser Audit Controls
+          <Shield className="h-5 w-5 text-blue-600" />
+          Superuser Audit Actions
         </CardTitle>
         <CardDescription>
-          Export audit logs, manage flagged users, and perform administrative actions
+          Advanced audit operations for App Controller and Security users
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Alert className="border-amber-500/50 bg-amber-500/10">
-          <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-          <AlertDescription className="text-amber-800 dark:text-amber-300">
-            <strong>Security Notice:</strong> All superuser actions are logged in the audit trail. 
-            Exported data contains sensitive information and should be handled according to your security policies.
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <strong>Privileged operations:</strong> All actions in this panel are logged in the audit trail.
           </AlertDescription>
         </Alert>
 
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          <div className="space-y-2">
-            <h4 className="text-sm font-semibold flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Export Current View
-            </h4>
-            <p className="text-xs text-muted-foreground mb-2">
-              Export filtered logs ({currentLogs.length} entries)
-            </p>
-            <Button
-              onClick={handleExportCurrent}
-              disabled={isExporting || currentLogs.length === 0}
-              variant="outline"
-              className="w-full"
-              size="sm"
-            >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Export Filtered Logs */}
+          <Button
+            variant="outline"
+            onClick={handleExportCurrent}
+            disabled={isExporting || currentLogs.length === 0}
+            className="justify-start h-auto py-3 px-4"
+          >
+            <div className="flex items-start gap-3 w-full">
+              <Download className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <div className="text-left flex-1">
+                <div className="font-medium">Export Filtered Logs</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Download current view ({currentLogs.length} entries)
+                </div>
+              </div>
+            </div>
+          </Button>
+
+          {/* Export Complete Audit Log */}
+          <Button
+            variant="outline"
+            onClick={handleExportAll}
+            disabled={isExporting}
+            className="justify-start h-auto py-3 px-4"
+          >
+            <div className="flex items-start gap-3 w-full">
               {isExporting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Exporting...
-                </>
+                <Loader2 className="h-5 w-5 mt-0.5 flex-shrink-0 animate-spin" />
               ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  Export Filtered
-                </>
+                <Database className="h-5 w-5 mt-0.5 flex-shrink-0" />
               )}
-            </Button>
-          </div>
+              <div className="text-left flex-1">
+                <div className="font-medium">Export Complete Log</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Download all audit entries
+                </div>
+              </div>
+            </div>
+          </Button>
 
-          <div className="space-y-2">
-            <h4 className="text-sm font-semibold flex items-center gap-2">
-              <Database className="h-4 w-4" />
-              Export Complete Trail
-            </h4>
-            <p className="text-xs text-muted-foreground mb-2">
-              Export all audit logs (complete)
-            </p>
-            <Button
-              onClick={handleExportAll}
-              disabled={isExporting}
-              variant="default"
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
-              size="sm"
-            >
-              {isExporting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Exporting...
-                </>
-              ) : (
-                <>
-                  <Download className="mr-2 h-4 w-4" />
-                  Export All
-                </>
-              )}
-            </Button>
-          </div>
+          {/* Export Flagged Users */}
+          <Button
+            variant="outline"
+            onClick={handleExportFlaggedUsers}
+            disabled={isProcessing || !flaggedUsers || flaggedUsers.length === 0}
+            className="justify-start h-auto py-3 px-4"
+          >
+            <div className="flex items-start gap-3 w-full">
+              <Users className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <div className="text-left flex-1">
+                <div className="font-medium">Export Flagged Users</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Download list of flagged users ({flaggedUsers?.length || 0})
+                </div>
+              </div>
+            </div>
+          </Button>
 
-          <div className="space-y-2">
-            <h4 className="text-sm font-semibold flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Export Flagged Users
-            </h4>
-            <p className="text-xs text-muted-foreground mb-2">
-              Download flagged user list ({flaggedUsers?.length || 0})
-            </p>
-            <Button
-              onClick={handleExportFlaggedUsers}
-              disabled={isProcessing || !flaggedUsers || flaggedUsers.length === 0}
-              variant="outline"
-              className="w-full"
-              size="sm"
-            >
+          {/* Record Admin Note */}
+          <Button
+            variant="outline"
+            onClick={handleRecordAdminNote}
+            disabled={isProcessing}
+            className="justify-start h-auto py-3 px-4"
+          >
+            <div className="flex items-start gap-3 w-full">
               {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
+                <Loader2 className="h-5 w-5 mt-0.5 flex-shrink-0 animate-spin" />
               ) : (
-                <>
-                  <Users className="mr-2 h-4 w-4" />
-                  Export Flagged
-                </>
+                <FileText className="h-5 w-5 mt-0.5 flex-shrink-0" />
               )}
-            </Button>
-          </div>
+              <div className="text-left flex-1">
+                <div className="font-medium">Record Admin Note</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Add checkpoint to audit log
+                </div>
+              </div>
+            </div>
+          </Button>
 
-          <div className="space-y-2">
-            <h4 className="text-sm font-semibold flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Record Admin Note
-            </h4>
-            <p className="text-xs text-muted-foreground mb-2">
-              Add administrative checkpoint
-            </p>
-            <Button
-              onClick={handleRecordAdminNote}
-              disabled={isProcessing}
-              variant="outline"
-              className="w-full"
-              size="sm"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Recording...
-                </>
-              ) : (
-                <>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Record Note
-                </>
-              )}
-            </Button>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-sm font-semibold flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4" />
-              Generate Summary
-            </h4>
-            <p className="text-xs text-muted-foreground mb-2">
-              Create audit summary report
-            </p>
-            <Button
-              onClick={handleGenerateAuditSummary}
-              disabled={isProcessing}
-              variant="outline"
-              className="w-full"
-              size="sm"
-            >
-              {isProcessing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" />
-                  Generate
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 rounded-lg border border-green-500/20 bg-green-500/10 p-3 text-sm text-green-700 dark:text-green-400">
-          <CheckCircle2 className="h-4 w-4 shrink-0" />
-          <span>All superuser actions are logged with success/failure status and exported as JSON with full metadata</span>
+          {/* Generate Audit Summary */}
+          <Button
+            variant="outline"
+            onClick={handleGenerateAuditSummary}
+            disabled={isProcessing || currentLogs.length === 0}
+            className="justify-start h-auto py-3 px-4 md:col-span-2"
+          >
+            <div className="flex items-start gap-3 w-full">
+              <CheckCircle2 className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <div className="text-left flex-1">
+                <div className="font-medium">Generate Audit Summary</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Create summary report of current view
+                </div>
+              </div>
+            </div>
+          </Button>
         </div>
       </CardContent>
     </Card>

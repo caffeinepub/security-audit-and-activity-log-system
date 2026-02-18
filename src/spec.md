@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Remove the global full-screen loading takeover and stop automatic/background data polling so the UI stays usable and data refresh happens only when the user explicitly triggers it.
+**Goal:** Remove “refresh” behavior by eliminating page reloads and disabling automatic React Query refetches, while keeping manual connection re-checks and user-initiated updates working.
 
 **Planned changes:**
-- Update `frontend/src/App.tsx` to stop rendering a full-screen centered spinner with “Loading...” during authentication/role/profile query in-flight states; keep the header/page shell visible and use inline loading states within the relevant sections.
-- Ensure unauthenticated users can reach the Access Denied experience without being blocked by role queries finishing.
-- Remove the audit log auto-refresh interval from `frontend/src/hooks/useQueries.ts` (eliminate/refactor `refetchInterval: 10000`).
-- Configure the React Query `QueryClient` in `frontend/src/main.tsx` to disable implicit auto-refetch on window focus and reconnect.
-- Add/keep an explicit manual refresh control (at minimum for audit logs) that triggers a refetch and visibly updates the displayed data when the backend is reachable.
+- Replace the Web Controller Tools “Refresh Connection” action in `frontend/src/components/WebControlQuickToolsPanel.tsx` so it no longer calls `window.location.reload()` and instead triggers a non-reload connectivity re-check.
+- Disable React Query automatic refetch triggers (e.g., refetch on window focus and on reconnect) so queries update only via explicit user actions or mutation-driven invalidation.
+- Remove broad/global React Query refetch patterns tied to actor creation/changes, keeping targeted correctness for identity/ICP target changes without introducing new loading screens or refresh-like behavior.
 
-**User-visible outcome:** The app no longer shows a full-screen “Loading...” page; the header and layout render immediately, loading is shown inline where needed, and audit logs/data only refresh when the user manually refreshes or after a user-initiated mutation triggers updates.
+**User-visible outcome:** Users can manually re-check backend connectivity from the Web Controller Tools without any page reload, and the app no longer silently “refreshes” data when the tab regains focus, the network reconnects, or an actor instance changes.

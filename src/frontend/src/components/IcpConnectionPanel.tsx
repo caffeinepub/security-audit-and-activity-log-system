@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Network, Server, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Network, Server, RefreshCw, CheckCircle2, XCircle, Info } from 'lucide-react';
 import { useBackendHealthCheck } from '../hooks/useBackendHealthCheck';
 import { useIcpControls } from '../hooks/useIcpControls';
 
@@ -42,7 +42,7 @@ export default function IcpConnectionPanel() {
             <div className="flex items-center gap-2">
               {isChecking ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />
+                  <Info className="h-4 w-4 text-blue-500" />
                   <span className="text-sm">Checking...</span>
                 </>
               ) : isConnected ? (
@@ -56,7 +56,7 @@ export default function IcpConnectionPanel() {
                 <>
                   <XCircle className="h-4 w-4 text-red-500" />
                   <Badge variant="outline" className="border-red-500 text-red-700 dark:text-red-400">
-                    Not Connected
+                    Disconnected
                   </Badge>
                 </>
               )}
@@ -68,7 +68,9 @@ export default function IcpConnectionPanel() {
               <Server className="h-4 w-4" />
               Canister ID
             </div>
-            <div className="font-mono text-xs break-all">{config.canisterId}</div>
+            <div className="font-mono text-xs break-all">
+              {config.canisterId}
+            </div>
           </div>
         </div>
 
@@ -76,30 +78,23 @@ export default function IcpConnectionPanel() {
           <Alert variant="destructive">
             <XCircle className="h-4 w-4" />
             <AlertDescription className="space-y-2">
-              <p>Cannot reach the configured canister target.</p>
-              <p className="text-sm">
-                Current target: <span className="font-mono">{networkLabel}</span> / <span className="font-mono text-xs">{config.canisterId}</span>
-              </p>
-              <p className="text-sm">
-                Use the <strong>ICP Controls</strong> panel below to verify or update your network and canister ID settings.
+              <p className="font-medium">Connection Error</p>
+              <p className="text-sm">{error}</p>
+              <p className="text-xs text-muted-foreground">
+                If this persists, check your ICP Controls settings to ensure the network and canister ID are configured correctly.
               </p>
               <Button onClick={() => refetch()} variant="outline" size="sm" className="mt-2">
                 <RefreshCw className="mr-2 h-4 w-4" />
-                Retry Connection
+                Retry
               </Button>
             </AlertDescription>
           </Alert>
         )}
 
         {isConnected && (
-          <div className="flex items-center justify-between rounded-lg border border-green-500/20 bg-green-500/10 p-3">
-            <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
-              <CheckCircle2 className="h-4 w-4" />
-              Backend is responding normally
-            </div>
-            <Button onClick={() => refetch()} variant="ghost" size="sm">
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center gap-2 rounded-lg border border-green-500/20 bg-green-500/10 p-3 text-sm text-green-700 dark:text-green-400">
+            <CheckCircle2 className="h-4 w-4" />
+            Successfully connected to {networkLabel}
           </div>
         )}
       </CardContent>

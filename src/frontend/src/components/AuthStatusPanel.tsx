@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, CheckCircle2, XCircle, RefreshCw, Copy } from 'lucide-react';
+import { User, CheckCircle2, XCircle, RefreshCw, Copy, Info } from 'lucide-react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useBackendHealthCheck } from '../hooks/useBackendHealthCheck';
 import { toast } from 'sonner';
@@ -47,7 +47,7 @@ export default function AuthStatusPanel() {
             <div className="flex items-center gap-2">
               {loginStatus === 'logging-in' ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />
+                  <Info className="h-4 w-4 text-blue-500" />
                   <span className="text-sm">Logging in...</span>
                 </>
               ) : isAuthenticated ? (

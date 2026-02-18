@@ -1,52 +1,78 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove global loading takeover and disable automatic React Query polling/refresh",
+  "title": "Remove page reload refresh and implicit React Query auto-refresh behaviors",
   "requirements": [
     {
-      "id": "REQ-99",
-      "summary": "Remove the full-screen global Loading UI and render the app shell immediately while auth/role/profile queries load inline",
+      "id": "REQ-111",
+      "summary": "Replace Web Controller Tools full page reload with an in-app backend connectivity re-check action",
       "acceptanceCriteria": [
-        "On first load and after refresh, the app does not render a full-screen loading page with a centered spinner and the text \"Loading...\".",
-        "The Header and overall page shell still render immediately, and any loading states are shown inline within the relevant panels/areas (not as a global takeover).",
-        "Unauthenticated users can still reach the Access Denied experience without waiting on role queries to finish."
+        "The \"Refresh Connection\" button in frontend/src/components/WebControlQuickToolsPanel.tsx no longer triggers a browser reload.",
+        "Users can still manually trigger a connection re-check from the Web Controller Tools UI without any page reload.",
+        "All user-facing text remains in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/components/WebControlQuickToolsPanel.tsx",
           "operation": "modify",
-          "description": "Remove the early-return full-screen loading takeover; keep Header/Footer always rendered. Adjust main content selection to (1) show AccessDeniedScreen immediately when unauthenticated, (2) show a non-blocking inline \"checking access\"/skeleton state while authenticated role/profile queries are still loading, and (3) only decide between ProfileSetupModal / dashboards / AccessDenied once role checks are resolved."
+          "description": "Remove the window.location.reload() behavior from the \"Refresh Connection\" action and replace it with a non-refresh action that triggers an explicit backend connectivity re-check (e.g., by calling the existing health-check hook refetch function) and provides English success/error feedback."
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/hooks/useBackendHealthCheck.ts",
           "operation": "modify",
-          "description": "Prevent unauthenticated users from being blocked by profile fetching: gate useGetCallerUserProfile with identity-aware enabled logic so it does not run for guests/anonymous, and ensure returned isLoading/isFetched semantics still support avoiding profile-setup modal flash."
+          "description": "Ensure the backend health-check hook exposes a stable, explicit user-invoked re-check action suitable for wiring into the Web Controller Tools panel (no page reload)."
         }
       ]
     },
     {
-      "id": "REQ-100",
-      "summary": "Disable automatic polling and implicit React Query refetch; provide explicit manual refresh for audit logs",
+      "id": "REQ-112",
+      "summary": "Disable React Query implicit refetch-on-focus and refetch-on-reconnect across the app so updates occur only via explicit user actions or deliberate invalidation after mutations",
       "acceptanceCriteria": [
-        "The audit log query in frontend/src/hooks/useQueries.ts no longer auto-refreshes every 10 seconds (remove/refactor the current refetchInterval: 10000 behavior).",
-        "React Query does not automatically refetch queries just because the window regains focus or reconnects (configure the QueryClient in frontend/src/main.tsx to disable these implicit refetches).",
-        "A user can still manually refresh relevant live data (at minimum audit logs) via an explicit UI control, and the refresh visibly updates the displayed data when the backend is reachable."
+        "React Query does not automatically refetch queries when the tab/window regains focus.",
+        "React Query does not automatically refetch queries when the browser reconnects to the network.",
+        "Queries still update when the user clicks explicit retry/refetch UI controls (e.g., retry buttons) or after a mutation invalidates relevant queries."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/hooks/useBackendHealthCheck.ts",
+          "operation": "modify",
+          "description": "Update the useQuery configuration to disable automatic refetch behaviors (refetchOnWindowFocus, refetchOnReconnect) while preserving explicit refetch() for user-triggered retries."
+        },
+        {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Remove the audit log automatic polling by deleting refetchInterval from useGetAuditLogs (and ensure no other interval-based refresh is introduced). Keep query invalidation-driven refresh behavior for user-initiated mutations."
+          "description": "Apply per-query React Query options to disable implicit refetch (including refetch-on-window-focus and refetch-on-reconnect) across the role/status/profile/controller/audit-log queries, keeping explicit retry/refetch controls and mutation-driven invalidateQueries behavior intact."
         },
         {
-          "path": "frontend/src/main.tsx",
+          "path": "frontend/src/hooks/useNetworkGraph.ts",
           "operation": "modify",
-          "description": "Update QueryClient construction with safe, necessary defaultOptions to disable implicit refetches (e.g., refetchOnWindowFocus and refetchOnReconnect; optionally refetchOnMount) while preserving explicit refetch() and invalidateQueries behavior."
+          "description": "Update network graph read queries to disable implicit refetch-on-focus and refetch-on-reconnect, ensuring graph data refresh happens via explicit user actions or mutation-driven invalidation only."
+        }
+      ]
+    },
+    {
+      "id": "REQ-113",
+      "summary": "Avoid app-wide automatic React Query cache refetch as a side-effect of actor recreation, while preserving correctness when identity or ICP target changes",
+      "acceptanceCriteria": [
+        "The app no longer performs a broad, automatic refetch of most queries solely because the backend actor instance changed.",
+        "Role/status and other backend-driven UI still updates correctly after explicit user actions (e.g., login/logout, role grant/revoke, retry connection).",
+        "No new loading screens or full-page refresh behavior is introduced."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/queryKeys.ts",
+          "operation": "modify",
+          "description": "Strengthen/query-key coverage so actor-dependent queries naturally segregate by identity and ICP target (network/canister where applicable), reducing any need for broad refetch patterns when an actor instance changes."
         },
         {
-          "path": "frontend/src/pages/AdminDashboard.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Add an explicit \"Refresh\" control for audit logs using the existing audit logs query's refetch() (and show a visible fetching state). Wire the query object (not just data) so the button reliably refreshes the displayed logs."
+          "description": "Update query keys (and any related enabled-conditions) for actor-dependent queries to incorporate identity and/or ICP target where needed, so correctness is maintained on identity/target changes without introducing any global refetchQueries-like behavior."
+        },
+        {
+          "path": "frontend/src/hooks/useBackendHealthCheck.ts",
+          "operation": "modify",
+          "description": "Ensure backend health checks remain correct across identity/ICP target changes by relying on appropriately-scoped query keys and explicit user-triggered refetch, not any broad cache refetch side effects."
         }
       ]
     }

@@ -168,6 +168,7 @@ export interface IcpController {
 }
 export enum T__1 {
     unauthorizedAttempt = "unauthorizedAttempt",
+    appControllerTransfer = "appControllerTransfer",
     loginAttempt = "loginAttempt",
     permissionChange = "permissionChange",
     superuserPrivilegeChange = "superuserPrivilegeChange",
@@ -228,6 +229,7 @@ export interface backendInterface {
     revokeSecurityRole(target: Principal): Promise<void>;
     revokeWorldWideWebControllerRole(target: Principal): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    transferAppController(targetPrincipal: Principal): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     unflagUser(user: Principal): Promise<void>;
     updateEdge(id: EdgeId, source: NodeId, target: NodeId, weight: number, directed: boolean): Promise<void>;
@@ -783,6 +785,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async transferAppController(arg0: Principal): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.transferAppController(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.transferAppController(arg0);
+            return result;
+        }
+    }
     async transform(arg0: TransformationInput): Promise<TransformationOutput> {
         if (this.processError) {
             try {
@@ -983,6 +999,8 @@ function from_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Ui
 function from_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     unauthorizedAttempt: null;
 } | {
+    appControllerTransfer: null;
+} | {
     loginAttempt: null;
 } | {
     permissionChange: null;
@@ -1001,7 +1019,7 @@ function from_candid_variant_n9(_uploadFile: (file: ExternalBlob) => Promise<Uin
 } | {
     worldWideWebControllerPrivilegeChange: null;
 }): T__1 {
-    return "unauthorizedAttempt" in value ? T__1.unauthorizedAttempt : "loginAttempt" in value ? T__1.loginAttempt : "permissionChange" in value ? T__1.permissionChange : "superuserPrivilegeChange" in value ? T__1.superuserPrivilegeChange : "dataExport" in value ? T__1.dataExport : "general" in value ? T__1.general : "accountChange" in value ? T__1.accountChange : "configUpload" in value ? T__1.configUpload : "dataImport" in value ? T__1.dataImport : "worldWideWebControllerPrivilegeChange" in value ? T__1.worldWideWebControllerPrivilegeChange : value;
+    return "unauthorizedAttempt" in value ? T__1.unauthorizedAttempt : "appControllerTransfer" in value ? T__1.appControllerTransfer : "loginAttempt" in value ? T__1.loginAttempt : "permissionChange" in value ? T__1.permissionChange : "superuserPrivilegeChange" in value ? T__1.superuserPrivilegeChange : "dataExport" in value ? T__1.dataExport : "general" in value ? T__1.general : "accountChange" in value ? T__1.accountChange : "configUpload" in value ? T__1.configUpload : "dataImport" in value ? T__1.dataImport : "worldWideWebControllerPrivilegeChange" in value ? T__1.worldWideWebControllerPrivilegeChange : value;
 }
 function from_candid_vec_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_IcpController>): Array<IcpController> {
     return value.map((x)=>from_candid_IcpController_n26(_uploadFile, _downloadFile, x));
@@ -1084,6 +1102,8 @@ function to_candid_record_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8
 function to_candid_variant_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: T__1): {
     unauthorizedAttempt: null;
 } | {
+    appControllerTransfer: null;
+} | {
     loginAttempt: null;
 } | {
     permissionChange: null;
@@ -1104,6 +1124,8 @@ function to_candid_variant_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint
 } {
     return value == T__1.unauthorizedAttempt ? {
         unauthorizedAttempt: null
+    } : value == T__1.appControllerTransfer ? {
+        appControllerTransfer: null
     } : value == T__1.loginAttempt ? {
         loginAttempt: null
     } : value == T__1.permissionChange ? {

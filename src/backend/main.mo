@@ -10,8 +10,10 @@ import Iter "mo:core/Iter";
 import Principal "mo:core/Principal";
 
 import OutCall "http-outcalls/outcall";
-import AccessControl "authorization/access-control";
+import Authorization "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
+
+
 
 actor {
   type NodeId = Nat;
@@ -29,6 +31,7 @@ actor {
       #general;
       #superuserPrivilegeChange;
       #worldWideWebControllerPrivilegeChange;
+      #appControllerTransfer;
     };
   };
 
@@ -162,7 +165,7 @@ actor {
     deletedEdgesFromExternal : [EdgeId];
   };
 
-  let accessControlState = AccessControl.initState();
+  let accessControlState = Authorization.initState();
   include MixinAuthorization(accessControlState);
 
   var userProfiles = Map.empty<Principal, UserProfile>();
@@ -201,6 +204,41 @@ actor {
       };
       case (null) {
         instanceContext := ?context;
+      };
+    };
+  };
+
+  public shared ({ caller }) func transferAppController(targetPrincipal : Principal) : async () {
+    assertAppController(caller);
+
+    switch (instanceContext) {
+      case (?context) {
+        if (targetPrincipal == context.contextPrincipal) {
+          Runtime.trap("New principal must be different");
+        };
+
+        let now = Time.now();
+        instanceContext := ?{
+          contextPrincipal = targetPrincipal;
+          contextTimestamp = now;
+        };
+
+        let auditEntry : AuditEntry.T = {
+          timestamp = now;
+          user = caller;
+          actionType = #appControllerTransfer;
+          details = "Transferred App Controller to " # targetPrincipal.toText();
+          ipAddress = null;
+          deviceInfo = null;
+          sessionData = null;
+          success = ?true;
+          severity = #info;
+        };
+
+        auditLogEntries.add(auditEntry);
+      };
+      case (null) {
+        Runtime.trap("System not initialized");
       };
     };
   };
@@ -424,13 +462,13 @@ actor {
   };
 
   func assertAdmin(caller : Principal) {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+    if (not (Authorization.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can perform this action");
     };
   };
 
   func assertUserAccess(caller : Principal) {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (Authorization.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can perform this action");
     };
   };
@@ -712,21 +750,21 @@ actor {
   // Network Graph Functions - Authorization Required
 
   public query ({ caller }) func getAllNodes() : async [Node] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (Authorization.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view the network graph");
     };
     nodes.values().toArray();
   };
 
   public query ({ caller }) func getAllEdges() : async [Edge] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (Authorization.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view the network graph");
     };
     edges.values().toArray();
   };
 
   public shared ({ caller }) func createNode(nodeLabel : Text, x : Float, y : Float) : async NodeId {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (Authorization.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create nodes");
     };
 
@@ -746,7 +784,7 @@ actor {
   };
 
   public shared ({ caller }) func createEdge(source : NodeId, target : NodeId, weight : Float, directed : Bool) : async EdgeId {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (Authorization.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can create edges");
     };
 
@@ -774,7 +812,7 @@ actor {
   };
 
   public shared ({ caller }) func updateNode(id : NodeId, nodeLabel : Text, x : Float, y : Float) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (Authorization.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update nodes");
     };
 
@@ -796,7 +834,7 @@ actor {
   };
 
   public shared ({ caller }) func updateEdge(id : EdgeId, source : NodeId, target : NodeId, weight : Float, directed : Bool) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (Authorization.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can update edges");
     };
 
@@ -826,7 +864,7 @@ actor {
   };
 
   public shared ({ caller }) func deleteNode(id : NodeId) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (Authorization.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can delete nodes");
     };
 
@@ -850,7 +888,7 @@ actor {
   };
 
   public shared ({ caller }) func deleteEdge(id : EdgeId) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not (Authorization.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can delete edges");
     };
 
@@ -862,7 +900,7 @@ actor {
   };
 
   public shared ({ caller }) func resetAndSetGraph(newNodes : [Node], newEdges : [Edge]) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not (Authorization.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can reset the entire graph");
     };
 

@@ -1,40 +1,55 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-18T01:14:48.337Z",
+  "generatedAt": "2026-02-18T02:05:49.639Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-100",
-        "summary": "Disable automatic updates/polling behavior in the frontend so data does not refresh on an interval or due to implicit React Query auto-refetch defaults; updates must occur only on explicit user action (e.g., button click) or after a user-initiated mutation invalidates queries.",
+        "id": "REQ-111",
+        "summary": "Remove the full page-refresh behavior from the Web Controller Tools panel by eliminating the \"Refresh Connection\" action that calls window.location.reload(), and replace it with a non-refresh action that re-runs backend connectivity checks (e.g., React Query refetch) without reloading the page.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/main.tsx",
-          "frontend/src/pages/AdminDashboard.tsx"
+          "frontend/src/components/WebControlQuickToolsPanel.tsx",
+          "frontend/src/hooks/useBackendHealthCheck.ts"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/AdminDashboard.tsx"
+          "frontend/src/components/WebControlQuickToolsPanel.tsx",
+          "frontend/src/hooks/useBackendHealthCheck.ts"
         ]
       },
       {
-        "id": "REQ-99",
-        "summary": "Remove the full-screen \"Loading...\" screen in frontend/src/App.tsx so the app never blocks the entire UI behind a global loading spinner while authentication/role/profile queries are in-flight.",
+        "id": "REQ-112",
+        "summary": "Disable React Query automatic refetch behavior that can feel like an implicit \"refresh\" (including refetch-on-window-focus and refetch-on-reconnect), so data updates happen only via explicit user actions (buttons) or via deliberate cache invalidation after a user-initiated mutation.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/hooks/useBackendHealthCheck.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/hooks/useNetworkGraph.ts"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/hooks/useBackendHealthCheck.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/hooks/useNetworkGraph.ts"
+        ]
+      },
+      {
+        "id": "REQ-113",
+        "summary": "Remove any code that force-refetches large portions of the React Query cache as a side-effect of actor creation/changes (i.e., avoid global refetchQueries patterns that behave like an app-wide refresh), while keeping correctness when identity or ICP target changes.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/queryKeys.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/hooks/useBackendHealthCheck.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/hooks/useBackendHealthCheck.ts"
         ]
       }
     ]
@@ -44,10 +59,12 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/components/WorldWideWebControllerManagementPanel.tsx",
+    "frontend/src/components/IcpControllerManagementPanel.tsx",
+    "frontend/src/components/SuperuserAuditPanel.tsx",
+    "frontend/src/components/WebControlQuickToolsPanel.tsx",
+    "frontend/src/hooks/useBackendHealthCheck.ts",
+    "frontend/src/hooks/useNetworkGraph.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/AdminDashboard.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

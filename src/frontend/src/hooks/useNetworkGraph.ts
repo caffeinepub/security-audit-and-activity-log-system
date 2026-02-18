@@ -26,6 +26,8 @@ export function useGetNetworkGraph() {
     },
     enabled: !!actor && !actorFetching && isCanisterIdValid,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
