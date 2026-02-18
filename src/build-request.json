@@ -1,92 +1,92 @@
 {
   "kind": "build_request",
-  "title": "Repair UI visuals and dropdown menu behavior",
-  "projectName": "Caffeine Console",
-  "priority": "normal",
+  "title": "Repair ICP connection wiring so Network Graph loads reliably",
+  "projectName": "ICP Ops Console",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-90",
-      "text": "Repair dropdown/select menus across the app so they reliably open, render above all panels (including the sticky header), and remain clickable (not visually clipped or hidden) in both light and dark themes.",
+      "id": "REQ-94",
+      "text": "Fix backend actor creation so it is keyed by (and connects using) the effective ICP Controls target settings, ensuring the actor is re-created whenever the operator changes ICP network and/or canister ID settings.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-5"
         ],
         "quotes": [
-          "Repair visuals and drop down menus"
+          "It says failed to load network graph you must repair my icp connection"
         ]
       },
       "acceptanceCriteria": [
-        "In the ICP Controls Catalog, any Select-based control opens a visible menu with options and selecting an option updates the control value.",
-        "Dropdown menus are not clipped by surrounding containers (e.g., ScrollArea, Cards) and are not hidden behind the sticky header.",
-        "Dropdown menus remain clickable and close appropriately (click outside or selection) without leaving the UI in a broken state.",
-        "Behavior works in both light and dark themes."
+        "When the user changes ICP Controls values that affect the target (at minimum: network and canisterId), subsequent backend calls use the new target without requiring a page refresh.",
+        "The backend actor query key includes the effective target settings (at minimum: network and canisterId) so React Query does not reuse an actor created for a different target.",
+        "The app does not silently keep using a stale actor after ICP Controls changes."
       ]
     },
     {
-      "id": "REQ-91",
-      "text": "Audit and repair visual styling regressions affecting core dashboard layouts (header, cards, panels, spacing, typography) to ensure a consistent, readable UI in both light and dark themes.",
+      "id": "REQ-95",
+      "text": "Make Network Graph React Query caching target-aware so a failed load (or successful load) for one ICP target does not incorrectly persist when switching to a different target.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-5"
         ],
         "quotes": [
-          "Repair visuals and drop down menus"
+          "failed to load network graph"
         ]
       },
       "acceptanceCriteria": [
-        "Header, cards, and panel content have consistent spacing and do not overlap at common viewport sizes (mobile and desktop).",
-        "Text contrast meets basic readability expectations in both themes (no muted text appearing indistinguishable from background).",
-        "No major UI elements appear visually broken (e.g., missing borders/backgrounds, unreadable gradients, misaligned controls)."
+        "The network graph query key is scoped to the effective ICP target (at minimum: network and canisterId).",
+        "Switching ICP Controls to a new target triggers a fresh network graph fetch (no stale cached error from the previous target).",
+        "Returning to a previous target reuses the correct cached graph for that target (if available) rather than mixing targets."
       ]
     },
     {
-      "id": "REQ-92",
-      "text": "Repair Network Map visual presentation so the canvas is clearly visible and the graph (nodes/edges/labels) is legible against the background in both light and dark themes.",
+      "id": "REQ-96",
+      "text": "Improve the Network Map load-failure UX so that when the network graph cannot be fetched due to ICP connectivity/target issues, the UI clearly explains that the canister target is unreachable, shows the effective network + canister ID, and provides a one-click retry that re-runs the fetch after the actor/connection is re-established.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1",
-          "msg-6"
+          "msg-5"
         ],
         "quotes": [
-          "I can't see network map",
-          "Repair visuals and drop down menus"
+          "It says failed to load network graph you must repair my icp connection"
         ]
       },
       "acceptanceCriteria": [
-        "The Network Map canvas area is visually distinct from the page background (clear boundary and adequate contrast).",
-        "Nodes, edges, and labels are visible and readable in both themes (no 'white on white' / 'black on black' rendering).",
-        "When the counters show Nodes: 1+, the user can visually locate at least one node on the canvas without requiring manual zoom/pan."
+        "On network graph load error, the Network Map panel shows an English error message that distinguishes \"backend not reachable / wrong target\" from other errors when possible (e.g., when the actor is unavailable).",
+        "The error UI displays the effective network label and the effective canister ID that the app is currently configured to use.",
+        "A visible \"Retry\" action is provided and successfully re-attempts loading the network graph.",
+        "User-facing text remains in English."
       ]
     },
     {
-      "id": "REQ-93",
-      "text": "Ensure tab-like navigation controls (e.g., the ICP Controls Catalog category tabs) remain visually consistent and usable, with clear active-state styling and no broken layout/overflow at common viewport sizes.",
+      "id": "REQ-97",
+      "text": "Prevent network graph fetching when the effective canister ID is not a valid principal text (or is a placeholder value), and instead present an English guidance message prompting the user to set a valid canister ID in ICP Controls before retrying.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-5"
         ],
         "quotes": [
-          "Repair visuals and drop down menus"
+          "failed to load network graph"
         ]
       },
       "acceptanceCriteria": [
-        "ICP Controls Catalog TabsList/TabsTrigger render without overlapping, and active category is clearly indicated.",
-        "On smaller screens, tab controls remain usable (no off-screen-only active tab with no way to navigate)."
+        "If the effective canister ID is missing/invalid, the network graph query does not run and does not show a misleading backend error.",
+        "The Network Map panel shows a clear English message indicating the canister ID is not configured/invalid and instructs the user to update it in ICP Controls.",
+        "After entering a valid canister ID, the network graph query becomes enabled and loads normally (without requiring refresh)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend/src/components/ui (Shadcn UI sources); fix dropdown/menu behavior by composition, styling overrides, or usage changes in app components.",
-    "Do not edit immutable frontend paths listed by the platform (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx)."
+    "Backend must remain single-actor (all Motoko logic in backend/main.mo).",
+    "Do not edit files under frontend/src/components/ui (compose existing UI components instead).",
+    "Do not edit immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui."
   ],
   "nonGoals": [
-    "Do not add new roles, permissions, or backend APIs as part of this task.",
-    "Do not change the network graph data model or backend storage; focus only on frontend visuals and menu usability.",
-    "Do not redesign product features; only repair and improve current UI behavior and presentation."
+    "Do not add new roles/permissions or change authorization rules as part of this fix.",
+    "Do not redesign the Network Map feature set (only repair connectivity/targeting and related error handling).",
+    "Do not add external databases, third-party auth providers, or non-IC hosting/deployment mechanisms."
   ],
   "imageRequirements": {
     "required": [],

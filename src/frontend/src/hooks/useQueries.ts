@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
+import { useTargetActor } from './useTargetActor';
 import { useInternetIdentity } from './useInternetIdentity';
 import type { UserProfile, T__4 as FilterCriteria, T as AuditEntry, InstanceContext, T__1 as ActionType, T__2 as EventSeverity, T__3 as BroadcastSettings, IcpController } from '../backend';
 import { toast } from 'sonner';
@@ -7,7 +7,7 @@ import { Principal } from '@icp-sdk/core/principal';
 import { icpControllerStatusKey, icpControllersKey, securityStatusKey, appControllerStatusKey, appControllerPrincipalKey, worldWideWebControllerStatusKey, worldWideWebControllersKey } from '../queryKeys';
 
 export function useGetCallerUserProfile() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
 
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
@@ -27,7 +27,7 @@ export function useGetCallerUserProfile() {
 }
 
 export function useSaveCallerUserProfile() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -46,7 +46,7 @@ export function useSaveCallerUserProfile() {
 }
 
 export function useGetAppControllerPrincipal() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
 
   return useQuery<Principal | null>({
     queryKey: appControllerPrincipalKey(),
@@ -60,7 +60,7 @@ export function useGetAppControllerPrincipal() {
 }
 
 export function useGetCallerAppControllerStatus() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
   const { identity } = useInternetIdentity();
 
   return useQuery<boolean>({
@@ -75,7 +75,7 @@ export function useGetCallerAppControllerStatus() {
 }
 
 export function useGetCallerSecurityStatus() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
   const { identity } = useInternetIdentity();
 
   const query = useQuery<boolean>({
@@ -96,7 +96,7 @@ export function useGetCallerSecurityStatus() {
 }
 
 export function useGetCallerIcpControllerStatus() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
   const { identity } = useInternetIdentity();
 
   const query = useQuery<boolean>({
@@ -117,7 +117,7 @@ export function useGetCallerIcpControllerStatus() {
 }
 
 export function useGetCallerWorldWideWebControllerStatus() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
   const { identity } = useInternetIdentity();
 
   const query = useQuery<boolean>({
@@ -138,7 +138,7 @@ export function useGetCallerWorldWideWebControllerStatus() {
 }
 
 export function useInitializeAppController() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
@@ -168,7 +168,7 @@ export function useInitializeAppController() {
 }
 
 export function useGetAuditLogs(filter: FilterCriteria) {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
 
   return useQuery<AuditEntry[]>({
     queryKey: ['auditLogs', filter],
@@ -182,7 +182,7 @@ export function useGetAuditLogs(filter: FilterCriteria) {
 }
 
 export function useRecordAuditEntry() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
@@ -205,7 +205,7 @@ export function useRecordAuditEntry() {
 }
 
 export function useFlagUser() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -226,7 +226,7 @@ export function useFlagUser() {
 }
 
 export function useUnflagUser() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -246,7 +246,7 @@ export function useUnflagUser() {
 }
 
 export function useGetFlaggedUsers() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
 
   return useQuery<Principal[]>({
     queryKey: ['flaggedUsers'],
@@ -259,7 +259,7 @@ export function useGetFlaggedUsers() {
 }
 
 export function useRemoveUser() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -280,7 +280,7 @@ export function useRemoveUser() {
 }
 
 export function useGetExternalBroadcastingSettings() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
 
   return useQuery<BroadcastSettings>({
     queryKey: ['externalBroadcastingSettings'],
@@ -293,7 +293,7 @@ export function useGetExternalBroadcastingSettings() {
 }
 
 export function useConfigureExternalBroadcasting() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -313,7 +313,7 @@ export function useConfigureExternalBroadcasting() {
 }
 
 export function useExportAuditLog() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
 
   return useMutation({
     mutationFn: async () => {
@@ -327,7 +327,7 @@ export function useExportAuditLog() {
 }
 
 export function useListIcpControllers(includeRevoked: boolean = false) {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
 
   return useQuery<IcpController[]>({
     queryKey: icpControllersKey(includeRevoked),
@@ -340,7 +340,7 @@ export function useListIcpControllers(includeRevoked: boolean = false) {
 }
 
 export function useGrantIcpControllerRole() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -367,7 +367,7 @@ export function useGrantIcpControllerRole() {
 }
 
 export function useRevokeIcpControllerRole() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -394,7 +394,7 @@ export function useRevokeIcpControllerRole() {
 }
 
 export function useGrantSecurityRole() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -416,7 +416,7 @@ export function useGrantSecurityRole() {
 }
 
 export function useRevokeSecurityRole() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -438,7 +438,7 @@ export function useRevokeSecurityRole() {
 }
 
 export function useListWorldWideWebControllers() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
 
   return useQuery<Principal[]>({
     queryKey: worldWideWebControllersKey(),
@@ -451,7 +451,7 @@ export function useListWorldWideWebControllers() {
 }
 
 export function useGrantWorldWideWebControllerRole() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -474,7 +474,7 @@ export function useGrantWorldWideWebControllerRole() {
 }
 
 export function useRevokeWorldWideWebControllerRole() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
   const queryClient = useQueryClient();
 
   return useMutation({

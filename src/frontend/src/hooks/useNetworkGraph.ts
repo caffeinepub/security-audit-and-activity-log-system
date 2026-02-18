@@ -1,14 +1,21 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
+import { useTargetActor } from './useTargetActor';
+import { useIcpControls } from './useIcpControls';
+import { validateCanisterId } from '../utils/icpControls';
 import { toast } from 'sonner';
 import { networkGraphKey } from '../queryKeys';
 import type { NetworkGraph, CreateNodeInput, UpdateNodeInput, CreateEdgeInput, UpdateEdgeInput, NodeId, EdgeId } from '../types/networkGraph';
 
 export function useGetNetworkGraph() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching, isError: actorError } = useTargetActor();
+  const { config } = useIcpControls();
+
+  // Validate canister ID
+  const canisterIdError = validateCanisterId(config.canisterId);
+  const isCanisterIdValid = canisterIdError === null;
 
   return useQuery<NetworkGraph>({
-    queryKey: networkGraphKey(),
+    queryKey: networkGraphKey(config.network, config.canisterId),
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
       const [nodes, edges] = await Promise.all([
@@ -17,13 +24,14 @@ export function useGetNetworkGraph() {
       ]);
       return { nodes, edges };
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isCanisterIdValid,
     retry: false,
   });
 }
 
 export function useCreateNode() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
+  const { config } = useIcpControls();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -32,7 +40,7 @@ export function useCreateNode() {
       return actor.createNode(input.nodeLabel, input.x, input.y);
     },
     onSuccess: (createdNodeId: NodeId) => {
-      queryClient.invalidateQueries({ queryKey: networkGraphKey() });
+      queryClient.invalidateQueries({ queryKey: networkGraphKey(config.network, config.canisterId) });
       toast.success('Node created successfully');
     },
     onError: (error: Error) => {
@@ -48,7 +56,8 @@ export function useCreateNode() {
 }
 
 export function useUpdateNode() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
+  const { config } = useIcpControls();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -57,7 +66,7 @@ export function useUpdateNode() {
       return actor.updateNode(input.id, input.nodeLabel, input.x, input.y);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: networkGraphKey() });
+      queryClient.invalidateQueries({ queryKey: networkGraphKey(config.network, config.canisterId) });
       toast.success('Node updated successfully');
     },
     onError: (error: Error) => {
@@ -75,7 +84,8 @@ export function useUpdateNode() {
 }
 
 export function useDeleteNode() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
+  const { config } = useIcpControls();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -84,7 +94,7 @@ export function useDeleteNode() {
       return actor.deleteNode(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: networkGraphKey() });
+      queryClient.invalidateQueries({ queryKey: networkGraphKey(config.network, config.canisterId) });
       toast.success('Node deleted successfully');
     },
     onError: (error: Error) => {
@@ -102,7 +112,8 @@ export function useDeleteNode() {
 }
 
 export function useCreateEdge() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
+  const { config } = useIcpControls();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -111,7 +122,7 @@ export function useCreateEdge() {
       return actor.createEdge(input.source, input.target, input.weight, input.directed);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: networkGraphKey() });
+      queryClient.invalidateQueries({ queryKey: networkGraphKey(config.network, config.canisterId) });
       toast.success('Edge created successfully');
     },
     onError: (error: Error) => {
@@ -129,7 +140,8 @@ export function useCreateEdge() {
 }
 
 export function useDeleteEdge() {
-  const { actor } = useActor();
+  const { actor } = useTargetActor();
+  const { config } = useIcpControls();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -138,7 +150,7 @@ export function useDeleteEdge() {
       return actor.deleteEdge(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: networkGraphKey() });
+      queryClient.invalidateQueries({ queryKey: networkGraphKey(config.network, config.canisterId) });
       toast.success('Edge deleted successfully');
     },
     onError: (error: Error) => {

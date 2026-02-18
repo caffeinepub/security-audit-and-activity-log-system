@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Repair frontend UI visual regressions and ensure dropdown/select menus render and behave reliably across the app in both light and dark themes.
+**Goal:** Make ICP target changes (network/canister ID) reliably rewire the backend actor and Network Graph data fetching so the Network Map loads correctly without refresh, with clearer error guidance and retry.
 
 **Planned changes:**
-- Fix Select/dropdown menu rendering so menus open reliably, appear above all panels (including the sticky header), are not clipped by containers, remain clickable, and close correctly.
-- Audit and repair core dashboard styling regressions (header, cards, panels, spacing, typography) to restore consistent layout and readable contrast in light/dark themes at common viewport sizes.
-- Repair Network Map presentation so the canvas boundary is clear and nodes/edges/labels are legible in light/dark themes, with at least one node visible when node counters indicate 1+.
-- Fix tab-like navigation controls (e.g., ICP Controls Catalog category tabs) to prevent overlap/overflow, clearly show active state, and remain usable on smaller screens.
+- Key backend actor creation and React Query caching by the effective ICP target settings (at minimum: network and canisterId) so changing ICP Controls re-creates/reuses the correct actor per target.
+- Make the Network Graph query key target-aware (at minimum: network and canisterId) so cached successes/errors don’t leak across targets and switching targets triggers a fresh fetch.
+- Improve Network Map load-failure UX to clearly indicate target/connectivity issues when possible, show the effective network + canister ID, and provide a one-click Retry that re-attempts after reconnection.
+- Disable Network Graph fetching when the effective canister ID is missing/invalid/placeholder and show an English guidance message to set a valid canister ID in ICP Controls; enable fetching once valid.
 
-**User-visible outcome:** Dropdowns and tabs work consistently without clipping or layering issues, dashboards look readable and aligned, and the Network Map is visible and legible in both light and dark themes.
+**User-visible outcome:** Switching ICP Controls network/canister updates the connection and Network Graph immediately (no refresh), errors clearly show which target is unreachable and why, invalid canister IDs prompt the user to fix settings, and a Retry button re-attempts loading the graph.

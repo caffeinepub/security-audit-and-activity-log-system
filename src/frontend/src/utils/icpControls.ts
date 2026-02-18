@@ -39,6 +39,19 @@ export function getIcpControlsDefaults(): IcpControlsDefaults {
 }
 
 /**
+ * Check if canister ID is a placeholder value
+ */
+export function isPlaceholderCanisterId(canisterId: string): boolean {
+  const trimmed = canisterId.trim();
+  return (
+    trimmed === '' ||
+    trimmed === 'Not available' ||
+    trimmed === 'Not available in local development' ||
+    trimmed.toLowerCase().includes('placeholder')
+  );
+}
+
+/**
  * Validate canister ID format
  * Returns error message if invalid, null if valid
  */
@@ -49,9 +62,9 @@ export function validateCanisterId(canisterId: string): string | null {
   
   const trimmed = canisterId.trim();
   
-  // Check if it's a placeholder value
-  if (trimmed === 'Not available' || trimmed === 'Not available in local development') {
-    return null; // Allow placeholder values
+  // Check if it's a placeholder value - treat as invalid for network operations
+  if (isPlaceholderCanisterId(trimmed)) {
+    return 'Canister ID is not configured. Please set a valid canister ID in ICP Controls.';
   }
   
   // Try to parse as Principal to validate format

@@ -1,114 +1,105 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Caffeine Console — UI visual repairs (dropdowns, layouts, tabs, network map)",
+  "title": "Repair target-aware ICP actor + Network Graph caching and error UX",
   "requirements": [
     {
-      "id": "REQ-90",
-      "summary": "Fix Select/dropdown menus to open reliably, overlay above sticky header/panels, avoid clipping, and remain clickable in light/dark themes.",
+      "id": "REQ-94",
+      "summary": "Make backend actor creation target-aware (network + canisterId) and ensure it is re-created when ICP Controls target changes.",
       "acceptanceCriteria": [
-        "In the ICP Controls Catalog, any Select-based control opens a visible menu with options and selecting an option updates the control value.",
-        "Dropdown menus are not clipped by surrounding containers (e.g., ScrollArea, Cards) and are not hidden behind the sticky header.",
-        "Dropdown menus remain clickable and close appropriately (click outside or selection) without leaving the UI in a broken state.",
-        "Behavior works in both light and dark themes."
+        "When the user changes ICP Controls values that affect the target (at minimum: network and canisterId), subsequent backend calls use the new target without requiring a page refresh.",
+        "The backend actor query key includes the effective target settings (at minimum: network and canisterId) so React Query does not reuse an actor created for a different target.",
+        "The app does not silently keep using a stale actor after ICP Controls changes."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Add global CSS overrides (outside shadcn sources) to ensure Radix/shadcn Select dropdown portals/poppers render with a z-index above the sticky header and panels, and to prevent pointer-event/clickability issues and visual clipping artifacts in both themes."
+          "path": "frontend/src/hooks/useTargetActor.ts",
+          "operation": "create",
+          "description": "Add a new React Query-backed hook that creates/caches the backend actor keyed by the effective ICP target (at minimum: network + canisterId) and identity principal, using the existing createActorWithConfig helper. This avoids modifying the immutable frontend/src/hooks/useActor.ts."
         },
         {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/queryKeys.ts",
           "operation": "modify",
-          "description": "Adjust header stacking context/z-index and any styles that may create unintended stacking contexts (e.g., backdrop/positioning) so dropdown popovers can reliably overlay the sticky header while remaining clickable."
+          "description": "Add a shared query key helper for the target-aware actor (e.g., actorKey(principalText, network, canisterId)) so other hooks can consistently reference/invalidate the correct actor instance."
         },
         {
-          "path": "frontend/src/components/IcpControlsCatalogRow.tsx",
+          "path": "frontend/src/hooks/useBackendHealthCheck.ts",
           "operation": "modify",
-          "description": "Update Select composition/props at the usage site (without editing frontend/src/components/ui) to ensure SelectContent is portaled/positioned correctly and receives an explicit high z-index class so the menu is never hidden/clipped inside ScrollArea/Cards. Verify the component's usage instructions before implementing."
+          "description": "Switch health check to use the new target-aware actor hook so connectivity checks always reflect the currently effective ICP Controls target settings."
         },
         {
-          "path": "frontend/src/components/IcpControlsCatalog.tsx",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Audit and adjust ScrollArea/Tabs layout composition around rows so Select triggers and the dropdown menu interaction are not hindered by container overflow settings; ensure catalog interactions remain stable after dropdown selection/close. Verify the component's usage instructions before implementing."
+          "description": "Update shared backend-query hooks to use the new target-aware actor hook (instead of the immutable useActor) so all backend calls follow the effective ICP Controls target without refresh."
         }
       ]
     },
     {
-      "id": "REQ-91",
-      "summary": "Audit and repair core dashboard visual regressions (header, cards, panels, spacing, typography) for consistent readability in light/dark themes.",
+      "id": "REQ-95",
+      "summary": "Scope Network Graph React Query caching to the effective ICP target so switching targets does not reuse stale cached data/errors.",
       "acceptanceCriteria": [
-        "Header, cards, and panel content have consistent spacing and do not overlap at common viewport sizes (mobile and desktop).",
-        "Text contrast meets basic readability expectations in both themes (no muted text appearing indistinguishable from background).",
-        "No major UI elements appear visually broken (e.g., missing borders/backgrounds, unreadable gradients, misaligned controls)."
+        "The network graph query key is scoped to the effective ICP target (at minimum: network and canisterId).",
+        "Switching ICP Controls to a new target triggers a fresh network graph fetch (no stale cached error from the previous target).",
+        "Returning to a previous target reuses the correct cached graph for that target (if available) rather than mixing targets."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/queryKeys.ts",
           "operation": "modify",
-          "description": "Tune theme tokens and add small global style safeguards (e.g., muted text contrast, popover/card readability, focus/outline visibility) to eliminate light/dark regressions without modifying shadcn UI source files."
+          "description": "Change networkGraphKey to accept target inputs (at minimum: network + canisterId) and return a target-scoped query key (e.g., ['networkGraph', network, canisterId])."
         },
         {
-          "path": "frontend/src/components/Header.tsx",
+          "path": "frontend/src/hooks/useNetworkGraph.ts",
           "operation": "modify",
-          "description": "Improve header layout responsiveness (spacing/wrapping/alignment) so controls and text do not overlap on mobile and common desktop widths while preserving existing behavior."
-        },
-        {
-          "path": "frontend/src/pages/AdminDashboard.tsx",
-          "operation": "modify",
-          "description": "Adjust dashboard container spacing/grid behavior for mobile/desktop to reduce crowding and prevent panel overlap while keeping the same set/order of panels."
-        },
-        {
-          "path": "frontend/src/pages/IcpOpsDashboard.tsx",
-          "operation": "modify",
-          "description": "Adjust dashboard container spacing/grid behavior for mobile/desktop to ensure consistent layout, readable typography, and no panel overlap across themes."
+          "description": "Update useGetNetworkGraph (and any related invalidations in mutations) to use the target-scoped networkGraphKey(network, canisterId), and to depend on the target-aware actor hook so caching and fetching are consistent per target."
         }
       ]
     },
     {
-      "id": "REQ-92",
-      "summary": "Fix Network Map canvas visibility and ensure nodes/edges/labels are legible with correct contrast in light/dark themes.",
+      "id": "REQ-96",
+      "summary": "Improve Network Map load-failure UX to explain target reachability issues, display effective network + canisterId, and provide a one-click retry that re-establishes connection then refetches.",
       "acceptanceCriteria": [
-        "The Network Map canvas area is visually distinct from the page background (clear boundary and adequate contrast).",
-        "Nodes, edges, and labels are visible and readable in both themes (no 'white on white' / 'black on black' rendering).",
-        "When the counters show Nodes: 1+, the user can visually locate at least one node on the canvas without requiring manual zoom/pan."
+        "On network graph load error, the Network Map panel shows an English error message that distinguishes \"backend not reachable / wrong target\" from other errors when possible (e.g., when the actor is unavailable).",
+        "The error UI displays the effective network label and the effective canister ID that the app is currently configured to use.",
+        "A visible \"Retry\" action is provided and successfully re-attempts loading the network graph.",
+        "User-facing text remains in English."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/NetworkMapCanvas.tsx",
+          "path": "frontend/src/components/NetworkMapPanel.tsx",
           "operation": "modify",
-          "description": "Make canvas rendering theme-aware by deriving node/edge/label colors from CSS theme variables (light/dark), improve background/border contrast, and adjust label drawing to avoid low-contrast text; add a safe initial auto-center/fit behavior when nodes exist so at least one node is visible without manual pan/zoom."
+          "description": "Enhance the error state UI to: (1) clearly indicate when the canister target appears unreachable vs other errors (e.g., special-case \"Actor not available\" / connection messages), (2) display effective network label and effective canister ID from useIcpControls, and (3) provide a visible Retry button that invalidates/refetches the target-aware actor query and then re-runs the network graph fetch, all with English copy."
+        },
+        {
+          "path": "frontend/src/hooks/useNetworkGraph.ts",
+          "operation": "modify",
+          "description": "Expose/refine error classification for graph fetch failures (e.g., actor unavailable vs general fetch failure) so the NetworkMapPanel can present a clearer reachability message and support retry behavior without relying on a page refresh."
+        }
+      ]
+    },
+    {
+      "id": "REQ-97",
+      "summary": "Disable network graph fetching when canister ID is missing/invalid/placeholder and show English guidance prompting the user to set a valid canister ID in ICP Controls.",
+      "acceptanceCriteria": [
+        "If the effective canister ID is missing/invalid, the network graph query does not run and does not show a misleading backend error.",
+        "The Network Map panel shows a clear English message indicating the canister ID is not configured/invalid and instructs the user to update it in ICP Controls.",
+        "After entering a valid canister ID, the network graph query becomes enabled and loads normally (without requiring refresh)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useNetworkGraph.ts",
+          "operation": "modify",
+          "description": "Use existing canister ID validation (from frontend/src/utils/icpControls.ts) to gate the network graph query: set enabled=false when the effective canisterId is missing/invalid/placeholder so the fetch never runs in that state."
         },
         {
           "path": "frontend/src/components/NetworkMapPanel.tsx",
           "operation": "modify",
-          "description": "Ensure the Network Map card/panel presentation clearly frames the canvas area (consistent padding/border/contrast) in both themes and does not visually blend into surrounding background."
+          "description": "When network graph fetching is disabled due to invalid/missing canisterId, render an English guidance message (instead of an error) that tells the user to set a valid canister ID in ICP Controls, and allow retry once a valid canisterId is entered (no refresh required)."
         },
         {
-          "path": "frontend/src/index.css",
+          "path": "frontend/src/utils/icpControls.ts",
           "operation": "modify",
-          "description": "Add/adjust any needed theme tokens/utility styles to support readable canvas overlays (e.g., hint badge background/foreground contrast) and consistent light/dark rendering."
-        }
-      ]
-    },
-    {
-      "id": "REQ-93",
-      "summary": "Repair tab-like navigation controls (ICP Controls Catalog category tabs) to keep active-state clear and prevent overflow/broken layouts on common viewport sizes.",
-      "acceptanceCriteria": [
-        "ICP Controls Catalog TabsList/TabsTrigger render without overlapping, and active category is clearly indicated.",
-        "On smaller screens, tab controls remain usable (no off-screen-only active tab with no way to navigate)."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/IcpControlsCatalog.tsx",
-          "operation": "modify",
-          "description": "Refactor the TabsList/TabsTrigger layout at the usage site to avoid grid overflow (e.g., use a horizontally scrollable tabs row with non-wrapping triggers and clear active-state styling) while keeping existing categories and content mapping. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/index.css",
-          "operation": "modify",
-          "description": "Add minimal CSS overrides (non-ui-source) if necessary to ensure Tabs active/hover/focus states are readable and consistent in both themes, especially when tabs are scrollable."
+          "description": "If needed, tighten/clarify validateCanisterId behavior so it reliably treats placeholder/unset values as invalid for the Network Map gating logic (without changing the ICP Controls feature set)."
         }
       ]
     }

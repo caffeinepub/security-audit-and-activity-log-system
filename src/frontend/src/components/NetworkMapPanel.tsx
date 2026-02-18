@@ -4,9 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw, Plus, Trash2, AlertCircle } from 'lucide-react';
+import { RefreshCw, Plus, Trash2, AlertCircle, Settings } from 'lucide-react';
 import { useGetNetworkGraph, useCreateNode, useUpdateNode, useDeleteNode } from '../hooks/useNetworkGraph';
 import { useMyNodes } from '../hooks/useMyNodes';
+import { useIcpControls } from '../hooks/useIcpControls';
+import { useTargetActor } from '../hooks/useTargetActor';
+import { useQueryClient } from '@tanstack/react-query';
+import { validateCanisterId, getNetworkLabel } from '../utils/icpControls';
+import { actorKey } from '../queryKeys';
 import NetworkMapCanvas from './NetworkMapCanvas';
 import NetworkMapInspector from './NetworkMapInspector';
 import { toast } from 'sonner';
@@ -16,15 +21,22 @@ interface NetworkMapPanelProps {
 }
 
 export default function NetworkMapPanel({ canEdit = true }: NetworkMapPanelProps) {
-  const { data: graph, isLoading, error, refetch } = useGetNetworkGraph();
+  const { config } = useIcpControls();
+  const { actor, isFetching: actorFetching } = useTargetActor();
+  const { data: graph, isLoading, error, refetch, isFetched } = useGetNetworkGraph();
   const createNodeMutation = useCreateNode();
   const updateNodeMutation = useUpdateNode();
   const deleteNodeMutation = useDeleteNode();
+  const queryClient = useQueryClient();
   
   const { nodeIds, addNode, removeNode, getMissingNodeIds, pruneMissingNodes } = useMyNodes();
   
   const [selectedNodeId, setSelectedNodeId] = useState<bigint | null>(null);
   const [newNodeLabel, setNewNodeLabel] = useState('');
+
+  // Validate canister ID
+  const canisterIdError = validateCanisterId(config.canisterId);
+  const isCanisterIdValid = canisterIdError === null;
 
   // Auto-prune missing nodes when graph loads
   useEffect(() => {
@@ -84,6 +96,23 @@ export default function NetworkMapPanel({ canEdit = true }: NetworkMapPanelProps
     }
   };
 
+  const handleRetry = async () => {
+    // Invalidate and refetch the target actor
+    queryClient.invalidateQueries({
+      queryKey: actorKey(
+        'anonymous',
+        config.network,
+        config.canisterId
+      ),
+    });
+    
+    // Wait a moment for actor to reinitialize
+    setTimeout(() => {
+      refetch();
+      toast.success('Retrying connection...');
+    }, 500);
+  };
+
   const handleRefresh = () => {
     refetch();
     toast.success('Network map refreshed');
@@ -96,7 +125,8 @@ export default function NetworkMapPanel({ canEdit = true }: NetworkMapPanelProps
 
   const missingNodeIds = graph?.nodes ? getMissingNodeIds(graph.nodes) : [];
 
-  if (error) {
+  // Show configuration guidance if canister ID is invalid
+  if (!isCanisterIdValid) {
     return (
       <Card>
         <CardHeader>
@@ -104,12 +134,63 @@ export default function NetworkMapPanel({ canEdit = true }: NetworkMapPanelProps
           <CardDescription>Interactive network visualization</CardDescription>
         </CardHeader>
         <CardContent>
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Failed to load network map: {error instanceof Error ? error.message : 'Unknown error'}
+          <Alert>
+            <Settings className="h-4 w-4" />
+            <AlertDescription className="space-y-2">
+              <p className="font-medium">Canister ID Not Configured</p>
+              <p className="text-sm">
+                {canisterIdError}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Please configure a valid canister ID in the ICP Controls panel to load the network map.
+              </p>
+              <div className="mt-2 text-xs text-muted-foreground">
+                <p><strong>Current Network:</strong> {getNetworkLabel(config.network)}</p>
+                <p><strong>Current Canister ID:</strong> {config.canisterId}</p>
+              </div>
             </AlertDescription>
           </Alert>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show error state with retry
+  if (error) {
+    const isActorUnavailable = !actor || actorFetching;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Network Map</CardTitle>
+          <CardDescription>Interactive network visualization</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription className="space-y-2">
+              <p className="font-medium">
+                {isActorUnavailable 
+                  ? 'Backend Connection Failed' 
+                  : 'Failed to Load Network Map'}
+              </p>
+              <p className="text-sm">{errorMessage}</p>
+              {isActorUnavailable && (
+                <p className="text-sm text-muted-foreground">
+                  The canister at the configured target may be unreachable or the network settings may be incorrect.
+                </p>
+              )}
+              <div className="mt-2 text-xs text-muted-foreground">
+                <p><strong>Network:</strong> {getNetworkLabel(config.network)}</p>
+                <p><strong>Canister ID:</strong> {config.canisterId}</p>
+              </div>
+            </AlertDescription>
+          </Alert>
+          <Button onClick={handleRetry} variant="outline" disabled={actorFetching}>
+            <RefreshCw className={`mr-2 h-4 w-4 ${actorFetching ? 'animate-spin' : ''}`} />
+            {actorFetching ? 'Reconnecting...' : 'Retry Connection'}
+          </Button>
         </CardContent>
       </Card>
     );

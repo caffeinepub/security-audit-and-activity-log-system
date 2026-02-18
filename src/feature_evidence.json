@@ -2,13 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-repair-dropdown-select-menus-across-the-app-so-they-reliably-open-render-above-all-panels-including-the-sticky-header-and-remain-clickable-not-visually-clipped-or-hidden-in-both-light-and-dark-themes",
-      "featureTitle": "Repair dropdown/select menus across the app so they reliably open, render above all panels (including the sticky header), and remain clickable (not visually clipped or hidden) in both light and dark themes.",
+      "featureId": "feature-fix-backend-actor-creation-so-it-is-keyed-by-and-connects-using-the-effective-icp-controls-target-settings-ensuring-the-actor-is-re-created-whenever-the-operator-changes-icp-network-and-or-canister-id-settings",
+      "featureTitle": "Fix backend actor creation so it is keyed by (and connects using) the effective ICP Controls target settings, ensuring the actor is re-created whenever the operator changes ICP network and/or canister ID settings.",
       "files": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/components/IcpControlsCatalog.tsx",
-        "frontend/src/components/IcpControlsCatalogRow.tsx",
-        "frontend/src/index.css"
+        "frontend/src/hooks/useBackendHealthCheck.ts",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/hooks/useTargetActor.ts",
+        "frontend/src/queryKeys.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -20,18 +20,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-90"
+        "REQ-94"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-audit-and-repair-visual-styling-regressions-affecting-core-dashboard-layouts-header-cards-panels-spacing-typography-to-ensure-a-consistent-readable-ui-in-both-light-and-dark-themes",
-      "featureTitle": "Audit and repair visual styling regressions affecting core dashboard layouts (header, cards, panels, spacing, typography) to ensure a consistent, readable UI in both light and dark themes.",
+      "featureId": "feature-make-network-graph-react-query-caching-target-aware-so-a-failed-load-or-successful-load-for-one-icp-target-does-not-incorrectly-persist-when-switching-to-a-different-target",
+      "featureTitle": "Make Network Graph React Query caching target-aware so a failed load (or successful load) for one ICP target does not incorrectly persist when switching to a different target.",
       "files": [
-        "frontend/src/components/Header.tsx",
-        "frontend/src/index.css",
-        "frontend/src/pages/AdminDashboard.tsx",
-        "frontend/src/pages/IcpOpsDashboard.tsx"
+        "frontend/src/hooks/useNetworkGraph.ts",
+        "frontend/src/queryKeys.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -43,17 +41,16 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-91"
+        "REQ-95"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-repair-network-map-visual-presentation-so-the-canvas-is-clearly-visible-and-the-graph-nodes-edges-labels-is-legible-against-the-background-in-both-light-and-dark-themes",
-      "featureTitle": "Repair Network Map visual presentation so the canvas is clearly visible and the graph (nodes/edges/labels) is legible against the background in both light and dark themes.",
+      "featureId": "feature-improve-the-network-map-load-failure-ux-so-that-when-the-network-graph-cannot-be-fetched-due-to-icp-connectivity-target-issues-the-ui-clearly-explains-that-the-canister-target-is-unreachable-shows-the-effective-network-canister-id-and-provides-a-one-click-retry-that-re-runs-the-fetch-after-the-actor-connection-is-re-established",
+      "featureTitle": "Improve the Network Map load-failure UX so that when the network graph cannot be fetched due to ICP connectivity/target issues, the UI clearly explains that the canister target is unreachable, shows the effective network + canister ID, and provides a one-click retry that re-runs the fetch after the actor/connection is re-established.",
       "files": [
-        "frontend/src/components/NetworkMapCanvas.tsx",
         "frontend/src/components/NetworkMapPanel.tsx",
-        "frontend/src/index.css"
+        "frontend/src/hooks/useNetworkGraph.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -65,16 +62,17 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-92"
+        "REQ-96"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-tab-like-navigation-controls-e-g-the-icp-controls-catalog-category-tabs-remain-visually-consistent-and-usable-with-clear-active-state-styling-and-no-broken-layout-overflow-at-common-viewport-sizes",
-      "featureTitle": "Ensure tab-like navigation controls (e.g., the ICP Controls Catalog category tabs) remain visually consistent and usable, with clear active-state styling and no broken layout/overflow at common viewport sizes.",
+      "featureId": "feature-prevent-network-graph-fetching-when-the-effective-canister-id-is-not-a-valid-principal-text-or-is-a-placeholder-value-and-instead-present-an-english-guidance-message-prompting-the-user-to-set-a-valid-canister-id-in-icp-controls-before-retrying",
+      "featureTitle": "Prevent network graph fetching when the effective canister ID is not a valid principal text (or is a placeholder value), and instead present an English guidance message prompting the user to set a valid canister ID in ICP Controls before retrying.",
       "files": [
-        "frontend/src/components/IcpControlsCatalog.tsx",
-        "frontend/src/index.css"
+        "frontend/src/components/NetworkMapPanel.tsx",
+        "frontend/src/hooks/useNetworkGraph.ts",
+        "frontend/src/utils/icpControls.ts"
       ],
       "components": [
         "authorization@4.0.0",
@@ -86,7 +84,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-93"
+        "REQ-97"
       ],
       "confidence": "high"
     }

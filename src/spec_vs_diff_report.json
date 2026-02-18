@@ -1,21 +1,37 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T23:45:56.108Z",
-  "summary": "Diff appears to address the requested UI repairs: dropdown/select overlay and clickability (z-index + popper positioning + global Radix portal z-index overrides), dashboard/header spacing/contrast improvements, Network Map canvas contrast/legibility with theme-aware colors and initial auto-fit/centering, and tab overflow usability on small screens via scrollable tablists.",
-  "missing_requirements": [],
-  "hallucinated_features": [],
-  "confidence": 0.72,
+  "generatedAt": "2026-02-18T00:10:42.685Z",
+  "summary": "Implemented a new target-aware backend actor hook and updated React Query keys for the actor and network graph to include ICP target settings (network + canisterId). Network graph fetching is gated on canisterId validity via validation utilities and React Query `enabled`. However, the diff evidence is insufficient to confirm the required Network Map error-state UX (effective target display + retry) is fully implemented.",
+  "missing_requirements": [
+    {
+      "id": "REQ-96",
+      "requirement": "Improve the Network Map load-failure UX so that when the network graph cannot be fetched due to ICP connectivity/target issues, the UI clearly explains that the canister target is unreachable, shows the effective network + canister ID, and provides a one-click retry that re-runs the fetch after the actor/connection is re-established.",
+      "reason": "While `NetworkMapPanel` adds a `handleRetry` function and imports utilities like `getNetworkLabel`, the provided diff snippet is truncated before showing any concrete error UI that (a) displays the effective network label and canister ID, and (b) distinguishes target/connectivity errors from other errors. The acceptance-criteria UI elements are not verifiable from the diff summary evidence.",
+      "evidence": [
+        "frontend/src/components/NetworkMapPanel.tsx (truncated)"
+      ]
+    }
+  ],
+  "hallucinated_features": [
+    {
+      "description": "Added a backend connectivity/health-check React Query hook (`useBackendHealthCheck`).",
+      "reason": "Not requested by REQ-94 through REQ-97; the BuildRequest focuses on actor recreation, target-aware caching, and Network Map error/validation UX, not a separate health-check hook.",
+      "evidence": [
+        "frontend/src/hooks/useBackendHealthCheck.ts"
+      ]
+    }
+  ],
+  "confidence": 0.63,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/IcpControlsCatalog.tsx",
-    "frontend/src/components/IcpControlsCatalogRow.tsx",
-    "frontend/src/components/NetworkMapCanvas.tsx",
     "frontend/src/components/NetworkMapPanel.tsx",
-    "frontend/src/index.css",
-    "frontend/src/pages/AdminDashboard.tsx",
-    "frontend/src/pages/IcpOpsDashboard.tsx",
+    "frontend/src/hooks/useBackendHealthCheck.ts",
+    "frontend/src/hooks/useNetworkGraph.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useTargetActor.ts",
+    "frontend/src/queryKeys.ts",
+    "frontend/src/utils/icpControls.ts",
     "project_state.json"
   ]
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 51,
+  "projectStateVersion": 53,
   "summary": "Project to add a \"Security\" role with higher privileges than Administrator for the caffeine website, controlled/authorized by the app controller (user), and expand the app to connect to the Internet Computer (canister API integration), add Internet Identity login, and support deployment to ICP mainnet; also add a working superuser UI control to support security audits.",
   "architectural_notes": [
     "Planned: dashboard will include an App Controller–only standalone in-browser code editor capable of editing both backend (Motoko) and frontend (React/TypeScript) code, with an action to apply changes and trigger deploy.",
@@ -19,7 +19,8 @@
     "ICP Controller page/panel still not visible/accessible in the app UI (user reports they still can't see it after latest deploy).",
     "Privilege escalation risk related to granting the World Wide Web Controller (\"Web control\") role needs to be removed before role granting is safe.",
     "Network Map/graph visuals are not rendering correctly for the user even when ICP Connection shows \"Connected\" (blank/only partial display).",
-    "UI visuals and dropdown menus need repair (dropdowns/visual styling broken or not functioning)."
+    "UI visuals and dropdown menus need repair (dropdowns/visual styling broken or not functioning).",
+    "Network graph fails to load with error message \"failed to load network graph\" (user requests ICP connection repair)."
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -644,6 +645,38 @@
       "title": "Ensure tab-like navigation controls (e.g., the ICP Controls Catalog category tabs) remain visually consistent and usable, with clear active-state styling and no broken layout/overflow at common viewport sizes.",
       "reqIds": [
         "REQ-93"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-backend-actor-creation-so-it-is-keyed-by-and-connects-using-the-effective-icp-controls-target-settings-ensuring-the-actor-is-re-created-whenever-the-operator-changes-icp-network-and-or-canister-id-settings",
+      "title": "Fix backend actor creation so it is keyed by (and connects using) the effective ICP Controls target settings, ensuring the actor is re-created whenever the operator changes ICP network and/or canister ID settings.",
+      "reqIds": [
+        "REQ-94"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-network-graph-react-query-caching-target-aware-so-a-failed-load-or-successful-load-for-one-icp-target-does-not-incorrectly-persist-when-switching-to-a-different-target",
+      "title": "Make Network Graph React Query caching target-aware so a failed load (or successful load) for one ICP target does not incorrectly persist when switching to a different target.",
+      "reqIds": [
+        "REQ-95"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-improve-the-network-map-load-failure-ux-so-that-when-the-network-graph-cannot-be-fetched-due-to-icp-connectivity-target-issues-the-ui-clearly-explains-that-the-canister-target-is-unreachable-shows-the-effective-network-canister-id-and-provides-a-one-click-retry-that-re-runs-the-fetch-after-the-actor-connection-is-re-established",
+      "title": "Improve the Network Map load-failure UX so that when the network graph cannot be fetched due to ICP connectivity/target issues, the UI clearly explains that the canister target is unreachable, shows the effective network + canister ID, and provides a one-click retry that re-runs the fetch after the actor/connection is re-established.",
+      "reqIds": [
+        "REQ-96"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-prevent-network-graph-fetching-when-the-effective-canister-id-is-not-a-valid-principal-text-or-is-a-placeholder-value-and-instead-present-an-english-guidance-message-prompting-the-user-to-set-a-valid-canister-id-in-icp-controls-before-retrying",
+      "title": "Prevent network graph fetching when the effective canister ID is not a valid principal text (or is a placeholder value), and instead present an English guidance message prompting the user to set a valid canister ID in ICP Controls before retrying.",
+      "reqIds": [
+        "REQ-97"
       ],
       "version": 1
     }

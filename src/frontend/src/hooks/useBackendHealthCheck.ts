@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { useActor } from './useActor';
+import { useTargetActor } from './useTargetActor';
 import { useIcpControls } from './useIcpControls';
 
 export function useBackendHealthCheck() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching: actorFetching } = useTargetActor();
   const { config } = useIcpControls();
 
   const query = useQuery<boolean, Error>({

@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-17T23:45:56.115Z",
+  "generatedAt": "2026-02-18T00:10:42.690Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,65 +11,61 @@
     "implemented": 4,
     "items": [
       {
-        "id": "REQ-90",
-        "summary": "Repair dropdown/select menus across the app so they reliably open, render above all panels (including the sticky header), and remain clickable (not visually clipped or hidden) in both light and dark themes.",
+        "id": "REQ-94",
+        "summary": "Fix backend actor creation so it is keyed by (and connects using) the effective ICP Controls target settings, ensuring the actor is re-created whenever the operator changes ICP network and/or canister ID settings.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/components/IcpControlsCatalogRow.tsx",
-          "frontend/src/components/IcpControlsCatalog.tsx"
+          "frontend/src/hooks/useTargetActor.ts",
+          "frontend/src/queryKeys.ts",
+          "frontend/src/hooks/useBackendHealthCheck.ts",
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/components/IcpControlsCatalogRow.tsx",
-          "frontend/src/components/IcpControlsCatalog.tsx"
+          "frontend/src/hooks/useTargetActor.ts",
+          "frontend/src/queryKeys.ts",
+          "frontend/src/hooks/useBackendHealthCheck.ts",
+          "frontend/src/hooks/useQueries.ts"
         ]
       },
       {
-        "id": "REQ-91",
-        "summary": "Audit and repair visual styling regressions affecting core dashboard layouts (header, cards, panels, spacing, typography) to ensure a consistent, readable UI in both light and dark themes.",
+        "id": "REQ-95",
+        "summary": "Make Network Graph React Query caching target-aware so a failed load (or successful load) for one ICP target does not incorrectly persist when switching to a different target.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/pages/AdminDashboard.tsx",
-          "frontend/src/pages/IcpOpsDashboard.tsx"
+          "frontend/src/queryKeys.ts",
+          "frontend/src/hooks/useNetworkGraph.ts"
         ],
         "matchedFiles": [
-          "frontend/src/index.css",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/pages/AdminDashboard.tsx",
-          "frontend/src/pages/IcpOpsDashboard.tsx"
+          "frontend/src/queryKeys.ts",
+          "frontend/src/hooks/useNetworkGraph.ts"
         ]
       },
       {
-        "id": "REQ-92",
-        "summary": "Repair Network Map visual presentation so the canvas is clearly visible and the graph (nodes/edges/labels) is legible against the background in both light and dark themes.",
+        "id": "REQ-96",
+        "summary": "Improve the Network Map load-failure UX so that when the network graph cannot be fetched due to ICP connectivity/target issues, the UI clearly explains that the canister target is unreachable, shows the effective network + canister ID, and provides a one-click retry that re-runs the fetch after the actor/connection is re-established.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/NetworkMapCanvas.tsx",
           "frontend/src/components/NetworkMapPanel.tsx",
-          "frontend/src/index.css"
+          "frontend/src/hooks/useNetworkGraph.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/NetworkMapCanvas.tsx",
           "frontend/src/components/NetworkMapPanel.tsx",
-          "frontend/src/index.css"
+          "frontend/src/hooks/useNetworkGraph.ts"
         ]
       },
       {
-        "id": "REQ-93",
-        "summary": "Ensure tab-like navigation controls (e.g., the ICP Controls Catalog category tabs) remain visually consistent and usable, with clear active-state styling and no broken layout/overflow at common viewport sizes.",
+        "id": "REQ-97",
+        "summary": "Prevent network graph fetching when the effective canister ID is not a valid principal text (or is a placeholder value), and instead present an English guidance message prompting the user to set a valid canister ID in ICP Controls before retrying.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/IcpControlsCatalog.tsx",
-          "frontend/src/index.css"
+          "frontend/src/hooks/useNetworkGraph.ts",
+          "frontend/src/components/NetworkMapPanel.tsx",
+          "frontend/src/utils/icpControls.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/IcpControlsCatalog.tsx",
-          "frontend/src/index.css"
+          "frontend/src/hooks/useNetworkGraph.ts",
+          "frontend/src/components/NetworkMapPanel.tsx",
+          "frontend/src/utils/icpControls.ts"
         ]
       }
     ]
@@ -79,14 +75,13 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/Header.tsx",
-    "frontend/src/components/IcpControlsCatalog.tsx",
-    "frontend/src/components/IcpControlsCatalogRow.tsx",
-    "frontend/src/components/NetworkMapCanvas.tsx",
     "frontend/src/components/NetworkMapPanel.tsx",
-    "frontend/src/index.css",
-    "frontend/src/pages/AdminDashboard.tsx",
-    "frontend/src/pages/IcpOpsDashboard.tsx",
+    "frontend/src/hooks/useBackendHealthCheck.ts",
+    "frontend/src/hooks/useNetworkGraph.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useTargetActor.ts",
+    "frontend/src/queryKeys.ts",
+    "frontend/src/utils/icpControls.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

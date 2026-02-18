@@ -3,6 +3,13 @@
  */
 
 /**
+ * Query key for target-aware actor (scoped by principal, network, and canisterId).
+ */
+export function actorKey(principalText: string, network: string, canisterId: string) {
+  return ['targetActor', principalText, network, canisterId];
+}
+
+/**
  * Query key for ICP Controller status (principal-scoped).
  */
 export function icpControllerStatusKey(principalText?: string) {
@@ -52,8 +59,8 @@ export function worldWideWebControllersKey() {
 }
 
 /**
- * Query key for network graph data.
+ * Query key for network graph data (scoped by network and canisterId).
  */
-export function networkGraphKey() {
-  return ['networkGraph'];
+export function networkGraphKey(network: string, canisterId: string) {
+  return ['networkGraph', network, canisterId];
 }
